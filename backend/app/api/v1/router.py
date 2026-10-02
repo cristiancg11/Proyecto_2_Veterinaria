@@ -1,17 +1,21 @@
-"""API Router definition for Version 1 endpoints."""
+"""API Router definition for Version 1 endpoints with Supabase persistence and storage."""
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 
 from app.core.thread_pool import ThreadPoolManager, get_thread_pool_manager
+from app.repositories.base_repository import BaseTriageRepository
+from app.repositories.supabase_repository import SupabaseTriageRepository
 from app.schemas.triage import (
     ClinicLocationResponse,
     TriageAssessmentResponse,
+    TriageRecordDBResponse,
     TriageUrgencyLevel,
 )
 from app.services.base_triage import BaseTriageService
 from app.services.clinic_locator_service import ClinicLocatorService
 from app.services.gemini_triage_service import GeminiTriageService
+from app.services.storage_service import SupabaseStorageService
 
 api_v1_router = APIRouter(prefix="", tags=["v1"])
 
@@ -24,6 +28,16 @@ def get_triage_service() -> BaseTriageService:
 def get_clinic_locator_service() -> ClinicLocatorService:
     """Dependency provider for geospatial clinic locator service."""
     return ClinicLocatorService()
+
+
+def get_storage_service() -> SupabaseStorageService:
+    """Dependency provider for Supabase file storage service."""
+    return SupabaseStorageService()
+
+
+def get_triage_repository() -> BaseTriageRepository:
+    """Dependency provider for Supabase database repository."""
+    return SupabaseTriageRepository()
 
 
 ALLOWED_MIME_TYPES = {
@@ -40,19 +54,25 @@ ALLOWED_MIME_TYPES = {
     "/diagnose",
     response_model=TriageAssessmentResponse,
     status_code=status.HTTP_200_OK,
-    summary="Perform multimodal veterinary triage assessment",
-    description="Accepts an image of the lesion/condition and textual symptoms, returning AI-driven triage advice.",
+    summary="Perform multimodal veterinary triage assessment with cloud storage and persistence",
+    description=(
+        "Accepts a pet condition photograph and symptoms description. "
+        "Uploads the image to Supabase Storage, evaluates condition using Gemini 2.5 Flash, "
+        "saves the clinical record in PostgreSQL via Supabase, and returns the structured triage advice."
+    ),
 )
 async def diagnose_pet_condition(
     image: UploadFile = File(..., description="Photographic evidence of the visible lesion or condition"),
     pet_type: str = Form(..., description="Species or animal type (e.g., Dog, Cat)"),
     symptoms_description: str = Form(..., description="Narrative description of symptoms and behavior"),
-    user_lat: Optional[float] = Form(None, description="Optional user latitude"),
-    user_lng: Optional[float] = Form(None, description="Optional user longitude"),
+    user_lat: Optional[float] = Form(None, description="Optional user geographical latitude"),
+    user_lng: Optional[float] = Form(None, description="Optional user geographical longitude"),
     triage_service: BaseTriageService = Depends(get_triage_service),
+    storage_service: SupabaseStorageService = Depends(get_storage_service),
+    repository: BaseTriageRepository = Depends(get_triage_repository),
     thread_pool_manager: ThreadPoolManager = Depends(get_thread_pool_manager),
 ) -> TriageAssessmentResponse:
-    """Handle pet triage evaluation request."""
+    """Execute complete pet triage evaluation, storage, and persistence flow."""
     if image.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -60,7 +80,7 @@ async def diagnose_pet_condition(
         )
 
     try:
-        # Offload file byte reading to worker thread pool to prevent event loop blocking
+        # Step 1: Offload file byte reading to thread pool
         image_bytes = await thread_pool_manager.run_in_thread(image.file.read)
         if not image_bytes or len(image_bytes) == 0:
             raise HTTPException(
@@ -68,12 +88,45 @@ async def diagnose_pet_condition(
                 detail="The uploaded image file is empty.",
             )
 
+        # Step 2: Upload image to Supabase Storage bucket asynchronously
+        image_url = await storage_service.upload_pet_image(
+            image_bytes=image_bytes,
+            filename=image.filename or "pet_image.jpg",
+            mime_type=image.content_type or "image/jpeg",
+        )
+
+        # Step 3: Evaluate clinical condition via Gemini 2.5 Flash
         assessment = await triage_service.evaluate_condition(
             image_bytes=image_bytes,
             mime_type=image.content_type or "image/jpeg",
             pet_type=pet_type,
             symptoms_description=symptoms_description,
         )
+        assessment.image_url = image_url
+
+        # Step 4: Persist triage record in Supabase PostgreSQL table
+        record_data = {
+            "pet_type": pet_type,
+            "symptoms_description": symptoms_description,
+            "image_url": image_url,
+            "urgency_level": assessment.urgency_level,
+            "urgency_color": assessment.urgency_color,
+            "preliminary_assessment": assessment.preliminary_assessment,
+            "immediate_care_tips": assessment.immediate_care_tips,
+            "recommended_facility_type": assessment.recommended_facility_type,
+            "warning_disclaimer": assessment.warning_disclaimer,
+            "user_lat": user_lat,
+            "user_lng": user_lng,
+        }
+
+        try:
+            saved_record = await repository.save_triage_record(record_data)
+            if saved_record and "id" in saved_record:
+                assessment.record_id = str(saved_record["id"])
+        except Exception as db_err:
+            # Non-blocking log: Return medical assessment even if DB audit log fails
+            print(f"[Warning] Failed to persist record in Supabase: {str(db_err)}")
+
         return assessment
 
     except ValueError as val_err:
@@ -90,6 +143,27 @@ async def diagnose_pet_condition(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred during triage evaluation: {str(exc)}",
+        )
+
+
+@api_v1_router.get(
+    "/history",
+    response_model=List[TriageRecordDBResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve recent triage evaluation history",
+    description="Returns the last 10 clinical triage records registered in Supabase PostgreSQL.",
+)
+async def get_triage_history(
+    limit: int = Query(10, ge=1, le=50, description="Number of recent records to return"),
+    repository: BaseTriageRepository = Depends(get_triage_repository),
+) -> List[Dict[str, Any]]:
+    """Fetch recent triage records."""
+    try:
+        return await repository.get_recent_records(limit=limit)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch triage history: {str(exc)}",
         )
 
 

@@ -1,7 +1,7 @@
-"""Data transfer models and schemas for pet triage and clinic localization."""
+"""Data transfer models and schemas for pet triage, clinic localization, and database persistence."""
 
 from enum import Enum
-from typing import List, Literal
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -55,6 +55,14 @@ class TriageAssessmentResponse(BaseModel):
         ...,
         description="Mandatory medical and legal disclaimer clarifying that AI triage does not replace a physical veterinary exam.",
     )
+    image_url: Optional[str] = Field(
+        None,
+        description="Public URL of the stored pet image in Supabase Storage.",
+    )
+    record_id: Optional[str] = Field(
+        None,
+        description="Unique database identifier for the persisted triage record.",
+    )
 
     @model_validator(mode="after")
     def synchronize_urgency_color(self) -> "TriageAssessmentResponse":
@@ -63,6 +71,29 @@ class TriageAssessmentResponse(BaseModel):
         if expected_color and self.urgency_color != expected_color:
             self.urgency_color = expected_color
         return self
+
+
+class TriageRecordDBResponse(BaseModel):
+    """Database model representation for persisted triage records."""
+
+    id: Optional[str] = Field(None, description="Unique record identifier / UUID")
+    created_at: Optional[str] = Field(None, description="Timestamp of record creation")
+    pet_type: str = Field(..., description="Species or animal type")
+    symptoms_description: str = Field(..., description="Narrative description of symptoms")
+    image_url: Optional[str] = Field(None, description="Public URL of the uploaded pet photograph")
+    urgency_level: str = Field(..., description="Clinical triage urgency level")
+    urgency_color: str = Field(..., description="Hexadecimal color associated with urgency")
+    preliminary_assessment: str = Field(..., description="Clinical evaluation summary")
+    immediate_care_tips: List[str] = Field(
+        default_factory=list,
+        description="Immediate safe care guidelines",
+    )
+    recommended_facility_type: str = Field(..., description="Recommended facility classification")
+    warning_disclaimer: str = Field(..., description="Medical warning disclaimer")
+    user_lat: Optional[float] = Field(None, description="User geographical latitude")
+    user_lng: Optional[float] = Field(None, description="User geographical longitude")
+
+    model_config = {"extra": "ignore"}
 
 
 class ClinicLocationResponse(BaseModel):

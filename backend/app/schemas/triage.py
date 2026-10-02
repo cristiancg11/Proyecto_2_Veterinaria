@@ -1,0 +1,81 @@
+"""Data transfer models and schemas for pet triage and clinic localization."""
+
+from enum import Enum
+from typing import List, Literal
+from pydantic import BaseModel, Field, model_validator
+
+
+class TriageUrgencyLevel(str, Enum):
+    """Clinical urgency severity enumeration."""
+    CRITICAL = "CRITICAL"
+    MODERATE = "MODERATE"
+    MILD = "MILD"
+
+
+class FacilityType(str, Enum):
+    """Recommended facility classification."""
+    EMERGENCY_24H = "Clínica 24 horas con quirófano"
+    GENERAL_CLINIC = "Consultorio general"
+
+
+URGENCY_COLOR_MAPPING = {
+    TriageUrgencyLevel.CRITICAL.value: "#ef4444",
+    TriageUrgencyLevel.MODERATE.value: "#f59e0b",
+    TriageUrgencyLevel.MILD.value: "#10b981",
+}
+
+
+class TriageAssessmentResponse(BaseModel):
+    """Structured response model for multimodal veterinary triage assessment."""
+
+    urgency_level: Literal["CRITICAL", "MODERATE", "MILD"] = Field(
+        ...,
+        description="Clinical triage urgency level estimated by visual and symptomatic assessment.",
+    )
+    urgency_color: Literal["#ef4444", "#f59e0b", "#10b981"] = Field(
+        ...,
+        description="Hexadecimal color associated with urgency level (#ef4444: CRITICAL, #f59e0b: MODERATE, #10b981: MILD).",
+    )
+    preliminary_assessment: str = Field(
+        ...,
+        description="Objective and empathetic clinical summary of visible findings and reported symptoms.",
+    )
+    immediate_care_tips: List[str] = Field(
+        ...,
+        description="Step-by-step immediate safe first-aid and stabilization guidelines.",
+    )
+    recommended_facility_type: Literal[
+        "Clínica 24 horas con quirófano",
+        "Consultorio general",
+    ] = Field(
+        ...,
+        description="Recommended veterinary facility type based on estimated severity.",
+    )
+    warning_disclaimer: str = Field(
+        ...,
+        description="Mandatory medical and legal disclaimer clarifying that AI triage does not replace a physical veterinary exam.",
+    )
+
+    @model_validator(mode="after")
+    def synchronize_urgency_color(self) -> "TriageAssessmentResponse":
+        """Ensure strict synchronization between urgency level and its hex color."""
+        expected_color = URGENCY_COLOR_MAPPING.get(self.urgency_level)
+        if expected_color and self.urgency_color != expected_color:
+            self.urgency_color = expected_color
+        return self
+
+
+class ClinicLocationResponse(BaseModel):
+    """Geolocated veterinary clinic data model."""
+
+    id: str = Field(..., description="Unique clinic identifier")
+    name: str = Field(..., description="Commercial clinic or hospital name")
+    phone: str = Field(..., description="Contact telephone for inquiries or emergencies")
+    hours: str = Field(..., description="Operating business hours")
+    distance_km: float = Field(..., description="Calculated distance in kilometers from user location")
+    coordinates: List[float] = Field(..., description="Geographical coordinates [latitude, longitude]")
+    address: str = Field(..., description="Street physical address")
+    is_emergency_facility: bool = Field(
+        ...,
+        description="Flag indicating if the facility has 24/7 emergency and surgical capabilities",
+    )

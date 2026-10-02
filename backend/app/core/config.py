@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash"
 
+    # Supabase Settings
+    SUPABASE_URL: str = "https://vdxzoiededgmfysfoozd.supabase.co"
+    SUPABASE_KEY: str = ""
+    SUPABASE_STORAGE_BUCKET: str = "pet-images"
+    SUPABASE_TABLE_NAME: str = "triage_records"
+
     # Concurrency and Multithreading Settings
     MAX_THREAD_WORKERS: int = 4
 

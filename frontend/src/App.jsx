@@ -5,17 +5,18 @@ import DiagnosisResult from './components/DiagnosisResult';
 import VetMap from './components/VetMap';
 import HistoryModal from './components/HistoryModal';
 import AuthModal from './components/AuthModal';
+import AuthScreen from './components/AuthScreen';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import useGeolocation from './hooks/useGeolocation';
 import useTriage from './hooks/useTriage';
-import { AlertCircle, MapPin, Zap, UserCheck } from 'lucide-react';
+import { AlertCircle, MapPin, Zap, UserCheck, HeartPulse, Loader2 } from 'lucide-react';
 
 function MainApp() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [lastPetType, setLastPetType] = useState('Perro (Canino)');
 
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   // Custom Hooks
   const { coordinates, loading: geoLoading, error: geoError } = useGeolocation();
@@ -29,6 +30,27 @@ function MainApp() {
     submitTriage,
     resetDiagnosis,
   } = useTriage(user?.id);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-rose-600 flex items-center justify-center animate-pulse shadow-xl shadow-rose-500/40">
+            <HeartPulse className="w-8 h-8 text-white" />
+          </div>
+          <div className="text-sm font-medium text-slate-300 flex items-center space-x-2">
+            <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+            <span>Verificando sesión en VetIA...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Authentication Gate: Require user to sign in or register before entering
+  if (!isAuthenticated) {
+    return <AuthScreen />;
+  }
 
   const handleTriageSubmit = ({ file, petType, symptomsDescription }) => {
     setLastPetType(petType);

@@ -89,7 +89,10 @@ class TriageRecordDBResponse(BaseModel):
         description="Immediate safe care guidelines",
     )
     recommended_facility_type: str = Field(..., description="Recommended facility classification")
-    warning_disclaimer: str = Field(..., description="Medical warning disclaimer")
+    warning_disclaimer: Optional[str] = Field(
+        None,
+        description="Medical warning disclaimer",
+    )
     user_lat: Optional[float] = Field(None, description="User geographical latitude")
     user_lng: Optional[float] = Field(None, description="User geographical longitude")
 

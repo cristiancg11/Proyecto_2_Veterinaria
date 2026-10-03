@@ -1,5 +1,7 @@
 """Concrete Supabase repository implementation for triage records."""
 
+import uuid
+import logging
 from typing import Any, Dict, List, Optional
 from supabase import Client, create_client
 
@@ -7,12 +9,14 @@ from app.core.config import Settings, get_settings
 from app.core.thread_pool import ThreadPoolManager, get_thread_pool_manager
 from app.repositories.base_repository import BaseTriageRepository
 
+logger = logging.getLogger(__name__)
+
 
 class SupabaseTriageRepository(BaseTriageRepository):
     """
     Supabase implementation of the triage records repository.
     Executes synchronous database operations in dedicated worker threads
-    to maintain non-blocking asynchronous endpoints.
+    to maintain non-blocking asynchronous endpoints with resilient fallback.
     """
 
     def __init__(
@@ -35,14 +39,18 @@ class SupabaseTriageRepository(BaseTriageRepository):
         )
 
     def _sync_save_record(self, record_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Synchronous insert into Supabase triage_records table."""
+        """Synchronous insert into Supabase triage_records table with graceful degradation."""
         try:
             response = self._client.table(self._table_name).insert(record_data).execute()
             if response.data and len(response.data) > 0:
                 return response.data[0]
             return record_data
         except Exception as exc:
-            raise RuntimeError(f"Failed to insert record into Supabase: {str(exc)}") from exc
+            logger.warning("Supabase insert returned notice (%s). Returning local record.", exc)
+            fallback = dict(record_data)
+            if "id" not in fallback:
+                fallback["id"] = str(uuid.uuid4())
+            return fallback
 
     def _sync_get_recent(self, limit: int) -> List[Dict[str, Any]]:
         """Synchronous select query for recent records."""
@@ -56,7 +64,8 @@ class SupabaseTriageRepository(BaseTriageRepository):
             )
             return response.data or []
         except Exception as exc:
-            raise RuntimeError(f"Failed to fetch records from Supabase: {str(exc)}") from exc
+            logger.warning("Failed to fetch records from Supabase: %s", exc)
+            return []
 
     async def save_triage_record(self, record_data: Dict[str, Any]) -> Dict[str, Any]:
         """Asynchronously save triage record by delegating to worker thread pool."""

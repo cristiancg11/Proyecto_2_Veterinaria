@@ -29,3 +29,30 @@
 .pulse-marker {
   animation: pulse-ring 2s infinite ease-in-out;
 }
+
+/* Print view optimization for emergency clinical sheet */
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-clinical-sheet,
+  #printable-clinical-sheet * {
+    visibility: visible;
+  }
+
+  #printable-clinical-sheet {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 24px;
+    box-shadow: none;
+    border: none;
+  }
+}

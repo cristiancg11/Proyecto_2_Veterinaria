@@ -1,4 +1,4 @@
-"""Data transfer models and schemas for pet triage, clinic localization, and database persistence."""
+"""Data transfer models and schemas for pet triage, clinic localization, follow-up chat, and database persistence."""
 
 from enum import Enum
 from typing import List, Literal, Optional
@@ -78,6 +78,7 @@ class TriageRecordDBResponse(BaseModel):
 
     id: Optional[str] = Field(None, description="Unique record identifier / UUID")
     created_at: Optional[str] = Field(None, description="Timestamp of record creation")
+    user_id: Optional[str] = Field(None, description="Associated authenticated user identifier")
     pet_type: str = Field(..., description="Species or animal type")
     symptoms_description: str = Field(..., description="Narrative description of symptoms")
     image_url: Optional[str] = Field(None, description="Public URL of the uploaded pet photograph")
@@ -113,3 +114,28 @@ class ClinicLocationResponse(BaseModel):
         ...,
         description="Flag indicating if the facility has 24/7 emergency and surgical capabilities",
     )
+
+
+class ChatMessage(BaseModel):
+    """Message item in follow-up chat history."""
+
+    role: Literal["user", "model", "system"] = Field(..., description="Sender role")
+    content: str = Field(..., description="Text content of message")
+
+
+class ChatRequest(BaseModel):
+    """Payload for contextual follow-up questions."""
+
+    message: str = Field(..., description="User question regarding care or triage")
+    conversation_history: List[ChatMessage] = Field(
+        default_factory=list,
+        description="Prior conversational context",
+    )
+
+
+class ChatResponse(BaseModel):
+    """Response model for AI follow-up chat."""
+
+    reply: str = Field(..., description="Veterinary AI guidance reply")
+    timestamp: str = Field(..., description="ISO 8601 timestamp")
+    triage_id: str = Field(..., description="Associated triage case ID")

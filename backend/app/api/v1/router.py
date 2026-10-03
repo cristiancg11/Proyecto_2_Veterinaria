@@ -1,5 +1,6 @@
-"""API Router definition for Version 1 endpoints with Supabase persistence and storage."""
+"""API Router definition for Version 1 endpoints with Supabase persistence, follow-up chat, and user scoping."""
 
+import datetime
 import logging
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
@@ -8,6 +9,9 @@ from app.core.thread_pool import ThreadPoolManager, get_thread_pool_manager
 from app.repositories.base_repository import BaseTriageRepository
 from app.repositories.supabase_repository import SupabaseTriageRepository
 from app.schemas.triage import (
+    ChatMessage,
+    ChatRequest,
+    ChatResponse,
     ClinicLocationResponse,
     TriageAssessmentResponse,
     TriageRecordDBResponse,
@@ -68,6 +72,7 @@ async def diagnose_pet_condition(
     image: UploadFile = File(..., description="Photographic evidence of the visible lesion or condition"),
     pet_type: str = Form(..., description="Species or animal type (e.g., Dog, Cat)"),
     symptoms_description: str = Form(..., description="Narrative description of symptoms and behavior"),
+    user_id: Optional[str] = Form(None, description="Optional authenticated user UUID from Supabase Auth"),
     user_lat: Optional[float] = Form(None, description="Optional user geographical latitude"),
     user_lng: Optional[float] = Form(None, description="Optional user geographical longitude"),
     triage_service: BaseTriageService = Depends(get_triage_service),
@@ -111,8 +116,8 @@ async def diagnose_pet_condition(
         )
         assessment.image_url = image_url
 
-        # Step 4: Persist triage record in Supabase PostgreSQL table (matches existing columns in schema)
-        record_data = {
+        # Step 4: Persist triage record in Supabase PostgreSQL table
+        record_data: Dict[str, Any] = {
             "pet_type": pet_type,
             "symptoms_description": symptoms_description,
             "image_url": image_url,
@@ -124,6 +129,9 @@ async def diagnose_pet_condition(
             "user_lat": user_lat,
             "user_lng": user_lng,
         }
+
+        if user_id:
+            record_data["user_id"] = user_id
 
         try:
             saved_record = await repository.save_triage_record(record_data)
@@ -149,18 +157,65 @@ async def diagnose_pet_condition(
     response_model=List[TriageRecordDBResponse],
     status_code=status.HTTP_200_OK,
     summary="Retrieve recent triage evaluation history",
-    description="Returns the last 10 clinical triage records registered in Supabase PostgreSQL.",
+    description="Returns clinical triage records registered in Supabase PostgreSQL, optionally user-scoped.",
 )
 async def get_triage_history(
     limit: int = Query(10, ge=1, le=50, description="Number of recent records to return"),
+    user_id: Optional[str] = Query(None, description="Optional authenticated user UUID for personal history"),
     repository: BaseTriageRepository = Depends(get_triage_repository),
 ) -> List[Dict[str, Any]]:
     """Fetch recent triage records."""
     try:
-        return await repository.get_recent_records(limit=limit)
+        return await repository.get_recent_records(limit=limit, user_id=user_id)
     except Exception as exc:
         logger.warning("History fetch issue: %s", exc)
         return []
+
+
+@api_v1_router.post(
+    "/triage/{triage_id}/chat",
+    response_model=ChatResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Contextual follow-up chat for an evaluated triage case",
+    description="Allows asking follow-up questions to Gemini 2.5 Flash regarding stabilization, care, and transport.",
+)
+async def follow_up_triage_chat(
+    triage_id: str,
+    chat_request: ChatRequest,
+    repository: BaseTriageRepository = Depends(get_triage_repository),
+    triage_service: BaseTriageService = Depends(get_triage_service),
+) -> ChatResponse:
+    """Process contextual follow-up questions grounded on previous triage findings."""
+    # Attempt to fetch original case context from Supabase
+    triage_record = await repository.get_record_by_id(triage_id)
+    if not triage_record:
+        # Fallback minimal context if case is in-memory or not found
+        triage_record = {
+            "id": triage_id,
+            "pet_type": "Mascota",
+            "urgency_level": "MODERATE",
+            "preliminary_assessment": "Evaluación preliminar de urgencia.",
+            "symptoms_description": "Síntomas bajo observación.",
+        }
+
+    try:
+        reply_text = await triage_service.follow_up_chat(
+            triage_context=triage_record,
+            user_message=chat_request.message,
+            history=chat_request.conversation_history,
+        )
+
+        return ChatResponse(
+            reply=reply_text,
+            timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            triage_id=triage_id,
+        )
+    except Exception as exc:
+        logger.error("Error during follow-up chat: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing follow-up question: {str(exc)}",
+        )
 
 
 @api_v1_router.get(

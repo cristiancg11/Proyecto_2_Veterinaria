@@ -1,7 +1,8 @@
 """Abstract base interface for veterinary triage evaluation services."""
 
 from abc import ABC, abstractmethod
-from app.schemas.triage import TriageAssessmentResponse
+from typing import Any, Dict, List
+from app.schemas.triage import ChatMessage, TriageAssessmentResponse
 
 
 class BaseTriageService(ABC):
@@ -23,5 +24,22 @@ class BaseTriageService(ABC):
         :param pet_type: Species or pet classification (e.g., 'Dog', 'Cat').
         :param symptoms_description: Narrative description of symptoms and behavior.
         :return: TriageAssessmentResponse containing structured medical triage advice.
+        """
+        pass
+
+    @abstractmethod
+    async def follow_up_chat(
+        self,
+        triage_context: Dict[str, Any],
+        user_message: str,
+        history: List[ChatMessage],
+    ) -> str:
+        """
+        Conduct contextual follow-up chat based on an initial triage case.
+
+        :param triage_context: Dictionary with previous triage case findings.
+        :param user_message: Latest inquiry submitted by user.
+        :param history: Prior conversation items.
+        :return: Clinical AI response string.
         """
         pass

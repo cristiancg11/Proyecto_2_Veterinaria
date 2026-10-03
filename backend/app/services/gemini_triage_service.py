@@ -1,13 +1,13 @@
-"""Gemini multimodal veterinary triage service implementation with graceful fallback."""
+"""Gemini multimodal veterinary triage service implementation with graceful fallback and follow-up chat."""
 
 import logging
-from typing import Optional
+from typing import Any, Dict, List, Optional
 from google import genai
 from google.genai import types
 
 from app.core.config import Settings, get_settings
 from app.core.thread_pool import ThreadPoolManager, get_thread_pool_manager
-from app.schemas.triage import TriageAssessmentResponse
+from app.schemas.triage import ChatMessage, TriageAssessmentResponse
 from app.services.base_triage import BaseTriageService
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class GeminiTriageService(BaseTriageService):
     Multimodal triage service leveraging Google's Gemini 2.5 Flash model.
     Inherits from BaseTriageService and utilizes a dedicated thread pool to
     prevent blocking the async event loop during synchronous GenAI calls.
-    Includes smart graceful fallback if GEMINI_API_KEY is pending configuration.
+    Includes smart graceful fallback and contextual follow-up chat capabilities.
     """
 
     def __init__(
@@ -90,7 +90,6 @@ class GeminiTriageService(BaseTriageService):
         """
         text = symptoms.lower()
 
-        # Keyword heuristics for emergency triage
         critical_keywords = [
             "sangr", "hemorrag", "fractur", "hueso", "inconscient", "desmay",
             "convuls", "asfixi", "no respira", "ahogo", "atropell", "mordid",
@@ -172,11 +171,7 @@ class GeminiTriageService(BaseTriageService):
         pet_type: str,
         symptoms_description: str,
     ) -> TriageAssessmentResponse:
-        """
-        Synchronous inference call to Gemini API using structured JSON output.
-        Falls back smoothly to simulated assessment if client is unavailable.
-        """
-        # If no client or API key is not ready, execute smart clinical fallback
+        """Synchronous inference call to Gemini API using structured JSON output."""
         if not self._client:
             logger.info("Using smart fallback assessment (GEMINI_API_KEY is not configured)")
             return self._generate_fallback_assessment(pet_type, symptoms_description)
@@ -228,10 +223,7 @@ class GeminiTriageService(BaseTriageService):
         pet_type: str,
         symptoms_description: str,
     ) -> TriageAssessmentResponse:
-        """
-        Asynchronously evaluates the pet condition by delegating the blocking
-        Gemini API call to the thread pool executor.
-        """
+        """Asynchronously evaluates the pet condition via thread pool."""
         if not image_bytes or len(image_bytes) == 0:
             raise ValueError("Provided image bytes cannot be empty.")
 
@@ -241,4 +233,102 @@ class GeminiTriageService(BaseTriageService):
             mime_type,
             pet_type,
             symptoms_description,
+        )
+
+    def _sync_follow_up_chat(
+        self,
+        triage_context: Dict[str, Any],
+        user_message: str,
+        history: List[ChatMessage],
+    ) -> str:
+        """
+        Processes a contextual follow-up question via Gemini or smart clinical engine.
+        """
+        pet_type = triage_context.get("pet_type", "Mascota")
+        urgency = triage_context.get("urgency_level", "MODERATE")
+        assessment = triage_context.get("preliminary_assessment", "")
+        symptoms = triage_context.get("symptoms_description", "")
+
+        chat_system_prompt = (
+            f"Eres el Asistente Médico Veterinario de VetIA / PetEmergency. "
+            f"Estás respondiendo una duda de seguimiento para un paciente ({pet_type}) evaluado con urgencia {urgency}.\n\n"
+            f"CONTEXTO DEL CASO:\n"
+            f"- Síntomas reportados: {symptoms}\n"
+            f"- Evaluación inicial de triage: {assessment}\n\n"
+            f"INSTRUCCIONES CLÍNICAS:\n"
+            f"1. Responde en ESPAÑOL con tono empático, riguroso y conciso.\n"
+            f"2. Da pautas seguras de manejo, transporte y postura.\n"
+            f"3. Si preguntan por medicamentos humanos (paracetamol, ibuprofeno, aspirina), RECUERDA FIRMEMENTE QUE SON TÓXICOS Y LETALES.\n"
+            f"4. Si la urgencia es CRITICAL, enfatiza que deben trasladar al animal de inmediato sin demora.\n"
+            f"5. No realices diagnósticos definitivos; orienta al tutor de forma segura mientras llega a la clínica."
+        )
+
+        if self._client:
+            try:
+                # Format conversation history for Gemini
+                contents = []
+                for msg in history[-6:]:  # last 6 exchanges for context
+                    role = "user" if msg.role == "user" else "model"
+                    contents.append(types.Content(role=role, parts=[types.Part.from_text(text=msg.content)]))
+
+                contents.append(types.Content(role="user", parts=[types.Part.from_text(text=user_message)]))
+
+                config = types.GenerateContentConfig(
+                    system_instruction=chat_system_prompt,
+                    temperature=0.3,
+                )
+
+                response = self._client.models.generate_content(
+                    model=self._model_name,
+                    contents=contents,
+                    config=config,
+                )
+                if response.text and response.text.strip():
+                    return response.text.strip()
+            except Exception as e:
+                logger.warning("Gemini follow-up chat error (%s), using fallback.", e)
+
+        # Smart contextual fallback response
+        q_lower = user_message.lower()
+        if "medicamento" in q_lower or "pastilla" in q_lower or "paracetamol" in q_lower or "ibuprofeno" in q_lower:
+            return (
+                "⚠️ ALERTA MÉDICA: Bajo ninguna circunstancia administres medicamentos de uso humano (paracetamol, ibuprofeno, "
+                "aspirina o diclofenaco). En perros y gatos causan necrosis hepática fulminante, úlceras gástricas y fallo renal letal. "
+                "Cualquier analgesia debe ser prescrita exclusivamente por el médico veterinario."
+            )
+        elif "agua" in q_lower or "comida" in q_lower or "alimento" in q_lower or "comer" in q_lower:
+            if urgency == "CRITICAL":
+                return (
+                    "Ante un cuadro crítico, NO suministres alimentos sólidos ni líquidos. Si el paciente requiere sedación, intubación "
+                    "o cirugía de emergencia al llegar a la clínica, el estómago lleno aumenta drásticamente el riesgo de broncoaspiración."
+                )
+            return (
+                "Puedes humedecer sus labios o poner agua fresca a libre disposición a temperatura ambiente, pero nunca fuerces a tu "
+                f"{pet_type} a beber si presenta náuseas, decaimiento extremo o dolor agudo. Suspende el alimento sólido hasta la revisión."
+            )
+        elif "transport" in q_lower or "llevar" in q_lower or "mover" in q_lower or "viaje" in q_lower:
+            return (
+                f"Para transportar a tu {pet_type}, colócalo sobre una superficie plana y firme (una manta extendida tipo camilla o caja de cartón rígida). "
+                "Mantén la cabeza y el cuello en línea recta para no comprometer las vías respiratorias y evita flexionar la columna. "
+                "Cubre su cuerpo con una toalla ligera para preservar la temperatura corporal y acude con precaución al centro veterinario."
+            )
+        else:
+            return (
+                f"Respecto a tu consulta sobre tu {pet_type}: Es fundamental mantener un ambiente templado, con luz tenue y sin ruidos bruscos "
+                f"para reducir su nivel de estrés y dolor. Dado que el triage indicó severidad {urgency}, lo prioritario es vigilar si la respiración "
+                "se vuelve agitada o superficial, y acudir al centro veterinario indicado en el mapa interactivo."
+            )
+
+    async def follow_up_chat(
+        self,
+        triage_context: Dict[str, Any],
+        user_message: str,
+        history: List[ChatMessage],
+    ) -> str:
+        """Asynchronously dispatches follow-up chat to worker thread pool."""
+        return await self._thread_pool_manager.run_in_thread(
+            self._sync_follow_up_chat,
+            triage_context,
+            user_message,
+            history,
         )

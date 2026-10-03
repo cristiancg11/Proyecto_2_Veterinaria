@@ -64,13 +64,19 @@ export class ApiClient {
   }
 
   /**
-   * Fetch the last triage records saved in Supabase database.
+   * Fetch triage records from Supabase database, optionally filtered by authenticated user.
    * @param {number} limit
+   * @param {string} [userId]
    * @returns {Promise<Array>} List of TriageRecordDBResponse
    */
-  async getHistory(limit = 10) {
+  async getHistory(limit = 10, userId = null) {
     try {
-      const response = await fetch(`${this.baseUrl}/history?limit=${limit}`);
+      const params = new URLSearchParams({ limit: limit.toString() });
+      if (userId) {
+        params.append('user_id', userId);
+      }
+
+      const response = await fetch(`${this.baseUrl}/history?${params.toString()}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
@@ -81,6 +87,40 @@ export class ApiClient {
       return await response.json();
     } catch (error) {
       console.error('[ApiClient.getHistory] Error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send follow-up contextual inquiry for an evaluated triage case.
+   * @param {string} triageId
+   * @param {string} message
+   * @param {Array} conversationHistory
+   * @returns {Promise<Object>} { reply, timestamp, triage_id }
+   */
+  async followUpChat(triageId, message, conversationHistory = []) {
+    try {
+      const response = await fetch(`${this.baseUrl}/triage/${triageId}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          conversation_history: conversationHistory,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.detail || `Follow-up chat failed with status ${response.status}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('[ApiClient.followUpChat] Error:', error);
       throw error;
     }
   }

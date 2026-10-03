@@ -47,9 +47,9 @@ function compressImageWithWorker(file) {
 /**
  * Custom Hook: useTriage
  * Encapsulates the entire medical triage lifecycle, worker compression,
- * API communication, nearby clinics retrieval, and history management.
+ * API communication, nearby clinics retrieval, history management, and follow-up chat.
  */
-export function useTriage() {
+export function useTriage(userId = null) {
   const [loading, setLoading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [currentDiagnosis, setCurrentDiagnosis] = useState(null);
@@ -57,15 +57,15 @@ export function useTriage() {
   const [history, setHistory] = useState([]);
   const [error, setError] = useState(null);
 
-  // Fetch consultation history from Supabase
+  // Fetch consultation history from Supabase, user-scoped if authenticated
   const fetchHistory = useCallback(async () => {
     try {
-      const records = await apiClient.getHistory(10);
+      const records = await apiClient.getHistory(10, userId);
       setHistory(records || []);
     } catch (err) {
       console.warn('[useTriage.fetchHistory] Warning:', err);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     fetchHistory();
@@ -90,6 +90,10 @@ export function useTriage() {
         formData.append('image', processedImageBlob, file.name || 'pet_condition.jpg');
         formData.append('pet_type', petType);
         formData.append('symptoms_description', symptomsDescription);
+
+        if (userId) {
+          formData.append('user_id', userId);
+        }
 
         if (userCoordinates?.lat && userCoordinates?.lng) {
           formData.append('user_lat', userCoordinates.lat.toString());
@@ -124,7 +128,7 @@ export function useTriage() {
         setLoading(false);
       }
     },
-    [fetchHistory]
+    [fetchHistory, userId]
   );
 
   const resetDiagnosis = useCallback(() => {

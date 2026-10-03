@@ -4,12 +4,18 @@ import ImageUploadForm from './components/ImageUploadForm';
 import DiagnosisResult from './components/DiagnosisResult';
 import VetMap from './components/VetMap';
 import HistoryModal from './components/HistoryModal';
+import AuthModal from './components/AuthModal';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import useGeolocation from './hooks/useGeolocation';
 import useTriage from './hooks/useTriage';
-import { AlertCircle, MapPin, Zap } from 'lucide-react';
+import { AlertCircle, MapPin, Zap, UserCheck } from 'lucide-react';
 
-export function App() {
+function MainApp() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [lastPetType, setLastPetType] = useState('Perro (Canino)');
+
+  const { user, isAuthenticated } = useAuth();
 
   // Custom Hooks
   const { coordinates, loading: geoLoading, error: geoError } = useGeolocation();
@@ -22,9 +28,10 @@ export function App() {
     error,
     submitTriage,
     resetDiagnosis,
-  } = useTriage();
+  } = useTriage(user?.id);
 
   const handleTriageSubmit = ({ file, petType, symptomsDescription }) => {
+    setLastPetType(petType);
     submitTriage({
       file,
       petType,
@@ -38,6 +45,7 @@ export function App() {
       {/* Top Navigation */}
       <Header
         onOpenHistory={() => setIsHistoryOpen(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
         historyCount={history.length}
       />
 
@@ -48,14 +56,31 @@ export function App() {
           <div className="flex items-center space-x-2 text-xs text-slate-600">
             <MapPin className="w-4 h-4 text-rose-500 flex-shrink-0" />
             <span>
-              Geolocated at: <strong>{coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}</strong>
-              {geoError && ' (Default fallback active)'}
+              Geolocalizado en: <strong>{coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}</strong>
+              {geoError && ' (Modo fallback activo)'}
             </span>
           </div>
 
-          <div className="flex items-center space-x-2 text-xs text-slate-500">
-            <Zap className="w-4 h-4 text-amber-500" />
-            <span>AI Architecture: <strong>Gemini 2.5 Flash Multimodal + Web Worker Offloading</strong></span>
+          <div className="flex items-center space-x-3 text-xs text-slate-500">
+            {isAuthenticated ? (
+              <span className="flex items-center space-x-1.5 text-rose-600 font-semibold bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Sesión Activa: {user.email}</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAuthOpen(true)}
+                className="text-xs text-rose-600 font-semibold hover:underline"
+              >
+                Inicia sesión para vincular tus consultas
+              </button>
+            )}
+
+            <div className="hidden sm:flex items-center space-x-1.5">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <span>Gemini 2.5 Flash + Web Worker</span>
+            </div>
           </div>
         </div>
 
@@ -64,7 +89,7 @@ export function App() {
           <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start space-x-3 text-rose-800 text-sm shadow-sm">
             <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-bold">Evaluation Encountered an Issue</h4>
+              <h4 className="font-bold">Aviso en la Evaluación</h4>
               <p className="mt-0.5 text-rose-700">{error}</p>
             </div>
           </div>
@@ -84,6 +109,7 @@ export function App() {
               <DiagnosisResult
                 diagnosis={currentDiagnosis}
                 onReset={resetDiagnosis}
+                petType={lastPetType}
               />
             )}
           </div>
@@ -99,10 +125,10 @@ export function App() {
             {/* Quick Helper Guide */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-xs text-slate-600 space-y-2">
               <h4 className="font-bold text-slate-800 text-sm flex items-center space-x-1.5">
-                <span>Emergency Protocol Recommendation</span>
+                <span>Protocolo de Emergencia Veterinaria</span>
               </h4>
               <p className="leading-relaxed">
-                If your pet presents with severe trauma, continuous bleeding, loss of consciousness or respiratory failure, immediately click <strong>Call</strong> or <strong>Route</strong> on the nearest red marker to reach a 24-hour surgical clinic without waiting.
+                Si la mascota presenta sangrado activo incontrolable, pérdida de conciencia o asfixia, haz clic de inmediato en <strong>Call</strong> o <strong>Route</strong> sobre el marcador rojo más cercano para acudir a un hospital con servicio de quirófano 24 horas.
               </p>
             </div>
           </div>
@@ -116,22 +142,33 @@ export function App() {
         history={history}
       />
 
-      {/* Modern Footer */}
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+      />
+
+      {/* Footer */}
       <footer className="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span>VetIA / PetEmergency © 2026 - Academic Fullstack Prototype</span>
+          <span>VetIA / PetEmergency © 2026 - Triage Multimodal & Seguimiento Contextual</span>
           <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-600">
+            <span className="px-2 py-0.5 bg-slate-100 rounded">Supabase Auth</span>
             <span className="px-2 py-0.5 bg-slate-100 rounded">React 18</span>
-            <span className="px-2 py-0.5 bg-slate-100 rounded">Vite</span>
-            <span className="px-2 py-0.5 bg-slate-100 rounded">Tailwind CSS</span>
-            <span className="px-2 py-0.5 bg-slate-100 rounded">Leaflet</span>
-            <span className="px-2 py-0.5 bg-slate-100 rounded">Supabase PostgreSQL</span>
             <span className="px-2 py-0.5 bg-slate-100 rounded">Web Workers</span>
             <span className="px-2 py-0.5 bg-slate-100 rounded">Gemini 2.5 Flash</span>
           </div>
         </div>
       </footer>
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }
 

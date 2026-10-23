@@ -1,1 +1,0 @@
-"""VetIA / PetEmergency Application Package."""

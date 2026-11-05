@@ -111,11 +111,10 @@ export function AuthModal({ isOpen, onClose }) {
               setIsRegister(false);
               setError(null);
             }}
-            className={`flex-1 py-3 transition border-b-2 ${
-              !isRegister
+            className={`flex-1 py-3 transition border-b-2 ${!isRegister
                 ? 'border-rose-600 text-rose-600 bg-rose-50/30'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             Iniciar Sesión
           </button>
@@ -125,11 +124,10 @@ export function AuthModal({ isOpen, onClose }) {
               setIsRegister(true);
               setError(null);
             }}
-            className={`flex-1 py-3 transition border-b-2 ${
-              isRegister
+            className={`flex-1 py-3 transition border-b-2 ${isRegister
                 ? 'border-rose-600 text-rose-600 bg-rose-50/30'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             Crear Cuenta
           </button>

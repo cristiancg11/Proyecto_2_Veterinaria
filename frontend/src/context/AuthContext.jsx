@@ -4,12 +4,11 @@ import supabase, { SUPABASE_URL } from '../services/supabaseClient';
 const AuthContext = createContext({});
 
 const ACTIVE_USER_STORAGE_KEY = 'vetia_active_user';
-const REGISTERED_USERS_STORAGE_KEY = 'vetia_registered_users';
 
 /**
  * Authentication Provider
- * Manages Supabase Auth lifecycle with graceful fallback resilience
- * to handle network outages, unconfirmed email policies, or server connectivity issues.
+ * Manages Supabase Auth lifecycle with real-time session persistence,
+ * strict error propagation for validation, and dedicated local test modes.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -17,22 +16,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. If Supabase client is not available, recover local session immediately
-    if (!supabase || !supabase.auth) {
-      console.warn('[AuthProvider] Supabase client no inicializado. Usando sesión local si existe.');
-      const savedActiveUser = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
-      if (savedActiveUser) {
-        try {
-          const parsedUser = JSON.parse(savedActiveUser);
-          setUser(parsedUser);
-          setSession({ user: parsedUser });
-        } catch (_) {}
-      }
-      setLoading(false);
-      return;
-    }
-
-    // 2. Check initial active Supabase session
+    // 1. Recover active session from Supabase
     supabase.auth
       .getSession()
       .then(({ data: { session: sbSession } }) => {
@@ -41,7 +25,7 @@ export function AuthProvider({ children }) {
           setUser(sbSession.user);
           localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
         } else {
-          // Check if a resilient local session exists in localStorage
+          // Check if a local demo/test session exists
           const savedActiveUser = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
           if (savedActiveUser) {
             try {
@@ -49,7 +33,6 @@ export function AuthProvider({ children }) {
               setUser(parsedUser);
               setSession({ user: parsedUser });
             } catch (err) {
-              console.warn('[AuthProvider] Error al parsear usuario local:', err);
               localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
             }
           }
@@ -57,7 +40,7 @@ export function AuthProvider({ children }) {
         setLoading(false);
       })
       .catch((err) => {
-        console.warn(`[AuthProvider] Supabase getSession error hacia ${SUPABASE_URL}:`, err);
+        console.warn(`[AuthProvider] Supabase getSession error (${SUPABASE_URL}):`, err);
         const savedActiveUser = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
         if (savedActiveUser) {
           try {
@@ -69,36 +52,31 @@ export function AuthProvider({ children }) {
         setLoading(false);
       });
 
-    // 3. Listen to Supabase authentication state changes
-    try {
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((event, newSession) => {
-        if (newSession?.user) {
-          setSession(newSession);
-          setUser(newSession.user);
-          localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
-        } else if (event === 'SIGNED_OUT') {
-          localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
-          setUser(null);
-          setSession(null);
-        }
-        setLoading(false);
-      });
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    } catch (listenerErr) {
-      console.warn('[AuthProvider] onAuthStateChange no disponible:', listenerErr);
+    // 2. Listen to Supabase auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (newSession?.user) {
+        setSession(newSession);
+        setUser(newSession.user);
+        localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
+      } else if (event === 'SIGNED_OUT') {
+        localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
+        setUser(null);
+        setSession(null);
+      }
       setLoading(false);
-    }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   /**
-   * Helper to activate resilient authenticated session
+   * Helper to activate session state
    */
-  const activateUserSession = (userData) => {
+  const activateLocalSession = (userData) => {
     localStorage.setItem(ACTIVE_USER_STORAGE_KEY, JSON.stringify(userData));
     setUser(userData);
     setSession({ user: userData });
@@ -106,223 +84,87 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Sign In with email and password.
-   * Authenticates directly with Supabase Auth with detailed error handling and local fallback.
+   * Sign In with email and password via Supabase Auth
    */
   const signIn = async (email, password) => {
     const normalizedEmail = email.trim().toLowerCase();
     const endpointUrl = `${SUPABASE_URL}/auth/v1/token?grant_type=password`;
 
-    if (!supabase || !supabase.auth) {
-      console.error(`[AuthContext.signIn] Cliente Supabase indefinido. Endpoint: ${endpointUrl}`);
-      // Fallback to local accounts
-      const localUsers = JSON.parse(localStorage.getItem(REGISTERED_USERS_STORAGE_KEY) || '[]');
-      const matched = localUsers.find((u) => u.email === normalizedEmail && u.password === password);
-      if (matched) {
-        return activateUserSession({
-          id: matched.id,
-          email: matched.email,
-          user_metadata: { full_name: matched.full_name },
-          role: 'authenticated',
-          app_metadata: { provider: 'local_fallback' },
-          created_at: matched.created_at,
-        });
-      }
-      throw new Error(`El cliente de Supabase no está disponible y no se encontró cuenta local.`);
-    }
-
-    // 1. Primary path: Authenticate directly against Supabase Auth
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password,
       });
 
-      if (!error && data?.user) {
+      if (error) {
+        console.error(`[AuthContext.signIn] Error en Supabase Auth (${endpointUrl}):`, error);
+
+        let userMsg = error.message;
+        if (error.message.includes('Invalid login credentials')) {
+          userMsg = 'Credenciales incorrectas. Verifica tu correo y contraseña o regístrate en "Crear Cuenta".';
+        } else if (error.message.includes('Email not confirmed')) {
+          userMsg = 'El correo electrónico aún no ha sido confirmado en Supabase.';
+        } else if (error.message.toLowerCase().includes('rate limit')) {
+          userMsg = 'Límite de intentos excedido en Supabase. Espera unos momentos o usa las sesiones de prueba.';
+        }
+
+        throw new Error(userMsg);
+      }
+
+      if (data?.user) {
         setUser(data.user);
         setSession(data.session);
         localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
-
-        // Keep local registry synchronized
-        const localUsers = JSON.parse(localStorage.getItem(REGISTERED_USERS_STORAGE_KEY) || '[]');
-        const existingIdx = localUsers.findIndex((u) => u.email === normalizedEmail);
-        const entry = {
-          id: data.user.id,
-          email: normalizedEmail,
-          password,
-          full_name: data.user.user_metadata?.full_name || normalizedEmail.split('@')[0],
-          created_at: data.user.created_at,
-        };
-        if (existingIdx >= 0) {
-          localUsers[existingIdx] = entry;
-        } else {
-          localUsers.push(entry);
-        }
-        localStorage.setItem(REGISTERED_USERS_STORAGE_KEY, JSON.stringify(localUsers));
-
         return data;
       }
 
-      // If Supabase returned an explicit error response
-      if (error) {
-        console.warn(`[AuthContext.signIn] Supabase devolvió aviso (${endpointUrl}):`, error);
-
-        const isRateLimit =
-          error.status === 429 ||
-          error.code === 'over_email_send_rate_limit' ||
-          error.message?.toLowerCase().includes('rate limit');
-
-        // If credentials are valid but email confirmation is pending or rate limited
-        if (isRateLimit || (error.message && error.message.includes('Email not confirmed'))) {
-          const localUsers = JSON.parse(localStorage.getItem(REGISTERED_USERS_STORAGE_KEY) || '[]');
-          const matchedUser = localUsers.find((u) => u.email === normalizedEmail);
-
-          const userId = matchedUser?.id || ('usr_' + Math.random().toString(36).substring(2, 10));
-          const fullName = matchedUser?.full_name || normalizedEmail.split('@')[0];
-
-          const activeUser = {
-            id: userId,
-            email: normalizedEmail,
-            user_metadata: { full_name: fullName },
-            role: 'authenticated',
-            app_metadata: { provider: 'email', email_confirmed: false, rate_limited: isRateLimit },
-            created_at: matchedUser?.created_at || new Date().toISOString(),
-          };
-
-          return activateUserSession(activeUser);
-        }
-
-        if (error.message && error.message.includes('Invalid login credentials')) {
-          // Check if user was registered locally with matching credentials
-          const localUsers = JSON.parse(localStorage.getItem(REGISTERED_USERS_STORAGE_KEY) || '[]');
-          const matchedUser = localUsers.find(
-            (u) => u.email === normalizedEmail && u.password === password
-          );
-          if (matchedUser) {
-            return activateUserSession({
-              id: matchedUser.id,
-              email: matchedUser.email,
-              user_metadata: { full_name: matchedUser.full_name },
-              role: 'authenticated',
-              app_metadata: { provider: 'email' },
-              created_at: matchedUser.created_at,
-            });
-          }
-          throw new Error('Credenciales incorrectas. Si aún no tienes cuenta, puedes registrarte en "Crear Cuenta".');
-        }
-
-        throw error;
-      }
-    } catch (networkErr) {
-      console.error(
-        `[AuthContext.signIn] Error de red al hacer fetch hacia ${endpointUrl}. Motivo: ${networkErr.message}`,
-        networkErr
-      );
-
-      // Check local storage accounts for seamless developer/evaluator resilience
-      const localUsers = JSON.parse(localStorage.getItem(REGISTERED_USERS_STORAGE_KEY) || '[]');
-      const matchedUser = localUsers.find(
-        (u) => u.email === normalizedEmail && u.password === password
-      );
-
-      if (matchedUser) {
-        console.warn(
-          `[AuthContext.signIn] Red indisponible hacia ${SUPABASE_URL}. Autenticando mediante registro local contingente.`
-        );
-        return activateUserSession({
-          id: matchedUser.id,
-          email: matchedUser.email,
-          user_metadata: { full_name: matchedUser.full_name },
-          role: 'authenticated',
-          app_metadata: { provider: 'local_contingency' },
-          created_at: matchedUser.created_at,
-        });
-      }
-
-      const isFetchError =
-        networkErr.message?.includes('Failed to fetch') || networkErr.name === 'TypeError';
-
-      if (isFetchError) {
-        console.warn(
-          `[AuthContext.signIn] Red indisponible hacia ${SUPABASE_URL}. Activando sesión de contingencia para ${normalizedEmail} para no bloquear la evaluación.`
-        );
-        const fallbackId = 'usr_' + Math.random().toString(36).substring(2, 10);
-        const fallbackUser = {
-          id: fallbackId,
-          email: normalizedEmail,
-          user_metadata: { full_name: normalizedEmail.split('@')[0] },
-          role: 'authenticated',
-          app_metadata: { provider: 'local_contingency' },
-          created_at: new Date().toISOString(),
-        };
-        saveToLocalRegistry(fallbackId, normalizedEmail, password, fallbackUser.user_metadata.full_name);
-        return activateUserSession(fallbackUser);
-      }
-
-      throw networkErr;
+      throw new Error('No se pudo establecer la sesión con el servidor.');
+    } catch (err) {
+      console.error(`[AuthContext.signIn] Excepción al conectar con ${endpointUrl}:`, err);
+      throw err;
     }
   };
 
   /**
-   * Sign Up with email, password, and optional profile metadata.
-   * Directly attempts Supabase Auth, with detailed error logging and resilient fallback.
+   * Sign Up with mandatory user metadata (full_name, role: 'tutor')
    */
   const signUp = async (email, password, metadata = {}) => {
     const normalizedEmail = email.trim().toLowerCase();
-    const fullName = metadata.full_name || normalizedEmail.split('@')[0];
+    const fullName = (metadata.full_name || '').trim() || normalizedEmail.split('@')[0];
     const endpointUrl = `${SUPABASE_URL}/auth/v1/signup`;
-
-    if (!supabase || !supabase.auth) {
-      console.error(`[AuthContext.signUp] Cliente Supabase indefinido. Endpoint: ${endpointUrl}`);
-      // Fallback local registration
-      const localId = 'usr_' + Math.random().toString(36).substring(2, 10);
-      const localUser = {
-        id: localId,
-        email: normalizedEmail,
-        user_metadata: { full_name: fullName },
-        role: 'authenticated',
-        app_metadata: { provider: 'local_fallback' },
-        created_at: new Date().toISOString(),
-      };
-      saveToLocalRegistry(localId, normalizedEmail, password, fullName);
-      return activateUserSession(localUser);
-    }
 
     try {
       const { data, error } = await supabase.auth.signUp({
         email: normalizedEmail,
         password,
         options: {
-          data: { full_name: fullName },
+          data: {
+            full_name: fullName,
+            role: 'tutor',
+          },
         },
       });
 
+      // Strict error handling: Do not fake login on error, propagate to UI
       if (error) {
-        console.warn(`[AuthContext.signUp] Supabase Auth devolvió respuesta (${endpointUrl}):`, error);
+        console.error(`[AuthContext.signUp] Error devuelto por Supabase Auth (${endpointUrl}):`, error);
 
-        const isRateLimit =
+        let userMsg = error.message;
+        if (error.message.includes('User already registered')) {
+          userMsg = 'Este correo electrónico ya está registrado. Por favor inicia sesión.';
+        } else if (error.message.includes('Password should be at least')) {
+          userMsg = 'La contraseña debe contener al menos 6 caracteres.';
+        } else if (
           error.status === 429 ||
           error.code === 'over_email_send_rate_limit' ||
-          error.message?.toLowerCase().includes('rate limit');
-
-        if (isRateLimit) {
-          console.warn(
-            `[AuthContext.signUp] Límite de envío de emails de Supabase excedido para ${normalizedEmail}. Activando sesión de contingencia para permitir evaluación inmediata.`
-          );
-          const fallbackUserId = 'usr_' + Math.random().toString(36).substring(2, 10);
-          const fallbackUser = {
-            id: fallbackUserId,
-            email: normalizedEmail,
-            user_metadata: { full_name: fullName },
-            role: 'authenticated',
-            app_metadata: { provider: 'email_rate_limit_resilience' },
-            created_at: new Date().toISOString(),
-          };
-          saveToLocalRegistry(fallbackUserId, normalizedEmail, password, fullName);
-          return activateUserSession(fallbackUser);
+          error.message.toLowerCase().includes('rate limit')
+        ) {
+          userMsg = 'Límite de envío de correos excedido en Supabase. Por favor intenta más tarde o utiliza los botones de prueba local.';
+        } else if (error.message.toLowerCase().includes('invalid')) {
+          userMsg = 'El formato del correo electrónico ingresado no es válido.';
         }
 
-        throw error;
+        throw new Error(userMsg);
       }
 
       if (!data?.user) {
@@ -332,126 +174,77 @@ export function AuthProvider({ children }) {
       const sbUser = data.user;
       const registeredUserId = sbUser.id;
 
-      // Sync to public.profiles table if available
+      // Optional profile sync to public.profiles table
       try {
         await supabase.from('profiles').upsert({
           id: registeredUserId,
           email: normalizedEmail,
           full_name: fullName,
+          role: 'tutor',
           updated_at: new Date().toISOString(),
         });
       } catch (profErr) {
-        console.info('[AuthProvider.signUp] Aviso de sincronización de perfiles:', profErr?.message || profErr);
+        console.info('[AuthContext.signUp] Aviso de sincronización en profiles:', profErr?.message || profErr);
       }
 
-      // Establish active session
+      // If Supabase created the user, immediately activate session in Dashboard
+      setUser(sbUser);
       if (data.session) {
         setSession(data.session);
-        setUser(data.user);
         localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
       } else {
-        const activeUser = {
-          id: registeredUserId,
-          email: normalizedEmail,
-          user_metadata: { full_name: fullName },
-          role: 'authenticated',
-          app_metadata: sbUser.app_metadata || { provider: 'email' },
-          created_at: sbUser.created_at || new Date().toISOString(),
-        };
-        activateUserSession(activeUser);
+        // User created in auth.users without automatic email confirmation session
+        setSession({ user: sbUser });
+        activateLocalSession(sbUser);
       }
 
-      saveToLocalRegistry(registeredUserId, normalizedEmail, password, fullName);
-      return { user: sbUser, session: data.session };
-    } catch (networkErr) {
-      console.error(
-        `[AuthContext.signUp] Error al registrar usuario hacia ${endpointUrl}. Motivo: ${networkErr.message}`,
-        networkErr
-      );
-
-      const isFetchError =
-        networkErr.message?.includes('Failed to fetch') || networkErr.name === 'TypeError';
-      const isRateLimit =
-        networkErr.status === 429 ||
-        networkErr.code === 'over_email_send_rate_limit' ||
-        networkErr.message?.toLowerCase().includes('rate limit');
-
-      if (isFetchError || isRateLimit) {
-        // Create local resilient session so evaluator is never blocked by Supabase project network status or rate limits
-        console.warn(
-          `[AuthContext.signUp] Activando cuenta local de contingencia para ${normalizedEmail} por: ${networkErr.message}`
-        );
-        const fallbackUserId = 'usr_' + Math.random().toString(36).substring(2, 10);
-        const fallbackUser = {
-          id: fallbackUserId,
-          email: normalizedEmail,
-          user_metadata: { full_name: fullName },
-          role: 'authenticated',
-          app_metadata: { provider: 'local_contingency' },
-          created_at: new Date().toISOString(),
-        };
-        saveToLocalRegistry(fallbackUserId, normalizedEmail, password, fullName);
-        return activateUserSession(fallbackUser);
-      }
-
-      throw networkErr;
-    }
-  };
-
-  const saveToLocalRegistry = (id, email, password, fullName) => {
-    try {
-      const localUsers = JSON.parse(localStorage.getItem(REGISTERED_USERS_STORAGE_KEY) || '[]');
-      const existingIndex = localUsers.findIndex((u) => u.email === email);
-      const userRecord = {
-        id,
-        email,
-        password,
-        full_name: fullName,
-        created_at: new Date().toISOString(),
-      };
-      if (existingIndex >= 0) {
-        localUsers[existingIndex] = userRecord;
-      } else {
-        localUsers.push(userRecord);
-      }
-      localStorage.setItem(REGISTERED_USERS_STORAGE_KEY, JSON.stringify(localUsers));
-    } catch (e) {
-      console.warn('[saveToLocalRegistry] Error al guardar en localStorage:', e);
+      return { user: sbUser, session: data.session || { user: sbUser } };
+    } catch (err) {
+      console.error(`[AuthContext.signUp] Excepción al registrar en ${endpointUrl}:`, err);
+      throw err;
     }
   };
 
   /**
-   * Instant 1-click Demo Login for testing and evaluation
+   * Dedicated Demo Session (Explicitly marked as local test without Supabase persistence)
    */
   const loginAsDemo = () => {
     const demoUser = {
       id: 'usr_demo_veterinarian_2026',
       email: 'doctor.urgencias@vetia.ai',
-      user_metadata: { full_name: 'Dr. Veterinario de Turno' },
+      user_metadata: {
+        full_name: 'Dr. Veterinario de Turno (Demo)',
+        role: 'veterinarian',
+        is_demo: true,
+      },
       role: 'authenticated',
-      app_metadata: { provider: 'demo' },
+      app_metadata: { provider: 'local_demo', is_local_test: true },
       created_at: new Date().toISOString(),
     };
-    return activateUserSession(demoUser);
+    return activateLocalSession(demoUser);
   };
 
   /**
-   * Instant 1-click Guest Tutor Login
+   * Dedicated Guest Session (Explicitly marked as local test without Supabase persistence)
    */
   const loginAsGuest = () => {
     const guestUser = {
-      id: 'usr_tutor_' + Math.random().toString(36).substring(2, 8),
+      id: 'usr_tutor_guest_' + Math.random().toString(36).substring(2, 8),
       email: 'tutor.invitado@vetia.ai',
-      user_metadata: { full_name: 'Tutor de Mascota Invitado' },
+      user_metadata: {
+        full_name: 'Tutor Invitado (Demo)',
+        role: 'tutor',
+        is_demo: true,
+      },
       role: 'authenticated',
-      app_metadata: { provider: 'guest' },
+      app_metadata: { provider: 'local_guest', is_local_test: true },
       created_at: new Date().toISOString(),
     };
-    return activateUserSession(guestUser);
+    return activateLocalSession(guestUser);
   };
 
   /**
-   * Sign out and clear active session
+   * Sign out and clear all sessions
    */
   const signOut = async () => {
     try {

@@ -44,9 +44,14 @@ export function AuthScreen() {
 
     try {
       if (isRegister) {
-        setSuccessMessage('Creando cuenta y configurando expediente...');
-        await signUp(email, password, { full_name: fullName });
-        setSuccessMessage('¡Cuenta creada exitosamente! Ingresando al sistema...');
+        if (!fullName.trim()) {
+          setError('Por favor ingresa tu nombre completo como tutor de la mascota.');
+          setLoading(false);
+          return;
+        }
+        setSuccessMessage('Creando cuenta de tutor en Supabase...');
+        await signUp(email, password, { full_name: fullName.trim() });
+        setSuccessMessage('¡Cuenta creada exitosamente! Redirigiendo al Dashboard...');
       } else {
         await signIn(email, password);
       }
@@ -56,22 +61,7 @@ export function AuthScreen() {
         `[AuthScreen.handleSubmit] Error al conectar con ${targetEndpoint}. Motivo del fallo: ${err.message}`,
         err
       );
-      let errorMsg = err.message || 'Error de autenticación. Verifica tus credenciales.';
-
-      if (
-        errorMsg.includes('Invalid login credentials') ||
-        errorMsg.includes('Credenciales incorrectas')
-      ) {
-        errorMsg = 'No encontramos una cuenta con esas credenciales.';
-        setShowAutoRegisterSuggestion(true);
-      } else if (errorMsg.includes('User already registered')) {
-        errorMsg = 'Este correo ya está registrado. Por favor inicia sesión.';
-      } else if (errorMsg.includes('Password should be at least')) {
-        errorMsg = 'La contraseña debe contener al menos 6 caracteres.';
-      } else if (errorMsg.toLowerCase().includes('rate limit')) {
-        errorMsg = 'Límite de correos alcanzado en el servidor. Ingresando en modo seguro...';
-      }
-      setError(errorMsg);
+      setError(err.message || 'Error de autenticación. Verifica tus credenciales.');
     } finally {
       setLoading(false);
     }
@@ -149,29 +139,35 @@ export function AuthScreen() {
             </p>
           </div>
 
-          {/* Quick Demo Access Bar */}
+          {/* Quick Demo Access Bar (Marked as local test without Supabase persistence) */}
           <div className="mb-6 p-3 bg-gradient-to-r from-rose-950/40 via-red-950/30 to-slate-900 border border-rose-500/30 rounded-2xl">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-rose-300 flex items-center space-x-1.5">
                 <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                <span>Acceso Inmediato de Evaluación</span>
+                <span>Acceso de Prueba Rápida</span>
               </span>
-              <span className="text-[10px] text-slate-400">Sin contraseñas</span>
+              <span className="text-[10px] text-amber-300/80 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 font-medium">
+                Sin persistencia en Supabase
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={loginAsDemo}
-                className="py-2 px-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition flex items-center justify-center space-x-1.5"
+                className="py-2 px-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition flex flex-col items-center justify-center cursor-pointer"
+                title="Sesión de prueba local como Veterinario"
               >
                 <span>Dr. de Turno (Demo)</span>
+                <span className="text-[9px] font-normal opacity-80">Prueba Local</span>
               </button>
               <button
                 type="button"
                 onClick={loginAsGuest}
-                className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs border border-slate-700 transition flex items-center justify-center space-x-1.5"
+                className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs border border-slate-700 transition flex flex-col items-center justify-center cursor-pointer"
+                title="Sesión de prueba local como Tutor Invitado"
               >
                 <span>Tutor Invitado</span>
+                <span className="text-[9px] font-normal opacity-80">Prueba Local</span>
               </button>
             </div>
           </div>
@@ -225,22 +221,11 @@ export function AuthScreen() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 bg-rose-500/15 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-start space-x-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400 mt-0.5" />
+              <div className="p-3.5 bg-rose-600/20 border-2 border-rose-500 rounded-xl text-xs text-rose-200 flex items-start space-x-2.5 shadow-md shadow-rose-950/50">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400 mt-0.5" />
                 <div className="flex-1">
-                  <span>{error}</span>
-                  {showAutoRegisterSuggestion && (
-                    <div className="mt-2 pt-2 border-t border-rose-500/30 flex items-center justify-between">
-                      <span className="text-[11px] text-slate-300">¿Deseas crear la cuenta ahora?</span>
-                      <button
-                        type="button"
-                        onClick={handleQuickRegisterAndEnter}
-                        className="text-[11px] font-bold text-rose-400 hover:text-rose-300 underline"
-                      >
-                        Crear y Entrar Ahora
-                      </button>
-                    </div>
-                  )}
+                  <span className="font-bold block text-rose-300 mb-0.5">Aviso de Validación / Autenticación:</span>
+                  <span className="leading-relaxed">{error}</span>
                 </div>
               </div>
             )}

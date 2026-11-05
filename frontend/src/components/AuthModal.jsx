@@ -23,8 +23,13 @@ export function AuthModal({ isOpen, onClose }) {
 
     try {
       if (isRegister) {
-        await signUp(email, password, { full_name: fullName });
-        setSuccessMessage('¡Cuenta creada exitosamente! Has iniciado sesión.');
+        if (!fullName.trim()) {
+          setError('Por favor ingresa tu nombre completo como tutor de la mascota.');
+          setLoading(false);
+          return;
+        }
+        await signUp(email, password, { full_name: fullName.trim() });
+        setSuccessMessage('¡Cuenta creada exitosamente en Supabase! Ingresando...');
         setTimeout(() => {
           onClose();
         }, 800);
@@ -38,13 +43,7 @@ export function AuthModal({ isOpen, onClose }) {
         `[AuthModal.handleSubmit] Error al conectar con ${targetEndpoint}. Motivo del fallo: ${err.message}`,
         err
       );
-      let errorMsg = err.message || 'Error de autenticación. Verifica tus credenciales.';
-      if (errorMsg.includes('Invalid login credentials')) {
-        errorMsg = 'Correo electrónico o contraseña incorrectos.';
-      } else if (errorMsg.toLowerCase().includes('rate limit')) {
-        errorMsg = 'Límite de correos alcanzado en el servidor. Ingresando en modo seguro...';
-      }
-      setError(errorMsg);
+      setError(err.message || 'Error de autenticación. Verifica tus credenciales.');
     } finally {
       setLoading(false);
     }
@@ -74,33 +73,43 @@ export function AuthModal({ isOpen, onClose }) {
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Quick Demo Buttons */}
-        <div className="p-4 bg-slate-50/70 border-b border-slate-200">
-          <div className="text-[11px] font-semibold text-slate-500 mb-2 flex items-center space-x-1">
-            <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
-            <span>Acceso rápido sin registro:</span>
+        {/* Quick Demo Buttons (Local Test Mode) */}
+        <div className="p-4 bg-slate-50 border-b border-slate-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-slate-700 flex items-center space-x-1">
+              <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+              <span>Acceso de Prueba Rápida</span>
+            </span>
+            <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-medium">
+              Sin persistencia en Supabase
+            </span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={handleDemoLogin}
-              className="py-1.5 px-2.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-semibold transition"
+              className="py-2 px-2.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition flex flex-col items-center justify-center cursor-pointer"
+              title="Sesión de prueba local como Veterinario"
             >
-              Dr. de Turno (Demo)
+              <span>Dr. de Turno (Demo)</span>
+              <span className="text-[9px] font-normal text-rose-600/80">Prueba Local</span>
             </button>
             <button
               type="button"
               onClick={handleGuestLogin}
-              className="py-1.5 px-2.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 text-xs font-semibold transition"
+              className="py-2 px-2.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 text-xs font-bold transition flex flex-col items-center justify-center cursor-pointer"
+              title="Sesión de prueba local como Tutor Invitado"
             >
-              Tutor Invitado
+              <span>Tutor Invitado</span>
+              <span className="text-[9px] font-normal text-slate-500">Prueba Local</span>
             </button>
           </div>
         </div>
@@ -113,10 +122,11 @@ export function AuthModal({ isOpen, onClose }) {
               setIsRegister(false);
               setError(null);
             }}
-            className={`flex-1 py-3 transition border-b-2 ${!isRegister
+            className={`flex-1 py-3 transition border-b-2 cursor-pointer ${
+              !isRegister
                 ? 'border-rose-600 text-rose-600 bg-rose-50/30'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+            }`}
           >
             Iniciar Sesión
           </button>
@@ -126,10 +136,11 @@ export function AuthModal({ isOpen, onClose }) {
               setIsRegister(true);
               setError(null);
             }}
-            className={`flex-1 py-3 transition border-b-2 ${isRegister
+            className={`flex-1 py-3 transition border-b-2 cursor-pointer ${
+              isRegister
                 ? 'border-rose-600 text-rose-600 bg-rose-50/30'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+            }`}
           >
             Crear Cuenta
           </button>
@@ -138,9 +149,12 @@ export function AuthModal({ isOpen, onClose }) {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
-              <span>{error}</span>
+            <div className="p-3.5 bg-rose-50 border-2 border-rose-400 rounded-xl text-xs text-rose-800 flex items-start space-x-2.5 shadow-sm">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-600 mt-0.5" />
+              <div className="flex-1">
+                <span className="font-bold block text-rose-700 mb-0.5">Aviso de Validación / Error:</span>
+                <span className="leading-relaxed">{error}</span>
+              </div>
             </div>
           )}
 
@@ -208,7 +222,7 @@ export function AuthModal({ isOpen, onClose }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-semibold text-sm shadow-md shadow-rose-500/25 transition disabled:opacity-50 flex items-center justify-center space-x-2"
+            className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-semibold text-sm shadow-md shadow-rose-500/25 transition disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
           >
             {loading ? (
               <>

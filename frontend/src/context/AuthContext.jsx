@@ -3,12 +3,10 @@ import supabase, { SUPABASE_URL } from '../services/supabaseClient';
 
 const AuthContext = createContext({});
 
-const ACTIVE_USER_STORAGE_KEY = 'vetia_active_user';
-
 /**
  * Authentication Provider
- * Manages Supabase Auth lifecycle with real-time session persistence,
- * strict error propagation for validation, and dedicated local test modes.
+ * Manages Supabase Auth lifecycle strictly using Supabase services
+ * for user registration, login, and active session synchronization.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -16,54 +14,36 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Recover active session from Supabase
+    // 1. Initial active session retrieval from Supabase
     supabase.auth
       .getSession()
       .then(({ data: { session: sbSession } }) => {
         if (sbSession?.user) {
           setSession(sbSession);
           setUser(sbSession.user);
-          localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
         } else {
-          // Check if a local demo/test session exists
-          const savedActiveUser = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
-          if (savedActiveUser) {
-            try {
-              const parsedUser = JSON.parse(savedActiveUser);
-              setUser(parsedUser);
-              setSession({ user: parsedUser });
-            } catch (err) {
-              localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
-            }
-          }
+          setSession(null);
+          setUser(null);
         }
         setLoading(false);
       })
       .catch((err) => {
-        console.warn(`[AuthProvider] Supabase getSession error (${SUPABASE_URL}):`, err);
-        const savedActiveUser = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
-        if (savedActiveUser) {
-          try {
-            const parsedUser = JSON.parse(savedActiveUser);
-            setUser(parsedUser);
-            setSession({ user: parsedUser });
-          } catch (_) {}
-        }
+        console.error(`[AuthProvider] Error al recuperar sesión de Supabase (${SUPABASE_URL}):`, err);
+        setSession(null);
+        setUser(null);
         setLoading(false);
       });
 
-    // 2. Listen to Supabase auth state changes
+    // 2. Real-time auth state listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, newSession) => {
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (newSession?.user) {
         setSession(newSession);
         setUser(newSession.user);
-        localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
-      } else if (event === 'SIGNED_OUT') {
-        localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
-        setUser(null);
+      } else {
         setSession(null);
+        setUser(null);
       }
       setLoading(false);
     });
@@ -74,17 +54,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Helper to activate session state
-   */
-  const activateLocalSession = (userData) => {
-    localStorage.setItem(ACTIVE_USER_STORAGE_KEY, JSON.stringify(userData));
-    setUser(userData);
-    setSession({ user: userData });
-    return { user: userData, session: { user: userData } };
-  };
-
-  /**
-   * Sign In with email and password via Supabase Auth
+   * Sign In with email and password strictly via Supabase Auth
    */
   const signIn = async (email, password) => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -97,15 +67,15 @@ export function AuthProvider({ children }) {
       });
 
       if (error) {
-        console.error(`[AuthContext.signIn] Error en Supabase Auth (${endpointUrl}):`, error);
+        console.error(`[AuthContext.signIn] Error devuelto por Supabase (${endpointUrl}):`, error);
 
         let userMsg = error.message;
         if (error.message.includes('Invalid login credentials')) {
-          userMsg = 'Credenciales incorrectas. Verifica tu correo y contraseña o regístrate en "Crear Cuenta".';
+          userMsg = 'Credenciales incorrectas. Verifica tu correo y contraseña o regístrate en la pestaña "Crear Cuenta".';
         } else if (error.message.includes('Email not confirmed')) {
           userMsg = 'El correo electrónico aún no ha sido confirmado en Supabase.';
         } else if (error.message.toLowerCase().includes('rate limit')) {
-          userMsg = 'Límite de intentos excedido en Supabase. Espera unos momentos o usa las sesiones de prueba.';
+          userMsg = 'Límite de solicitudes de inicio de sesión excedido en Supabase. Espera unos minutos antes de reintentar.';
         }
 
         throw new Error(userMsg);
@@ -114,11 +84,10 @@ export function AuthProvider({ children }) {
       if (data?.user) {
         setUser(data.user);
         setSession(data.session);
-        localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
         return data;
       }
 
-      throw new Error('No se pudo establecer la sesión con el servidor.');
+      throw new Error('No se pudo establecer la sesión con Supabase.');
     } catch (err) {
       console.error(`[AuthContext.signIn] Excepción al conectar con ${endpointUrl}:`, err);
       throw err;
@@ -126,7 +95,7 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Sign Up with mandatory user metadata (full_name, role: 'tutor')
+   * Sign Up strictly via Supabase Auth with required metadata (full_name, role: 'tutor')
    */
   const signUp = async (email, password, metadata = {}) => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -145,13 +114,12 @@ export function AuthProvider({ children }) {
         },
       });
 
-      // Strict error handling: Do not fake login on error, propagate to UI
       if (error) {
-        console.error(`[AuthContext.signUp] Error devuelto por Supabase Auth (${endpointUrl}):`, error);
+        console.error(`[AuthContext.signUp] Error devuelto por Supabase (${endpointUrl}):`, error);
 
         let userMsg = error.message;
         if (error.message.includes('User already registered')) {
-          userMsg = 'Este correo electrónico ya está registrado. Por favor inicia sesión.';
+          userMsg = 'Este correo electrónico ya está registrado. Por favor cambia a la pestaña "Iniciar Sesión".';
         } else if (error.message.includes('Password should be at least')) {
           userMsg = 'La contraseña debe contener al menos 6 caracteres.';
         } else if (
@@ -159,7 +127,7 @@ export function AuthProvider({ children }) {
           error.code === 'over_email_send_rate_limit' ||
           error.message.toLowerCase().includes('rate limit')
         ) {
-          userMsg = 'Límite de envío de correos excedido en Supabase. Por favor intenta más tarde o utiliza los botones de prueba local.';
+          userMsg = 'Límite de envío de correos excedido en Supabase. Por favor espera unos minutos antes de intentar de nuevo.';
         } else if (error.message.toLowerCase().includes('invalid')) {
           userMsg = 'El formato del correo electrónico ingresado no es válido.';
         }
@@ -174,7 +142,7 @@ export function AuthProvider({ children }) {
       const sbUser = data.user;
       const registeredUserId = sbUser.id;
 
-      // Optional profile sync to public.profiles table
+      // Sync tutor profile to public.profiles table
       try {
         await supabase.from('profiles').upsert({
           id: registeredUserId,
@@ -187,16 +155,9 @@ export function AuthProvider({ children }) {
         console.info('[AuthContext.signUp] Aviso de sincronización en profiles:', profErr?.message || profErr);
       }
 
-      // If Supabase created the user, immediately activate session in Dashboard
+      // Establish active authenticated state
       setUser(sbUser);
-      if (data.session) {
-        setSession(data.session);
-        localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
-      } else {
-        // User created in auth.users without automatic email confirmation session
-        setSession({ user: sbUser });
-        activateLocalSession(sbUser);
-      }
+      setSession(data.session || { user: sbUser });
 
       return { user: sbUser, session: data.session || { user: sbUser } };
     } catch (err) {
@@ -206,53 +167,14 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Dedicated Demo Session (Explicitly marked as local test without Supabase persistence)
-   */
-  const loginAsDemo = () => {
-    const demoUser = {
-      id: 'usr_demo_veterinarian_2026',
-      email: 'doctor.urgencias@vetia.ai',
-      user_metadata: {
-        full_name: 'Dr. Veterinario de Turno (Demo)',
-        role: 'veterinarian',
-        is_demo: true,
-      },
-      role: 'authenticated',
-      app_metadata: { provider: 'local_demo', is_local_test: true },
-      created_at: new Date().toISOString(),
-    };
-    return activateLocalSession(demoUser);
-  };
-
-  /**
-   * Dedicated Guest Session (Explicitly marked as local test without Supabase persistence)
-   */
-  const loginAsGuest = () => {
-    const guestUser = {
-      id: 'usr_tutor_guest_' + Math.random().toString(36).substring(2, 8),
-      email: 'tutor.invitado@vetia.ai',
-      user_metadata: {
-        full_name: 'Tutor Invitado (Demo)',
-        role: 'tutor',
-        is_demo: true,
-      },
-      role: 'authenticated',
-      app_metadata: { provider: 'local_guest', is_local_test: true },
-      created_at: new Date().toISOString(),
-    };
-    return activateLocalSession(guestUser);
-  };
-
-  /**
-   * Sign out and clear all sessions
+   * Sign Out from Supabase Auth
    */
   const signOut = async () => {
     try {
-      if (supabase?.auth) {
-        await supabase.auth.signOut().catch(() => {});
-      }
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('[AuthContext.signOut] Error al cerrar sesión:', err);
     } finally {
-      localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
       setUser(null);
       setSession(null);
     }
@@ -267,8 +189,6 @@ export function AuthProvider({ children }) {
         signIn,
         signUp,
         signOut,
-        loginAsDemo,
-        loginAsGuest,
         isAuthenticated: !!user,
       }}
     >

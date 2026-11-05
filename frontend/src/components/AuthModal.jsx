@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, AlertCircle, Loader2, CheckCircle2, Zap } from 'lucide-react';
+import { X, Lock, Mail, User, AlertCircle, Loader2, CheckCircle2, UserPlus, LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { SUPABASE_URL } from '../services/supabaseClient';
 
 export function AuthModal({ isOpen, onClose }) {
-  const { signIn, signUp, loginAsDemo, loginAsGuest } = useAuth();
+  const { signIn, signUp } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,16 +49,6 @@ export function AuthModal({ isOpen, onClose }) {
     }
   };
 
-  const handleDemoLogin = () => {
-    loginAsDemo();
-    onClose();
-  };
-
-  const handleGuestLogin = () => {
-    loginAsGuest();
-    onClose();
-  };
-
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -81,39 +71,6 @@ export function AuthModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Quick Demo Buttons (Local Test Mode) */}
-        <div className="p-4 bg-slate-50 border-b border-slate-200">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-700 flex items-center space-x-1">
-              <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>Acceso de Prueba Rápida</span>
-            </span>
-            <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-medium">
-              Sin persistencia en Supabase
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              className="py-2 px-2.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition flex flex-col items-center justify-center cursor-pointer"
-              title="Sesión de prueba local como Veterinario"
-            >
-              <span>Dr. de Turno (Demo)</span>
-              <span className="text-[9px] font-normal text-rose-600/80">Prueba Local</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleGuestLogin}
-              className="py-2 px-2.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 text-xs font-bold transition flex flex-col items-center justify-center cursor-pointer"
-              title="Sesión de prueba local como Tutor Invitado"
-            >
-              <span>Tutor Invitado</span>
-              <span className="text-[9px] font-normal text-slate-500">Prueba Local</span>
-            </button>
-          </div>
-        </div>
-
         {/* Tab switch */}
         <div className="flex border-b border-slate-200 text-sm font-semibold text-center">
           <button
@@ -122,13 +79,14 @@ export function AuthModal({ isOpen, onClose }) {
               setIsRegister(false);
               setError(null);
             }}
-            className={`flex-1 py-3 transition border-b-2 cursor-pointer ${
+            className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${
               !isRegister
                 ? 'border-rose-600 text-rose-600 bg-rose-50/30'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
-            Iniciar Sesión
+            <LogIn className="w-4 h-4" />
+            <span>Iniciar Sesión</span>
           </button>
           <button
             type="button"
@@ -136,13 +94,14 @@ export function AuthModal({ isOpen, onClose }) {
               setIsRegister(true);
               setError(null);
             }}
-            className={`flex-1 py-3 transition border-b-2 cursor-pointer ${
+            className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${
               isRegister
                 ? 'border-rose-600 text-rose-600 bg-rose-50/30'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
-            Crear Cuenta
+            <UserPlus className="w-4 h-4" />
+            <span>Crear Cuenta</span>
           </button>
         </div>
 
@@ -175,10 +134,10 @@ export function AuthModal({ isOpen, onClose }) {
                 <input
                   type="text"
                   required
-                  placeholder="Ej. Cristian Gómez"
+                  placeholder="Ej. Dra. Mariana Torres o Carlos Ramírez"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
                 />
               </div>
             </div>
@@ -196,7 +155,7 @@ export function AuthModal({ isOpen, onClose }) {
                 placeholder="tutor@ejemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
               />
             </div>
           </div>
@@ -214,7 +173,7 @@ export function AuthModal({ isOpen, onClose }) {
                 placeholder="Mínimo 6 caracteres"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
               />
             </div>
           </div>
@@ -230,7 +189,7 @@ export function AuthModal({ isOpen, onClose }) {
                 <span>Procesando...</span>
               </>
             ) : (
-              <span>{isRegister ? 'Crear Cuenta y Entrar' : 'Acceder al Sistema'}</span>
+              <span>{isRegister ? 'Crear Expediente' : 'Ingresar al Panel'}</span>
             )}
           </button>
         </form>

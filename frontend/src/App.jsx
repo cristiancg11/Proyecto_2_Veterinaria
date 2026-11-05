@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import ImageUploadForm from './components/ImageUploadForm';
 import DiagnosisResult from './components/DiagnosisResult';
+import TriageChatModal from './components/TriageChatModal';
 import VetMap from './components/VetMap';
 import HistoryModal from './components/HistoryModal';
 import AuthModal from './components/AuthModal';
@@ -9,11 +10,20 @@ import AuthScreen from './components/AuthScreen';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import useGeolocation from './hooks/useGeolocation';
 import useTriage from './hooks/useTriage';
-import { AlertCircle, MapPin, Zap, UserCheck, HeartPulse, Loader2 } from 'lucide-react';
+import {
+  AlertCircle,
+  MapPin,
+  Zap,
+  UserCheck,
+  HeartPulse,
+  Loader2,
+  MessageSquare,
+} from 'lucide-react';
 
 function MainApp() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [lastPetType, setLastPetType] = useState('Perro (Canino)');
 
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -60,6 +70,11 @@ function MainApp() {
       symptomsDescription,
       userCoordinates: coordinates,
     });
+  };
+
+  const handleReset = () => {
+    setIsChatModalOpen(false);
+    resetDiagnosis();
   };
 
   return (
@@ -130,8 +145,9 @@ function MainApp() {
             ) : (
               <DiagnosisResult
                 diagnosis={currentDiagnosis}
-                onReset={resetDiagnosis}
+                onReset={handleReset}
                 petType={lastPetType}
+                onOpenChat={() => setIsChatModalOpen(true)}
               />
             )}
           </div>
@@ -157,6 +173,14 @@ function MainApp() {
         </div>
       </main>
 
+      {/* Interactive AI Follow-up Chat Modal */}
+      <TriageChatModal
+        isOpen={isChatModalOpen}
+        onClose={() => setIsChatModalOpen(false)}
+        diagnosis={currentDiagnosis}
+        petType={lastPetType}
+      />
+
       {/* History Drawer Modal */}
       <HistoryModal
         isOpen={isHistoryOpen}
@@ -169,6 +193,19 @@ function MainApp() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
       />
+
+      {/* Floating Chat Shortcut Button when diagnosis is active */}
+      {currentDiagnosis && !isChatModalOpen && (
+        <button
+          type="button"
+          onClick={() => setIsChatModalOpen(true)}
+          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-xs sm:text-sm rounded-full shadow-2xl shadow-rose-600/40 flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 cursor-pointer border border-rose-400"
+          title="Abrir Chat de Seguimiento con Asistente IA"
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>Chat de Urgencias IA</span>
+        </button>
+      )}
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">

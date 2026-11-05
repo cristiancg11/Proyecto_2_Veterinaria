@@ -30,6 +30,15 @@
   animation: pulse-ring 2s infinite ease-in-out;
 }
 
+/* Utility to hide scrollbars while maintaining scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Print view optimization for emergency clinical sheet */
 @media print {
   body {

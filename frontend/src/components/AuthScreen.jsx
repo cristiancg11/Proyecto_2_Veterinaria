@@ -68,6 +68,8 @@ export function AuthScreen() {
         errorMsg = 'Este correo ya está registrado. Por favor inicia sesión.';
       } else if (errorMsg.includes('Password should be at least')) {
         errorMsg = 'La contraseña debe contener al menos 6 caracteres.';
+      } else if (errorMsg.toLowerCase().includes('rate limit')) {
+        errorMsg = 'Límite de correos alcanzado en el servidor. Ingresando en modo seguro...';
       }
       setError(errorMsg);
     } finally {

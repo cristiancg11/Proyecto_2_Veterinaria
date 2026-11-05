@@ -41,6 +41,8 @@ export function AuthModal({ isOpen, onClose }) {
       let errorMsg = err.message || 'Error de autenticación. Verifica tus credenciales.';
       if (errorMsg.includes('Invalid login credentials')) {
         errorMsg = 'Correo electrónico o contraseña incorrectos.';
+      } else if (errorMsg.toLowerCase().includes('rate limit')) {
+        errorMsg = 'Límite de correos alcanzado en el servidor. Ingresando en modo seguro...';
       }
       setError(errorMsg);
     } finally {

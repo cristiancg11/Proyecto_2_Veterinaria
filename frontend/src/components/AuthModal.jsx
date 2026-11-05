@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Lock, Mail, User, AlertCircle, Loader2, CheckCircle2, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { SUPABASE_URL } from '../services/supabaseClient';
 
 export function AuthModal({ isOpen, onClose }) {
   const { signIn, signUp, loginAsDemo, loginAsGuest } = useAuth();
@@ -32,6 +33,11 @@ export function AuthModal({ isOpen, onClose }) {
         onClose();
       }
     } catch (err) {
+      const targetEndpoint = `${SUPABASE_URL}/auth/v1/${isRegister ? 'signup' : 'token'}`;
+      console.error(
+        `[AuthModal.handleSubmit] Error al conectar con ${targetEndpoint}. Motivo del fallo: ${err.message}`,
+        err
+      );
       let errorMsg = err.message || 'Error de autenticación. Verifica tus credenciales.';
       if (errorMsg.includes('Invalid login credentials')) {
         errorMsg = 'Correo electrónico o contraseña incorrectos.';

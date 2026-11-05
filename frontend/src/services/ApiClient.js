@@ -37,6 +37,7 @@ export class ApiClient {
    * @returns {Promise<Array>} List of ClinicLocationResponse
    */
   async getNearbyClinics(lat, lng, urgency = 'MODERATE') {
+    const endpoint = `${this.baseUrl}/clinics/nearby`;
     try {
       const params = new URLSearchParams({
         lat: lat.toString(),
@@ -44,7 +45,7 @@ export class ApiClient {
         urgency: urgency,
       });
 
-      const response = await fetch(`${this.baseUrl}/clinics/nearby?${params.toString()}`);
+      const response = await fetch(`${endpoint}?${params.toString()}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
@@ -54,8 +55,9 @@ export class ApiClient {
 
       return await response.json();
     } catch (error) {
-      console.error('[ApiClient.getNearbyClinics] Error:', error);
-      throw error;
+      console.warn(`[ApiClient.getNearbyClinics] Aviso al conectar con ${endpoint}:`, error.message);
+      // Return empty clinics gracefully if backend is offline
+      return [];
     }
   }
 
@@ -66,13 +68,14 @@ export class ApiClient {
    * @returns {Promise<Array>} List of TriageRecordDBResponse
    */
   async getHistory(limit = 10, userId = null) {
+    const endpoint = `${this.baseUrl}/history`;
     try {
       const params = new URLSearchParams({ limit: limit.toString() });
       if (userId) {
         params.append('user_id', userId);
       }
 
-      const response = await fetch(`${this.baseUrl}/history?${params.toString()}`);
+      const response = await fetch(`${endpoint}?${params.toString()}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
@@ -82,8 +85,8 @@ export class ApiClient {
 
       return await response.json();
     } catch (error) {
-      console.error('[ApiClient.getHistory] Error:', error);
-      throw error;
+      console.warn(`[ApiClient.getHistory] Aviso al conectar con ${endpoint}:`, error.message);
+      return [];
     }
   }
 

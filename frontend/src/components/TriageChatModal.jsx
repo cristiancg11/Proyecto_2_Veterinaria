@@ -115,3 +115,4 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
 }
 
 export default TriageChatModal;
+

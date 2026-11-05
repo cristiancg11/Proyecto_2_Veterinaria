@@ -17,6 +17,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { SUPABASE_URL } from '../services/supabaseClient';
 
 /**
  * Modern Authentication Screen for VetIA / PetEmergency
@@ -50,7 +51,11 @@ export function AuthScreen() {
         await signIn(email, password);
       }
     } catch (err) {
-      console.error('[AuthScreen.handleSubmit] Error:', err);
+      const targetEndpoint = `${SUPABASE_URL}/auth/v1/${isRegister ? 'signup' : 'token'}`;
+      console.error(
+        `[AuthScreen.handleSubmit] Error al conectar con ${targetEndpoint}. Motivo del fallo: ${err.message}`,
+        err
+      );
       let errorMsg = err.message || 'Error de autenticación. Verifica tus credenciales.';
 
       if (
@@ -80,6 +85,11 @@ export function AuthScreen() {
     try {
       await signUp(email, password, { full_name: fullName || email.split('@')[0] });
     } catch (err) {
+      const targetEndpoint = `${SUPABASE_URL}/auth/v1/signup`;
+      console.error(
+        `[AuthScreen.handleQuickRegisterAndEnter] Error al conectar con ${targetEndpoint}. Motivo del fallo: ${err.message}`,
+        err
+      );
       setError(err.message || 'Error al crear la cuenta rápida.');
     } finally {
       setLoading(false);

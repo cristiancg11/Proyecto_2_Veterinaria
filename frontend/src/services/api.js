@@ -15,8 +15,9 @@ export const API_BASE_URL =
  * @returns {Promise<Object>} Structured triage assessment response
  */
 export async function sendTriageDiagnosis(formData) {
+  const endpoint = `${API_BASE_URL}/diagnose`;
   try {
-    const response = await fetch(`${API_BASE_URL}/diagnose`, {
+    const response = await fetch(endpoint, {
       method: 'POST',
       body: formData,
     });
@@ -30,8 +31,14 @@ export async function sendTriageDiagnosis(formData) {
 
     return await response.json();
   } catch (error) {
-    console.error('[sendTriageDiagnosis] Error:', error);
-    throw error;
+    const isNetworkError =
+      error.message?.includes('Failed to fetch') || error.name === 'TypeError';
+    const friendlyMessage = isNetworkError
+      ? `No se pudo conectar con el servidor backend en ${endpoint}. Verifica que el servidor FastAPI esté encendido en http://localhost:8000.`
+      : error.message;
+
+    console.error(`[sendTriageDiagnosis] Error al conectar con ${endpoint}:`, error);
+    throw new Error(friendlyMessage);
   }
 }
 
@@ -54,9 +61,10 @@ export async function sendChatMessage({
     throw new Error('user_message cannot be empty');
   }
 
+  const primaryEndpoint = `${API_BASE_URL}/chat`;
   try {
     // 1. Primary endpoint: /chat
-    const response = await fetch(`${API_BASE_URL}/chat`, {
+    const response = await fetch(primaryEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -78,19 +86,17 @@ export async function sendChatMessage({
       triage_context?.id ||
       'active-case';
 
-    const fallbackResponse = await fetch(
-      `${API_BASE_URL}/triage/${encodeURIComponent(triageId)}/chat`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: user_message,
-          conversation_history: history,
-        }),
-      }
-    );
+    const fallbackEndpoint = `${API_BASE_URL}/triage/${encodeURIComponent(triageId)}/chat`;
+    const fallbackResponse = await fetch(fallbackEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: user_message,
+        conversation_history: history,
+      }),
+    });
 
     if (!fallbackResponse.ok) {
       const errorData = await fallbackResponse.json().catch(() => ({}));
@@ -101,8 +107,14 @@ export async function sendChatMessage({
 
     return await fallbackResponse.json();
   } catch (error) {
-    console.error('[sendChatMessage] Error:', error);
-    throw error;
+    const isNetworkError =
+      error.message?.includes('Failed to fetch') || error.name === 'TypeError';
+    const friendlyMessage = isNetworkError
+      ? `No se pudo conectar con el servicio de chat en ${API_BASE_URL}. Verifica que el servidor backend esté encendido.`
+      : error.message;
+
+    console.error(`[sendChatMessage] Error al conectar con ${primaryEndpoint}:`, error);
+    throw new Error(friendlyMessage);
   }
 }
 

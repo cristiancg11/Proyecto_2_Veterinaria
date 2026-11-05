@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Sparkles, Loader2, MessageSquare, AlertCircle } from 'lucide-react';
-import apiClient from '../services/ApiClient';
+import { sendChatMessage } from '../services/api';
 
 const QUICK_PROMPTS = [
   '¿Puedo ofrecerle agua o alimento ahora mismo?',
@@ -9,11 +9,11 @@ const QUICK_PROMPTS = [
   '¿Cuáles signos indicarían que su estado se está agravando?',
 ];
 
-export function TriageChat({ triageId, petType = 'Mascota' }) {
+export function TriageChat({ triageId, petType = 'Mascota', triageContext = null }) {
   const [messages, setMessages] = useState([
     {
       role: 'model',
-      content: `Hola, soy el asistente veterinario de VetIA. He revisado el triage inicial de tu ${petType}. ¿Tienes alguna duda sobre los primeros auxilios inmediatos o cómo transportarlo al centro de atención?`,
+      content: `Hola, soy el asistente veterinario de VetIA. He revisado el reporte de triaje de tu ${petType}. ¿Tienes alguna duda sobre los primeros auxilios inmediatos o cómo transportarlo al centro veterinario?`,
     },
   ]);
   const [inputText, setInputText] = useState('');
@@ -28,36 +28,46 @@ export function TriageChat({ triageId, petType = 'Mascota' }) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, loading]);
 
   const handleSendMessage = async (textToSend) => {
-    const messageContent = textToSend || inputText;
-    if (!messageContent.trim() || loading) return;
+    const messageContent = (textToSend || inputText).trim();
+    if (!messageContent || loading) return;
 
     setError(null);
     setInputText('');
 
-    const newMessages = [...messages, { role: 'user', content: messageContent.trim() }];
+    const newMessages = [...messages, { role: 'user', content: messageContent }];
     setMessages(newMessages);
     setLoading(true);
 
     try {
-      const response = await apiClient.followUpChat(
-        triageId || 'active-case',
-        messageContent.trim(),
-        newMessages.slice(0, -1) // pass history prior to this message
-      );
+      // Build clinical context payload
+      const contextPayload = triageContext || {
+        record_id: triageId || 'active-case',
+        id: triageId || 'active-case',
+        pet_type: petType,
+      };
+
+      // Call API service with history, user_message, and triage_context
+      const response = await sendChatMessage({
+        history: newMessages.slice(0, -1),
+        user_message: messageContent,
+        triage_context: contextPayload,
+      });
 
       setMessages((prev) => [
         ...prev,
         {
           role: 'model',
-          content: response.reply,
+          content: response.reply || response.message || 'Respuesta recibida.',
         },
       ]);
     } catch (err) {
-      console.error('[TriageChat] Error:', err);
-      setError('Could not get response from veterinary AI. Please try again.');
+      console.error('[TriageChat] Error al comunicarse con el asistente:', err);
+      setError(
+        err.message || 'No se pudo obtener respuesta del asistente IA. Por favor intenta de nuevo.'
+      );
     } finally {
       setLoading(false);
     }
@@ -71,34 +81,9 @@ export function TriageChat({ triageId, petType = 'Mascota' }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[520px]">
-      {/* Chat Header */}
-      <div className="p-4 px-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="font-bold text-slate-900 text-sm flex items-center space-x-1.5">
-              <span>VetIA Follow-up Chat</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-700 font-semibold border border-rose-200">
-                Gemini 2.5 Flash
-              </span>
-            </h4>
-            <p className="text-xs text-slate-500">
-              Context-aware guidance based on initial triage findings
-            </p>
-          </div>
-        </div>
-
-        <div className="text-xs text-slate-400 flex items-center space-x-1">
-          <MessageSquare className="w-3.5 h-3.5" />
-          <span>Case #{triageId ? triageId.slice(0, 6) : 'Active'}</span>
-        </div>
-      </div>
-
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[460px] max-h-[600px]">
       {/* Messages container */}
-      <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/40">
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
         {messages.map((msg, index) => {
           const isAi = msg.role === 'model';
           return (
@@ -109,7 +94,7 @@ export function TriageChat({ triageId, petType = 'Mascota' }) {
               }`}
             >
               {isAi && (
-                <div className="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
                   <Bot className="w-4 h-4" />
                 </div>
               )}
@@ -125,7 +110,7 @@ export function TriageChat({ triageId, petType = 'Mascota' }) {
               </div>
 
               {!isAi && (
-                <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <User className="w-4 h-4" />
                 </div>
               )}
@@ -135,12 +120,12 @@ export function TriageChat({ triageId, petType = 'Mascota' }) {
 
         {loading && (
           <div className="flex items-start space-x-2.5 justify-start">
-            <div className="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5 animate-pulse shadow-sm">
               <Bot className="w-4 h-4" />
             </div>
-            <div className="bg-white text-slate-500 rounded-2xl px-4 py-3 text-xs border border-slate-200 flex items-center space-x-2 shadow-sm">
+            <div className="bg-white text-slate-600 rounded-2xl px-4 py-3 text-xs border border-slate-200 flex items-center space-x-2 shadow-sm">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500" />
-              <span>Analizando con contexto clínico veterinario...</span>
+              <span>El Asistente VetIA está razonando sobre el caso clínico...</span>
             </div>
           </div>
         )}
@@ -163,7 +148,7 @@ export function TriageChat({ triageId, petType = 'Mascota' }) {
             type="button"
             disabled={loading}
             onClick={() => handleSendMessage(prompt)}
-            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 transition border border-slate-200/60 font-medium"
+            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 transition border border-slate-200/70 font-medium cursor-pointer"
           >
             {prompt}
           </button>
@@ -178,7 +163,7 @@ export function TriageChat({ triageId, petType = 'Mascota' }) {
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={loading}
-          placeholder="Escribe tu consulta adicional de primeros auxilios..."
+          placeholder="Escribe tu consulta adicional sobre primeros auxilios o síntomas..."
           className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none"
         />
 
@@ -186,7 +171,7 @@ export function TriageChat({ triageId, petType = 'Mascota' }) {
           type="button"
           onClick={() => handleSendMessage()}
           disabled={loading || !inputText.trim()}
-          className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition disabled:opacity-40 flex items-center space-x-1.5"
+          className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition disabled:opacity-40 flex items-center space-x-1.5 cursor-pointer"
         >
           <Send className="w-4 h-4" />
           <span className="hidden sm:inline">Enviar</span>

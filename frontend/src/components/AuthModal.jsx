@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, Lock, Mail, User, AlertCircle, Loader2, CheckCircle2, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function AuthModal({ isOpen, onClose }) {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, loginAsDemo, loginAsGuest } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,32 +23,46 @@ export function AuthModal({ isOpen, onClose }) {
     try {
       if (isRegister) {
         await signUp(email, password, { full_name: fullName });
-        setSuccessMessage('Account created successfully! You are now logged in.');
+        setSuccessMessage('¡Cuenta creada exitosamente! Has iniciado sesión.');
         setTimeout(() => {
           onClose();
-        }, 1200);
+        }, 800);
       } else {
         await signIn(email, password);
         onClose();
       }
     } catch (err) {
-      setError(err.message || 'Authentication failed. Please verify credentials.');
+      let errorMsg = err.message || 'Error de autenticación. Verifica tus credenciales.';
+      if (errorMsg.includes('Invalid login credentials')) {
+        errorMsg = 'Correo electrónico o contraseña incorrectos.';
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDemoLogin = () => {
+    loginAsDemo();
+    onClose();
+  };
+
+  const handleGuestLogin = () => {
+    loginAsGuest();
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">
-              {isRegister ? 'Create Pet Owner Account' : 'Sign in to VetIA'}
+            <h3 className="text-base font-bold text-slate-900">
+              {isRegister ? 'Crear Cuenta de Tutor' : 'Iniciar Sesión en VetIA'}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Access your saved medical triage history & personal follow-ups
+              Accede a tu historial clínico y seguimiento contextual de urgencias
             </p>
           </div>
           <button
@@ -57,6 +71,30 @@ export function AuthModal({ isOpen, onClose }) {
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Quick Demo Buttons */}
+        <div className="p-4 bg-slate-50/70 border-b border-slate-200">
+          <div className="text-[11px] font-semibold text-slate-500 mb-2 flex items-center space-x-1">
+            <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+            <span>Acceso rápido sin registro:</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              className="py-1.5 px-2.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-semibold transition"
+            >
+              Dr. de Turno (Demo)
+            </button>
+            <button
+              type="button"
+              onClick={handleGuestLogin}
+              className="py-1.5 px-2.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 text-xs font-semibold transition"
+            >
+              Tutor Invitado
+            </button>
+          </div>
         </div>
 
         {/* Tab switch */}
@@ -73,7 +111,7 @@ export function AuthModal({ isOpen, onClose }) {
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
-            Sign In
+            Iniciar Sesión
           </button>
           <button
             type="button"
@@ -87,7 +125,7 @@ export function AuthModal({ isOpen, onClose }) {
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
-            Register
+            Crear Cuenta
           </button>
         </div>
 
@@ -110,14 +148,14 @@ export function AuthModal({ isOpen, onClose }) {
           {isRegister && (
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Owner Full Name
+                Nombre Completo del Tutor
               </label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Cristian Gómez"
+                  placeholder="Ej. Cristian Gómez"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
@@ -128,14 +166,14 @@ export function AuthModal({ isOpen, onClose }) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Email Address
+              Correo Electrónico
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
                 type="email"
                 required
-                placeholder="petowner@example.com"
+                placeholder="tutor@ejemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
@@ -145,7 +183,7 @@ export function AuthModal({ isOpen, onClose }) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Password
+              Contraseña
             </label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -153,7 +191,7 @@ export function AuthModal({ isOpen, onClose }) {
                 type="password"
                 required
                 minLength={6}
-                placeholder="At least 6 characters"
+                placeholder="Mínimo 6 caracteres"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
@@ -169,10 +207,10 @@ export function AuthModal({ isOpen, onClose }) {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Processing...</span>
+                <span>Procesando...</span>
               </>
             ) : (
-              <span>{isRegister ? 'Register Account' : 'Sign In'}</span>
+              <span>{isRegister ? 'Crear Cuenta y Entrar' : 'Acceder al Sistema'}</span>
             )}
           </button>
         </form>

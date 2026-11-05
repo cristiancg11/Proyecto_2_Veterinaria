@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, Image as ImageIcon, X, AlertCircle, Cpu, Loader2 } from 'lucide-react';
+import { UploadCloud, Image as ImageIcon, X, AlertCircle, Cpu, Loader2, Sparkles } from 'lucide-react';
 
 const PET_SPECIES_OPTIONS = [
   { value: 'Perro (Canino)', label: '🐕 Perro (Canino)' },
@@ -24,12 +24,12 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setValidationError('Please select a valid image file (JPEG, PNG, WebP).');
+      setValidationError('Por favor selecciona un archivo de imagen válido (JPEG, PNG, WebP).');
       return;
     }
 
     if (file.size > 20 * 1024 * 1024) {
-      setValidationError('Image size must be smaller than 20MB.');
+      setValidationError('La imagen no debe superar los 20MB.');
       return;
     }
 
@@ -72,12 +72,12 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
     e.preventDefault();
 
     if (!selectedFile) {
-      setValidationError('Please upload a clear photograph of the lesion or affected area.');
+      setValidationError('Por favor sube una fotografía clara de la lesión o zona afectada.');
       return;
     }
 
     if (!symptomsDescription.trim()) {
-      setValidationError('Please describe the observed symptoms and pet behavior.');
+      setValidationError('Por favor describe los síntomas y comportamiento que observas en tu mascota.');
       return;
     }
 
@@ -90,14 +90,21 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
+    >
       <div className="p-6 sm:p-8 space-y-6">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-            Emergency Triage Consultation
+          <div className="flex items-center space-x-2 text-rose-600 text-xs font-bold uppercase tracking-wider mb-1">
+            <Sparkles className="w-4 h-4" />
+            <span>Triaje Inteligente Multimodal</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Consulta de Triaje de Emergencia
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Upload a clear image of the lesion/symptom and describe your pet's current condition.
+            Sube una fotografía de la lesión o síntoma visible y describe el estado actual de tu mascota para una evaluación con IA en tiempo real.
           </p>
         </div>
 
@@ -108,10 +115,29 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
           </div>
         )}
 
-        {/* Image Drop Zone */}
+        {/* 1. Pet Species Selection */}
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">
-            1. Evidence Photograph <span className="text-rose-500">*</span>
+            1. Tipo de Mascota / Especie <span className="text-rose-500">*</span>
+          </label>
+          <select
+            value={petType}
+            onChange={(e) => setPetType(e.target.value)}
+            disabled={loading}
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
+          >
+            {PET_SPECIES_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 2. Image Drop Zone & Preview */}
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-2">
+            2. Fotografía de la Evidencia Visible <span className="text-rose-500">*</span>
           </label>
 
           {!previewUrl ? (
@@ -126,28 +152,29 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
                   : 'border-slate-300 hover:border-slate-400 bg-slate-50/60'
               }`}
             >
-              <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 mb-3">
+              <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 mb-3 shadow-sm">
                 <UploadCloud className="w-6 h-6" />
               </div>
               <p className="text-sm font-medium text-slate-800">
-                Drag and drop your photo here, or <span className="text-rose-600 underline">browse files</span>
+                Arrastra y suelta tu foto aquí, o{' '}
+                <span className="text-rose-600 underline font-semibold">explora tus archivos</span>
               </p>
               <p className="text-xs text-slate-400 mt-1">
-                Supports JPG, PNG, WebP up to 20MB (client-side compressed via Web Worker)
+                Formatos compatibles: JPG, PNG, WebP (hasta 20MB). Compresión automática con Web Worker.
               </p>
             </div>
           ) : (
             <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900/5 max-h-80 flex items-center justify-center">
               <img
                 src={previewUrl}
-                alt="Selected pet condition"
-                className="max-h-72 w-auto object-contain rounded-lg"
+                alt="Vista previa de la lesión o estado"
+                className="max-h-72 w-auto object-contain rounded-lg shadow-sm"
               />
               <button
                 type="button"
                 onClick={clearSelectedFile}
-                className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition"
-                title="Remove photo"
+                className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition shadow-md"
+                title="Cambiar fotografía"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -167,36 +194,17 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
           />
         </div>
 
-        {/* Pet Species Selection */}
+        {/* 3. Symptoms Description */}
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">
-            2. Pet Species / Classification <span className="text-rose-500">*</span>
-          </label>
-          <select
-            value={petType}
-            onChange={(e) => setPetType(e.target.value)}
-            disabled={loading}
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
-          >
-            {PET_SPECIES_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Symptoms Description */}
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">
-            3. Observed Symptoms & Behavior <span className="text-rose-500">*</span>
+            3. Síntomas y Comportamiento Observado <span className="text-rose-500">*</span>
           </label>
           <textarea
             rows={4}
             value={symptomsDescription}
             onChange={(e) => setSymptomsDescription(e.target.value)}
             disabled={loading}
-            placeholder="Describe what happened, how long the symptoms have been present, changes in posture, pain level, vomiting, appetite or breathing issues..."
+            placeholder="Describe qué ocurrió, hace cuánto tiempo comenzaron los síntomas, cambios de respiración, vómitos, postura de dolor o sangrado..."
             className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
           />
         </div>
@@ -206,7 +214,7 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
       <div className="bg-slate-50 px-6 sm:px-8 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center space-x-2 text-xs text-slate-500">
           <Cpu className="w-4 h-4 text-slate-400" />
-          <span>Multithreaded Web Worker Preprocessing + Gemini 2.5 Flash</span>
+          <span>Procesamiento Multimodal + Gemini 2.5 Flash</span>
         </div>
 
         <button
@@ -219,13 +227,13 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
               <Loader2 className="w-5 h-5 animate-spin" />
               <span>
                 {isCompressing
-                  ? 'Compressing (Web Worker)...'
-                  : 'Analyzing with Gemini 2.5 Flash...'}
+                  ? 'Optimizando imagen (Web Worker)...'
+                  : 'Analizando con Gemini 2.5 Flash...'}
               </span>
             </>
           ) : (
             <>
-              <span>Evaluate Triage Urgency</span>
+              <span>Evaluar Severidad de Triaje</span>
             </>
           )}
         </button>

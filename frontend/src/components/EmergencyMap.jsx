@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -8,18 +8,24 @@ import {
   Clock,
   MapPin,
   Compass,
-  AlertTriangle,
   LocateFixed,
   ExternalLink,
-  ShieldCheck,
+  Car,
+  CornerUpRight,
+  CornerUpLeft,
+  MoveUp,
+  Flag,
   ChevronRight,
+  CheckCircle2,
+  AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 
 /**
- * Haversine formula (semiverseno) to calculate real distance between two GPS coordinates in km
+ * Haversine formula (semiverseno) to calculate distance between GPS coordinates in km
  */
 export function haversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Earth's mean radius in km
+  const R = 6371; // Earth's radius in km
   const toRad = (val) => (val * Math.PI) / 180;
 
   const dLat = toRad(lat2 - lat1);
@@ -43,11 +49,11 @@ function createUserPulseIcon() {
   return L.divIcon({
     className: 'custom-user-pulse-marker',
     html: `
-      <div style="position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+      <div style="position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
         <div style="
           position: absolute;
-          width: 32px;
-          height: 32px;
+          width: 34px;
+          height: 34px;
           border-radius: 50%;
           background: rgba(37, 99, 235, 0.35);
           animation: pulse-ring 2s infinite ease-in-out;
@@ -63,20 +69,20 @@ function createUserPulseIcon() {
         "></div>
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -16],
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
+    popupAnchor: [0, -17],
   });
 }
 
 /**
  * Custom SVG DivIcon for emergency & general veterinary clinics
  */
-function createClinicIcon(isEmergency, isNearest = false) {
+function createClinicIcon(isEmergency, isSelected = false) {
   const bgColor = isEmergency ? '#ef4444' : '#10b981';
-  const badgeBorder = isNearest ? '3px solid #f59e0b' : '2px solid #ffffff';
-  const shadow = isNearest
-    ? '0 0 12px rgba(245, 158, 11, 0.8), 0 3px 6px rgba(0,0,0,0.4)'
+  const badgeBorder = isSelected ? '3px solid #f59e0b' : '2px solid #ffffff';
+  const shadow = isSelected
+    ? '0 0 14px rgba(245, 158, 11, 0.85), 0 3px 8px rgba(0,0,0,0.4)'
     : '0 3px 6px rgba(0,0,0,0.3)';
 
   return L.divIcon({
@@ -85,8 +91,8 @@ function createClinicIcon(isEmergency, isNearest = false) {
       <div style="
         background: ${bgColor};
         color: white;
-        width: ${isNearest ? '36px' : '32px'};
-        height: ${isNearest ? '36px' : '32px'};
+        width: ${isSelected ? '38px' : '32px'};
+        height: ${isSelected ? '38px' : '32px'};
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         display: flex;
@@ -95,12 +101,12 @@ function createClinicIcon(isEmergency, isNearest = false) {
         border: ${badgeBorder};
         box-shadow: ${shadow};
       ">
-        <span style="transform: rotate(45deg); font-weight: 900; font-size: ${isNearest ? '18px' : '15px'};">+</span>
+        <span style="transform: rotate(45deg); font-weight: 900; font-size: ${isSelected ? '18px' : '15px'};">+</span>
       </div>
     `,
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -36],
+    iconSize: [38, 38],
+    iconAnchor: [19, 38],
+    popupAnchor: [0, -38],
   });
 }
 
@@ -174,17 +180,89 @@ const CLINIC_PRESETS = [
 // Fallback GPS coordinate (Bogotá, Colombia)
 const FALLBACK_LOCATION = { lat: 4.6533, lng: -74.0836 };
 
+/**
+ * Format OSRM maneuver step into friendly Spanish instructions
+ */
+function formatStepInstruction(step, index, total) {
+  const type = step.maneuver?.type;
+  const modifier = step.maneuver?.modifier;
+  const street = step.name || 'la vía principal';
+  const distM = Math.round(step.distance || 0);
+
+  if (type === 'depart' || index === 0) {
+    return {
+      icon: 'depart',
+      text: `Inicia la marcha saliendo por ${street}`,
+      distance: distM > 0 ? `${distM} m` : '',
+    };
+  }
+
+  if (type === 'arrive' || index === total - 1) {
+    return {
+      icon: 'arrive',
+      text: `Llegada a la clínica veterinaria de destino`,
+      distance: '',
+    };
+  }
+
+  if (type === 'turn') {
+    if (modifier?.includes('left')) {
+      return {
+        icon: 'left',
+        text: `Gira a la izquierda hacia ${street}`,
+        distance: `${distM} m`,
+      };
+    }
+    if (modifier?.includes('right')) {
+      return {
+        icon: 'right',
+        text: `Gira a la derecha hacia ${street}`,
+        distance: `${distM} m`,
+      };
+    }
+    return {
+      icon: 'straight',
+      text: `Continúa recto por ${street}`,
+      distance: `${distM} m`,
+    };
+  }
+
+  if (type === 'roundabout') {
+    return {
+      icon: 'right',
+      text: `En la rotonda toma la salida hacia ${street}`,
+      distance: `${distM} m`,
+    };
+  }
+
+  return {
+    icon: 'straight',
+    text: `Avanza por ${street}`,
+    distance: `${distM} m`,
+  };
+}
+
 export function EmergencyMap({
   externalUserLocation = null,
   urgencyLevel = 'MODERATE',
+  onBackToTriage = null,
 }) {
   const [userLocation, setUserLocation] = useState(externalUserLocation || FALLBACK_LOCATION);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState(null);
-  const [navDropdownOpen, setNavDropdownOpen] = useState(false);
+
+  // Selected clinic for Turn-by-Turn navigation
+  const [selectedClinicId, setSelectedClinicId] = useState(null);
+
+  // Routing State
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
+  const [routeDurationMin, setRouteDurationMin] = useState(null);
+  const [routeDistanceKm, setRouteDistanceKm] = useState(null);
+  const [routeSteps, setRouteSteps] = useState([]);
+  const [isRoutingLoading, setIsRoutingLoading] = useState(false);
 
   // Request actual user location via navigator.geolocation.getCurrentPosition
-  const requestUserLocation = () => {
+  const requestUserLocation = useCallback(() => {
     if (!('geolocation' in navigator)) {
       setGeoError('Geolocalización no soportada por el navegador.');
       return;
@@ -202,7 +280,7 @@ export function EmergencyMap({
       },
       (err) => {
         console.warn('[EmergencyMap] Fallback to default coordinates:', err.message);
-        setGeoError('No se pudo acceder a tu ubicación GPS en tiempo real. Usando coordenadas de referencia.');
+        setGeoError('Ubicación GPS no disponible en tiempo real. Usando coordenadas urbanas de referencia.');
         setGeoLoading(false);
       },
       {
@@ -211,7 +289,7 @@ export function EmergencyMap({
         maximumAge: 60000,
       }
     );
-  };
+  }, []);
 
   useEffect(() => {
     if (externalUserLocation?.lat && externalUserLocation?.lng) {
@@ -219,7 +297,7 @@ export function EmergencyMap({
     } else {
       requestUserLocation();
     }
-  }, [externalUserLocation]);
+  }, [externalUserLocation, requestUserLocation]);
 
   // Calculate dynamic coordinates for clinics relative to the user position
   // and compute distance via Haversine formula
@@ -241,250 +319,468 @@ export function EmergencyMap({
     }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [userLocation]);
 
-  // Nearest clinic is the first one in the sorted list
-  const nearestClinic = clinicsWithDistance[0];
+  // Default to nearest clinic if not selected
+  const activeClinic = useMemo(() => {
+    if (selectedClinicId) {
+      const found = clinicsWithDistance.find((c) => c.id === selectedClinicId);
+      if (found) return found;
+    }
+    return clinicsWithDistance[0];
+  }, [selectedClinicId, clinicsWithDistance]);
 
-  // Route points for Polyline between user and nearest clinic
-  const routePoints = useMemo(() => {
-    if (!nearestClinic) return [];
-    return [
-      [userLocation.lat, userLocation.lng],
-      [nearestClinic.lat, nearestClinic.lng],
-    ];
-  }, [userLocation, nearestClinic]);
+  // Fetch real-time OSRM driving route with turn-by-turn steps
+  useEffect(() => {
+    if (!activeClinic || !userLocation) return;
+
+    let isMounted = true;
+    const controller = new AbortController();
+
+    async function fetchOsrmRoute() {
+      setIsRoutingLoading(true);
+
+      const userLat = userLocation.lat;
+      const userLng = userLocation.lng;
+      const clinicLat = activeClinic.lat;
+      const clinicLng = activeClinic.lng;
+
+      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${userLng},${userLat};${clinicLng},${clinicLat}?overview=full&geometries=geojson&steps=true`;
+
+      try {
+        const response = await fetch(osrmUrl, {
+          signal: controller.signal,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.routes && data.routes[0]) {
+            const bestRoute = data.routes[0];
+            const coords = bestRoute.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+            const distKm = (bestRoute.distance / 1000).toFixed(1);
+            const durationMin = Math.max(1, Math.round(bestRoute.duration / 60));
+
+            const rawSteps = bestRoute.legs?.[0]?.steps || [];
+            const formatted = rawSteps.map((step, idx) =>
+              formatStepInstruction(step, idx, rawSteps.length)
+            );
+
+            if (isMounted) {
+              setRouteCoordinates(coords);
+              setRouteDistanceKm(distKm);
+              setRouteDurationMin(durationMin);
+              setRouteSteps(formatted);
+              setIsRoutingLoading(false);
+              return;
+            }
+          }
+        }
+        throw new Error('OSRM routing response failed or empty');
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+
+        // Fallback calculations with Haversine formula
+        if (isMounted) {
+          const distKm = haversineDistance(userLat, userLng, clinicLat, clinicLng);
+          const estMin = Math.max(3, Math.round((distKm / 35) * 60)); // ~35 km/h urban speed
+
+          setRouteCoordinates([
+            [userLat, userLng],
+            [clinicLat, clinicLng],
+          ]);
+          setRouteDistanceKm(distKm.toFixed(1));
+          setRouteDurationMin(estMin);
+          setRouteSteps([
+            {
+              icon: 'depart',
+              text: 'Inicia el recorrido desde tu ubicación actual',
+              distance: '100 m',
+            },
+            {
+              icon: 'straight',
+              text: `Avanza por el corredor principal hacia ${activeClinic.address}`,
+              distance: `${(distKm * 0.7).toFixed(1)} km`,
+            },
+            {
+              icon: 'right',
+              text: `Gira hacia la entrada de ${activeClinic.name}`,
+              distance: '200 m',
+            },
+            {
+              icon: 'arrive',
+              text: `Llegada a ${activeClinic.name}`,
+              distance: '',
+            },
+          ]);
+          setIsRoutingLoading(false);
+        }
+      }
+    }
+
+    fetchOsrmRoute();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [activeClinic, userLocation]);
 
   // URLs for navigation
-  const googleMapsUrl = nearestClinic
-    ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${nearestClinic.lat},${nearestClinic.lng}`
+  const googleMapsUrl = activeClinic
+    ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${activeClinic.lat},${activeClinic.lng}`
     : '#';
 
-  const wazeUrl = nearestClinic
-    ? `https://waze.com/ul?ll=${nearestClinic.lat},${nearestClinic.lng}&navigate=yes`
+  const wazeUrl = activeClinic
+    ? `https://waze.com/ul?ll=${activeClinic.lat},${activeClinic.lng}&navigate=yes`
     : '#';
 
   const userIcon = createUserPulseIcon();
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[560px] relative">
-      {/* Map Card Header */}
-      <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/80 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center space-x-2">
-            <Compass className="w-4 h-4 text-rose-600 animate-spin-slow" />
-            <h3 className="font-bold text-slate-900 text-sm sm:text-base">
-              Mapa de Emergencias Veterinarias en Tiempo Real
-            </h3>
+    <div className="space-y-6">
+      {/* Header Bar */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2 text-rose-600 text-xs font-bold uppercase tracking-wider">
+            <Compass className="w-4 h-4 animate-spin-slow" />
+            <span>Navegación Guiada de Emergencia</span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Ruta calculada a la clínica más cercana vía fórmula del semiverseno (Haversine).
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            Veterinarias Disponibles para este Caso
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500">
+            Centros médicos de urgencia ordenados por cercanía GPS con ruta y giros paso a paso en tiempo real.
           </p>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {onBackToTriage && (
+            <button
+              type="button"
+              onClick={onBackToTriage}
+              className="px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Ver Diagnóstico IA</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={requestUserLocation}
             disabled={geoLoading}
-            title="Actualizar mi ubicación GPS"
-            className="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
           >
-            <LocateFixed className={`w-3.5 h-3.5 text-blue-600 ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>{geoLoading ? 'Obteniendo GPS...' : 'Mi GPS'}</span>
+            <LocateFixed className={`w-3.5 h-3.5 text-rose-400 ${geoLoading ? 'animate-spin' : ''}`} />
+            <span>{geoLoading ? 'Actualizando GPS...' : 'Mi Ubicación'}</span>
           </button>
-
-          {nearestClinic && (
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200 shadow-2xs flex items-center space-x-1">
-              <span>Más cercana:</span>
-              <strong>{nearestClinic.distanceKm} km</strong>
-            </span>
-          )}
         </div>
       </div>
 
-      {/* Geolocation Warning if any */}
       {geoError && (
-        <div className="bg-amber-50 px-4 py-2 border-b border-amber-200 text-amber-800 text-[11px] flex items-center justify-between">
+        <div className="bg-amber-50 px-4 py-3 border border-amber-200 rounded-2xl text-amber-800 text-xs flex items-center space-x-2">
+          <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
           <span>{geoError}</span>
         </div>
       )}
 
-      {/* Map Canvas */}
-      <div className="flex-1 w-full relative z-0">
-        <MapContainer
-          center={[userLocation.lat, userLocation.lng]}
-          zoom={14}
-          scrollWheelZoom={false}
-          className="h-full w-full"
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          <MapRecenter center={[userLocation.lat, userLocation.lng]} />
-
-          {/* User Location Pulsing Marker */}
-          <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
-            <Popup>
-              <div className="p-1 space-y-1 text-xs">
-                <span className="font-bold text-blue-600 block">Tu ubicación en tiempo real</span>
-                <span className="text-slate-500 font-mono text-[11px]">
-                  {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
-                </span>
-                <p className="text-[10px] text-slate-400">Punto de partida del triaje</p>
-              </div>
-            </Popup>
-          </Marker>
-
-          {/* Direct Route Polyline to Nearest Clinic */}
-          {routePoints.length === 2 && (
-            <Polyline
-              positions={routePoints}
-              pathOptions={{
-                color: '#EF4444',
-                weight: 4,
-                opacity: 0.85,
-                dashArray: '6, 8',
-              }}
+      {/* Main Grid: Interactive Map + Turn-by-Turn Panel */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Leaflet Map Container */}
+        <div className="lg:col-span-7 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[520px] relative">
+          <MapContainer
+            center={[userLocation.lat, userLocation.lng]}
+            zoom={14}
+            scrollWheelZoom={false}
+            className="h-full w-full"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-          )}
 
-          {/* Clinic Markers */}
-          {clinicsWithDistance.map((clinic, idx) => {
-            const isNearest = idx === 0;
-            const icon = createClinicIcon(clinic.isEmergency, isNearest);
+            <MapRecenter center={[userLocation.lat, userLocation.lng]} />
 
-            return (
-              <Marker
-                key={clinic.id}
-                position={[clinic.lat, clinic.lng]}
-                icon={icon}
-              >
-                <Popup className="custom-popup">
-                  <div className="p-2 space-y-2 min-w-[220px] text-xs">
-                    <div>
-                      <div className="flex items-center justify-between gap-1 mb-1">
+            {/* User Pulsing Pin */}
+            <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
+              <Popup>
+                <div className="p-1 space-y-1 text-xs">
+                  <span className="font-bold text-blue-600 block">Tu ubicación en tiempo real</span>
+                  <span className="text-slate-500 font-mono text-[11px]">
+                    {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+                  </span>
+                </div>
+              </Popup>
+            </Marker>
+
+            {/* OSRM Route Polyline */}
+            {routeCoordinates.length > 1 && (
+              <Polyline
+                positions={routeCoordinates}
+                pathOptions={{
+                  color: '#EF4444',
+                  weight: 5,
+                  opacity: 0.9,
+                  dashArray: routeCoordinates.length === 2 ? '8, 8' : undefined,
+                }}
+              />
+            )}
+
+            {/* Clinics Markers */}
+            {clinicsWithDistance.map((clinic) => {
+              const isSelected = activeClinic?.id === clinic.id;
+              const icon = createClinicIcon(clinic.isEmergency, isSelected);
+
+              return (
+                <Marker
+                  key={clinic.id}
+                  position={[clinic.lat, clinic.lng]}
+                  icon={icon}
+                  eventHandlers={{
+                    click: () => setSelectedClinicId(clinic.id),
+                  }}
+                >
+                  <Popup className="custom-popup">
+                    <div className="p-2 space-y-2 min-w-[210px] text-xs">
+                      <div className="flex items-center justify-between">
                         <span
                           className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
                             clinic.isEmergency
-                              ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                              : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                              ? 'bg-rose-100 text-rose-700'
+                              : 'bg-emerald-100 text-emerald-700'
                           }`}
                         >
                           {clinic.isEmergency ? '24H URGENCIAS' : 'CONSULTA GENERAL'}
                         </span>
-                        <span className="text-[11px] font-bold text-slate-700">
-                          {clinic.distanceKm} km
-                        </span>
+                        <span className="font-bold text-slate-700">{clinic.distanceKm} km</span>
                       </div>
-
-                      <h4 className="font-bold text-slate-900 text-sm leading-snug">
+                      <h4 className="font-bold text-slate-900 text-sm leading-tight">
                         {clinic.name}
                       </h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">{clinic.address}</p>
-                    </div>
+                      <p className="text-[11px] text-slate-500">{clinic.address}</p>
 
-                    <div className="flex items-center space-x-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100 text-[11px] text-slate-600">
-                      <Clock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                      <span className="truncate">{clinic.hours}</span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 pt-1">
-                      <a
-                        href={`tel:${clinic.phone}`}
-                        className="flex items-center justify-center space-x-1 py-1.5 px-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[11px] font-bold shadow-xs transition"
+                      <button
+                        type="button"
+                        onClick={() => setSelectedClinicId(clinic.id)}
+                        className="w-full py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition cursor-pointer"
                       >
-                        <Phone className="w-3 h-3" />
-                        <span>Llamar</span>
-                      </a>
-                      <a
-                        href={`https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${clinic.lat},${clinic.lng}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center space-x-1 py-1.5 px-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-bold shadow-xs transition"
-                      >
-                        <Navigation className="w-3 h-3" />
-                        <span>Ruta</span>
-                      </a>
+                        Trazar Ruta hacia Aquí
+                      </button>
                     </div>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          })}
-        </MapContainer>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MapContainer>
 
-        {/* Floating Direct Navigation Button */}
-        {nearestClinic && (
-          <div className="absolute bottom-4 right-4 z-[1000] flex flex-col items-end space-y-2">
-            {navDropdownOpen && (
-              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-2 space-y-1 min-w-[200px] mb-1 animate-in fade-in slide-in-from-bottom-2">
-                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                  Selecciona Aplicación
-                </div>
-                <a
-                  href={googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-100 text-slate-800 text-xs font-semibold transition"
-                >
-                  <span className="flex items-center space-x-2">
-                    <span>🗺️</span>
-                    <span>Google Maps</span>
-                  </span>
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                </a>
-
-                <a
-                  href={wazeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-100 text-slate-800 text-xs font-semibold transition"
-                >
-                  <span className="flex items-center space-x-2">
-                    <span>🚗</span>
-                    <span>Waze</span>
-                  </span>
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                </a>
+          {/* Floating Live Navigation Pill */}
+          {activeClinic && (
+            <div className="absolute top-4 left-4 z-[1000] bg-slate-900/90 backdrop-blur-xs text-white p-3 rounded-2xl shadow-xl border border-slate-700 text-xs flex items-center space-x-3 max-w-sm">
+              <div className="w-10 h-10 rounded-xl bg-rose-600 flex items-center justify-center flex-shrink-0 text-white font-bold">
+                <Car className="w-5 h-5" />
               </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setNavDropdownOpen(!navDropdownOpen)}
-              className="px-4 py-3 rounded-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-black text-xs sm:text-sm shadow-xl shadow-rose-600/40 border border-rose-400 flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              <Navigation className="w-4 h-4 animate-pulse" />
-              <span>Iniciar Navegación en Waze / Google Maps</span>
-              <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-mono">
-                {nearestClinic.distanceKm} km
-              </span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Map Legend Footer */}
-      <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1.5">
-            <span className="w-3 h-3 rounded-full bg-blue-600 border border-white shadow-2xs inline-block" />
-            <span className="text-slate-600 font-medium">Tu ubicación</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <span className="w-3 h-3 rounded-full bg-rose-500 border border-white shadow-2xs inline-block" />
-            <span className="text-slate-600 font-medium">Urgencias 24H</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2.5 h-2.5 border-b-2 border-dashed border-rose-500 inline-block w-4" />
-            <span className="text-slate-600 font-medium">Ruta directa Haversine</span>
-          </div>
+              <div className="truncate">
+                <span className="text-[10px] text-rose-400 font-bold uppercase tracking-wider block">
+                  Ruta hacia:
+                </span>
+                <span className="font-bold text-slate-100 truncate block">
+                  {activeClinic.name}
+                </span>
+                <span className="text-[11px] text-slate-300">
+                  {routeDistanceKm} km • Est: {routeDurationMin || '~8'} min en vehículo
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="text-[11px] text-slate-400">
-          Radio de cobertura: Ciudad metropolitana
+        {/* Right Column: Turn-by-Turn Routing Panel */}
+        <div className="lg:col-span-5 space-y-4">
+          {/* Active Navigation Card */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 inline-block mb-1">
+                  Destino Activo de Emergencia
+                </span>
+                <h3 className="font-black text-slate-900 text-base leading-snug">
+                  {activeClinic?.name}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">{activeClinic?.address}</p>
+              </div>
+
+              <div className="text-right">
+                <div className="text-2xl font-black text-slate-900">
+                  {routeDurationMin ? `${routeDurationMin} min` : '--'}
+                </div>
+                <div className="text-xs font-semibold text-rose-600">
+                  {routeDistanceKm ? `${routeDistanceKm} km` : `${activeClinic?.distanceKm} km`}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Phone Call & Hours */}
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs">
+              <div className="flex items-center space-x-2 text-slate-600">
+                <Clock className="w-4 h-4 text-slate-400" />
+                <span className="truncate">{activeClinic?.hours}</span>
+              </div>
+              <a
+                href={`tel:${activeClinic?.phone}`}
+                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center space-x-1 transition flex-shrink-0"
+              >
+                <Phone className="w-3.5 h-3.5" />
+                <span>Llamar</span>
+              </a>
+            </div>
+
+            {/* External Navigation Shortcuts (Waze / Google Maps) */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <a
+                href={googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center space-x-2 py-3 px-4 rounded-2xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold shadow-2xs transition"
+              >
+                <span>🗺️</span>
+                <span>Google Maps</span>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+              </a>
+
+              <a
+                href={wazeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center space-x-2 py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition"
+              >
+                <span>🚗</span>
+                <span>Abrir en Waze</span>
+                <ExternalLink className="w-3.5 h-3.5 text-blue-200" />
+              </a>
+            </div>
+
+            {/* Turn-by-Turn Steps List */}
+            <div className="space-y-3 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-600 flex items-center space-x-1.5">
+                  <Navigation className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Instrucciones de Giro Paso a Paso</span>
+                </h4>
+                <span className="text-[10px] text-slate-400">
+                  {routeSteps.length} pasos
+                </span>
+              </div>
+
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {routeSteps.map((step, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start space-x-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-800"
+                  >
+                    <div className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs">
+                      {step.icon === 'left' && <CornerUpLeft className="w-3.5 h-3.5 text-blue-600" />}
+                      {step.icon === 'right' && <CornerUpRight className="w-3.5 h-3.5 text-blue-600" />}
+                      {step.icon === 'straight' && <MoveUp className="w-3.5 h-3.5 text-emerald-600" />}
+                      {step.icon === 'depart' && <Navigation className="w-3.5 h-3.5 text-rose-600" />}
+                      {step.icon === 'arrive' && <Flag className="w-3.5 h-3.5 text-red-600" />}
+                    </div>
+
+                    <div className="flex-1">
+                      <p className="font-medium text-slate-800 leading-tight">{step.text}</p>
+                      {step.distance && (
+                        <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
+                          {step.distance}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Clinics Cards List Ordered by Distance */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base sm:text-lg font-black text-slate-900">
+            Red de Clínicas y Hospitales Veterinarios Cercanos
+          </h3>
+          <span className="text-xs text-slate-500">
+            {clinicsWithDistance.length} centros identificados
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {clinicsWithDistance.map((clinic) => {
+            const isSelected = activeClinic?.id === clinic.id;
+
+            return (
+              <div
+                key={clinic.id}
+                onClick={() => setSelectedClinicId(clinic.id)}
+                className={`p-5 rounded-3xl border transition cursor-pointer flex flex-col justify-between space-y-4 ${
+                  isSelected
+                    ? 'bg-rose-50/50 border-rose-500 ring-2 ring-rose-500/20 shadow-md'
+                    : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                }`}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-1">
+                    <span
+                      className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                        clinic.isEmergency
+                          ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                          : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      }`}
+                    >
+                      {clinic.isEmergency ? '24H URGENCIAS' : 'CONSULTA GENERAL'}
+                    </span>
+
+                    <span className="text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">
+                      {clinic.distanceKm} km
+                    </span>
+                  </div>
+
+                  <h4 className="font-bold text-slate-900 text-sm leading-snug">
+                    {clinic.name}
+                  </h4>
+                  <p className="text-xs text-slate-500">{clinic.address}</p>
+
+                  <div className="text-[11px] text-slate-600 flex items-center space-x-1.5 pt-1">
+                    <Clock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                    <span className="truncate">{clinic.hours}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedClinicId(clinic.id);
+                    }}
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
+                      isSelected
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <span>{isSelected ? 'Ruta Seleccionada' : 'Ver Ruta'}</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+
+                  <a
+                    href={`tel:${clinic.phone}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition flex-shrink-0"
+                    title={`Llamar a ${clinic.name}`}
+                  >
+                    <Phone className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

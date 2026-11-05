@@ -13,6 +13,7 @@ import {
   Droplets,
   Activity,
   ArrowLeft,
+  ArrowRight,
   MessageSquare,
   ShieldAlert,
   ChevronDown,
@@ -20,8 +21,14 @@ import {
   Clock,
   Building2,
   Calculator,
+  Compass,
+  HelpCircle,
+  Info,
+  MapPin,
 } from 'lucide-react';
 import { analyzeTriage, API_BASE_URL } from '../services/api';
+import PhotoGuidanceModal from './PhotoGuidanceModal';
+import AnalyzingScreen from './AnalyzingScreen';
 
 /**
  * Off-thread image compressor helper using Web Worker
@@ -187,15 +194,10 @@ const URGENCY_THEMES = {
 
 /**
  * Fluid Replacement Mini Calculator Component
- * Calculates:
- * - Daily maintenance: ~50-60 ml/kg/day
- * - Dehydration replacement: Weight (kg) * % dehydration * 10
- * - Total Volume in 24h & Continuous Infusion Rate (ml/h)
- * - Drip rate (Macrodrip 20 gtt/ml, Microdrip 60 gtt/ml)
  */
 function FluidCalculator({ weightKg }) {
   const [dehydrationLevel, setDehydrationLevel] = useState(7); // default 7% moderate
-  const [maintenanceFactor, setMaintenanceFactor] = useState(55); // 55 ml/kg/day avg
+  const [maintenanceFactor] = useState(55); // 55 ml/kg/day avg
   const [isOpen, setIsOpen] = useState(true);
 
   const weight = parseFloat(weightKg) || 10;
@@ -206,7 +208,6 @@ function FluidCalculator({ weightKg }) {
   const totalVolume24h = maintenanceVolume + deficitVolume;
   const rateMlPerHour = (totalVolume24h / 24).toFixed(1);
   const macrodripGttPerMin = Math.round((parseFloat(rateMlPerHour) * 20) / 60);
-  const microdripGttPerMin = Math.round(parseFloat(rateMlPerHour));
 
   return (
     <div className="bg-slate-900 text-white rounded-2xl p-5 border border-slate-800 shadow-lg space-y-4">
@@ -300,7 +301,7 @@ function FluidCalculator({ weightKg }) {
           <div className="flex items-start space-x-2 text-[11px] text-slate-400 bg-slate-800/50 p-2.5 rounded-lg border border-slate-800">
             <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
             <p className="leading-snug">
-              Cálculo de referencia clínica veterinaria (normogotero de 20 gotas/ml). La administración parenteral de fluidos (Ringer Lactato / NaCl 0.9%) debe ser monitorizada por un profesional veterinario.
+              Cálculo de referencia clínica veterinaria (normogotero de 20 gotas/ml). La administración parenteral de fluidos debe ser monitorizada por un profesional veterinario.
             </p>
           </div>
         </div>
@@ -312,6 +313,9 @@ function FluidCalculator({ weightKg }) {
 export function TriageEvaluator({
   onDiagnosisComplete,
   onOpenChat,
+  onProceedToMap,
+  stage = 'FORM',
+  onStageChange = null,
   userCoordinates = null,
 }) {
   // Form States
@@ -320,7 +324,10 @@ export function TriageEvaluator({
   const [descripcion, setDescripcion] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
+
+  // Photo Guidance Accordion & Modal States
+  const [isGuidanceOpen, setIsGuidanceOpen] = useState(false);
+  const [isGuidanceModalOpen, setIsGuidanceModalOpen] = useState(false);
 
   // Status & Response States
   const [loading, setLoading] = useState(false);
@@ -386,6 +393,10 @@ export function TriageEvaluator({
     setNetworkError('');
     setLoading(true);
 
+    if (onStageChange) {
+      onStageChange('ANALYZING');
+    }
+
     try {
       // 1. Process image with worker
       setIsCompressing(true);
@@ -441,12 +452,19 @@ export function TriageEvaluator({
       if (onDiagnosisComplete) {
         onDiagnosisComplete(normalizedResult, parsedWeight, especie);
       }
+
+      if (onStageChange) {
+        onStageChange('RESULTS');
+      }
     } catch (err) {
       console.error('[TriageEvaluator.handleSubmit] Error:', err);
       setNetworkError(
         err.message ||
           'No se pudo conectar con el servidor backend en http://localhost:8000/api/v1/triage/analyze. Verifica que el servidor FastAPI esté encendido.'
       );
+      if (onStageChange) {
+        onStageChange('FORM');
+      }
     } finally {
       setIsCompressing(false);
       setLoading(false);
@@ -457,6 +475,9 @@ export function TriageEvaluator({
     setDiagnosisResult(null);
     setNetworkError('');
     setValidationError('');
+    if (onStageChange) {
+      onStageChange('FORM');
+    }
   };
 
   // Determine active visual theme
@@ -467,10 +488,15 @@ export function TriageEvaluator({
   const theme = URGENCY_THEMES[activeUrgencyKey] || URGENCY_THEMES.MODERATE;
   const UrgencyIcon = theme.icon;
 
+  // Show Animated Analyzing Screen during State 2
+  if (loading || stage === 'ANALYZING') {
+    return <AnalyzingScreen petType={especie} weight={pesoKg} />;
+  }
+
   return (
     <div className="space-y-6">
       {!diagnosisResult ? (
-        /* EVALUATION INPUT FORM */
+        /* ESTADO 1: FORMULARIO DE INGRESO DE DATOS Y CARGA DE FOTO */
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"
@@ -522,9 +548,9 @@ export function TriageEvaluator({
                   <button
                     type="button"
                     onClick={() => setEspecie('Perro (Canino)')}
-                    className={`py-3 px-4 rounded-xl border font-semibold text-xs sm:text-sm flex items-center justify-center space-x-2 transition ${
+                    className={`py-3 px-4 rounded-xl border font-semibold text-xs sm:text-sm flex items-center justify-center space-x-2 transition cursor-pointer ${
                       especie.includes('Perro')
-                        ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-sm'
+                        ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-xs'
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
@@ -535,9 +561,9 @@ export function TriageEvaluator({
                   <button
                     type="button"
                     onClick={() => setEspecie('Gato (Felino)')}
-                    className={`py-3 px-4 rounded-xl border font-semibold text-xs sm:text-sm flex items-center justify-center space-x-2 transition ${
+                    className={`py-3 px-4 rounded-xl border font-semibold text-xs sm:text-sm flex items-center justify-center space-x-2 transition cursor-pointer ${
                       especie.includes('Gato')
-                        ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-sm'
+                        ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-xs'
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
@@ -583,15 +609,81 @@ export function TriageEvaluator({
               </div>
             </div>
 
-            {/* 2. Photo Upload & Preview (Camera + Gallery) */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                3. Fotografía de la Lesión o Signo Clínico <span className="text-rose-500">*</span>
-              </label>
+            {/* 2. Photo Upload & Preview with Photo Tips Accordion */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  3. Fotografía de la Evidencia Visible <span className="text-rose-500">*</span>
+                </label>
 
+                {/* Modal Trigger for Photo Guidance */}
+                <button
+                  type="button"
+                  onClick={() => setIsGuidanceModalOpen(true)}
+                  className="text-xs text-rose-600 font-bold hover:text-rose-700 flex items-center space-x-1.5 transition cursor-pointer"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Guía Completa de Fotos</span>
+                </button>
+              </div>
+
+              {/* Accordion: Consejos para una foto diagnóstica precisa */}
+              <div className="bg-amber-50/70 border border-amber-200 rounded-2xl overflow-hidden transition">
+                <div
+                  onClick={() => setIsGuidanceOpen(!isGuidanceOpen)}
+                  className="p-3.5 flex items-center justify-between cursor-pointer select-none bg-amber-50/90"
+                >
+                  <div className="flex items-center space-x-2 text-xs font-bold text-amber-950">
+                    <Info className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <span>Consejos para una foto diagnóstica precisa (Vómito, Mucosas y Heridas)</span>
+                  </div>
+                  <button type="button" className="text-amber-800 p-1">
+                    {isGuidanceOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                {isGuidanceOpen && (
+                  <div className="p-4 pt-1 border-t border-amber-200/80 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    {/* Tip 1: Muestras */}
+                    <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
+                      <div className="font-bold text-amber-900 flex items-center space-x-1">
+                        <span>🧪</span>
+                        <span>Muestras (Vómito/Heces)</span>
+                      </div>
+                      <p className="text-[11px] text-amber-800 leading-snug">
+                        Foto cenital (desde arriba a 90°) con buena luz natural. Evita el flash reflejado sobre líquidos.
+                      </p>
+                    </div>
+
+                    {/* Tip 2: Mucosas / Ojos */}
+                    <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
+                      <div className="font-bold text-amber-900 flex items-center space-x-1">
+                        <span>👄</span>
+                        <span>Mucosas / Ojos</span>
+                      </div>
+                      <p className="text-[11px] text-amber-800 leading-snug">
+                        Foto nítida a 15 cm levantando con calma el belfo dental para ver coloración de encías (rosada, pálida o azul).
+                      </p>
+                    </div>
+
+                    {/* Tip 3: Piel / Heridas */}
+                    <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
+                      <div className="font-bold text-amber-900 flex items-center space-x-1">
+                        <span>🩹</span>
+                        <span>Piel / Heridas</span>
+                      </div>
+                      <p className="text-[11px] text-amber-800 leading-snug">
+                        Estrategia doble: Una toma cercana (macro) enfocada en los bordes y otra toma amplia de ubicación anatómica.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Dropzone or Image Preview */}
               {!previewUrl ? (
                 <div className="border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-2xl p-6 bg-slate-50/60 text-center transition flex flex-col items-center justify-center space-y-4">
-                  <div className="w-14 h-14 rounded-2xl bg-rose-100/70 text-rose-600 flex items-center justify-center shadow-sm">
+                  <div className="w-14 h-14 rounded-2xl bg-rose-100/70 text-rose-600 flex items-center justify-center shadow-xs">
                     <UploadCloud className="w-7 h-7" />
                   </div>
 
@@ -609,7 +701,7 @@ export function TriageEvaluator({
                     <button
                       type="button"
                       onClick={() => cameraInputRef.current?.click()}
-                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm flex items-center space-x-2 transition cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-xs flex items-center space-x-2 transition cursor-pointer"
                     >
                       <Camera className="w-4 h-4 text-rose-400" />
                       <span>Tomar Foto con Cámara</span>
@@ -618,7 +710,7 @@ export function TriageEvaluator({
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold text-xs shadow-xs flex items-center space-x-2 transition cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold text-xs shadow-2xs flex items-center space-x-2 transition cursor-pointer"
                     >
                       <ImageIcon className="w-4 h-4 text-slate-500" />
                       <span>Subir desde Galería</span>
@@ -639,7 +731,7 @@ export function TriageEvaluator({
                     type="button"
                     onClick={handleRemoveImage}
                     className="absolute top-3 right-3 p-2 rounded-full bg-slate-900/80 hover:bg-red-600 text-white transition shadow-md cursor-pointer"
-                    title="Eliminar fotografía"
+                    title="Eliminar o cambiar fotografía"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -696,26 +788,13 @@ export function TriageEvaluator({
               disabled={loading}
               className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-sm shadow-lg shadow-rose-600/30 transition transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2.5 cursor-pointer"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>
-                    {isCompressing
-                      ? 'Comprimiendo imagen...'
-                      : 'Evaluando con Gemini Flash...'}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <HeartPulse className="w-5 h-5" />
-                  <span>Analizar Triage de Urgencia</span>
-                </>
-              )}
+              <HeartPulse className="w-5 h-5" />
+              <span>Evaluar Triage de Urgencia</span>
             </button>
           </div>
         </form>
       ) : (
-        /* RESULTS VIEW WITH TRAFFIC LIGHT & FLUID CALCULATOR */
+        /* ESTADO 3: RESULTADOS DE IA DESPLEGADOS */
         <div
           className={`bg-white rounded-3xl shadow-md border-2 ${theme.border} overflow-hidden space-y-6 transition-all duration-300 ${
             theme.pulse ? 'ring-4 ring-rose-500/20' : ''
@@ -750,7 +829,7 @@ export function TriageEvaluator({
 
             {/* Timeframe Pill */}
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 shadow-xs flex items-center space-x-1.5">
+              <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs flex items-center space-x-1.5">
                 <Clock className="w-4 h-4 text-slate-400" />
                 <span>{diagnosisResult.vet_consultation_timeframe}</span>
               </span>
@@ -812,7 +891,7 @@ export function TriageEvaluator({
                     className="flex items-start space-x-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs sm:text-sm text-slate-800"
                   >
                     <div
-                      className="w-6 h-6 rounded-lg text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs"
+                      className="w-6 h-6 rounded-lg text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs"
                       style={{ backgroundColor: theme.color }}
                     >
                       {idx + 1}
@@ -825,6 +904,31 @@ export function TriageEvaluator({
 
             {/* Fluid Replacement Mini Calculator */}
             <FluidCalculator weightKg={pesoKg} />
+
+            {/* ESTADO 4 ACTIVATOR: "Veterinarias Disponibles para este Caso" */}
+            <div className="p-6 rounded-3xl bg-slate-900 text-white shadow-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-5">
+              <div className="space-y-1.5 text-center sm:text-left">
+                <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[11px] font-bold uppercase tracking-wider">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Siguiente Paso Recomendado</span>
+                </div>
+                <h4 className="text-base sm:text-lg font-black text-white">
+                  Veterinarias Disponibles para este Caso
+                </h4>
+                <p className="text-xs text-slate-300 max-w-md">
+                  Activa el mapa interactivo con GPS, centros de urgencia 24H y navegación con giros paso a paso.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onProceedToMap && onProceedToMap()}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-black text-xs sm:text-sm shadow-xl shadow-rose-600/40 transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2.5 flex-shrink-0 cursor-pointer"
+              >
+                <span>Ver Veterinarias y Trazar Ruta</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
 
             {/* AI Assistant Chat CTA Banner */}
             <div className="p-5 rounded-3xl bg-gradient-to-r from-rose-600 via-rose-700 to-red-600 text-white shadow-xl shadow-rose-600/20 border border-rose-500 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -857,7 +961,7 @@ export function TriageEvaluator({
             <button
               type="button"
               onClick={handleReset}
-              className="flex items-center space-x-2 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition shadow-xs cursor-pointer"
+              className="flex items-center space-x-2 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition shadow-2xs cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Nueva Evaluación de Triage</span>
@@ -869,6 +973,12 @@ export function TriageEvaluator({
           </div>
         </div>
       )}
+
+      {/* Photo Guidance Detail Modal */}
+      <PhotoGuidanceModal
+        isOpen={isGuidanceModalOpen}
+        onClose={() => setIsGuidanceModalOpen(false)}
+      />
     </div>
   );
 }

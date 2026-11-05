@@ -1,4 +1,4 @@
-import { sendTriageDiagnosis, sendChatMessage } from './api';
+import { sendTriageDiagnosis, analyzeTriage, sendChatMessage } from './api';
 
 /**
  * ApiClient Service Class
@@ -19,6 +19,14 @@ export class ApiClient {
    */
   async diagnose(formData) {
     return sendTriageDiagnosis(formData);
+  }
+
+  /**
+   * Submit pet data to /triage/analyze
+   * @param {FormData} formData
+   */
+  async analyzeTriage(formData) {
+    return analyzeTriage(formData);
   }
 
   /**
@@ -116,5 +124,5 @@ export class ApiClient {
 
 // Export singleton instance as default
 export const apiClient = new ApiClient();
-export { sendTriageDiagnosis, sendChatMessage };
+export { sendTriageDiagnosis, analyzeTriage, sendChatMessage };
 export default apiClient;

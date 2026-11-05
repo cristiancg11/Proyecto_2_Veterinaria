@@ -43,6 +43,53 @@ export async function sendTriageDiagnosis(formData) {
 }
 
 /**
+ * Submit pet condition image, species, weight and symptoms for multimodal triage analysis.
+ * Sends multipart form data to POST /triage/analyze with fallback to /diagnose.
+ *
+ * @param {FormData} formData
+ * @returns {Promise<Object>} TriageAnalysisResponse
+ */
+export async function analyzeTriage(formData) {
+  const primaryEndpoint = `${API_BASE_URL}/triage/analyze`;
+  try {
+    const response = await fetch(primaryEndpoint, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      return await response.json();
+    }
+
+    // Graceful fallback to /diagnose if /triage/analyze returned 404
+    if (response.status === 404) {
+      const fallbackEndpoint = `${API_BASE_URL}/diagnose`;
+      const fallbackResponse = await fetch(fallbackEndpoint, {
+        method: 'POST',
+        body: formData,
+      });
+      if (fallbackResponse.ok) {
+        return await fallbackResponse.json();
+      }
+    }
+
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.detail || `Triage analyze failed with status ${response.status}`
+    );
+  } catch (error) {
+    const isNetworkError =
+      error.message?.includes('Failed to fetch') || error.name === 'TypeError';
+    const friendlyMessage = isNetworkError
+      ? `No se pudo conectar con el servidor backend en ${primaryEndpoint}. Verifica que el servidor FastAPI esté encendido en http://localhost:8000.`
+      : error.message;
+
+    console.error(`[analyzeTriage] Error al conectar con ${primaryEndpoint}:`, error);
+    throw new Error(friendlyMessage);
+  }
+}
+
+/**
  * Send interactive follow-up chat message with clinical triage context.
  * Communicates with POST /chat, with graceful fallback to /triage/:id/chat.
  *
@@ -121,5 +168,6 @@ export async function sendChatMessage({
 export default {
   API_BASE_URL,
   sendTriageDiagnosis,
+  analyzeTriage,
   sendChatMessage,
 };

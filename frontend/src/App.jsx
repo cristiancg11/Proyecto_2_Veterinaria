@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
-import ImageUploadForm from './components/ImageUploadForm';
-import DiagnosisResult from './components/DiagnosisResult';
+import TriageEvaluator from './components/TriageEvaluator';
+import EmergencyMap from './components/EmergencyMap';
 import TriageChatModal from './components/TriageChatModal';
-import VetMap from './components/VetMap';
 import HistoryModal from './components/HistoryModal';
 import AuthModal from './components/AuthModal';
 import AuthScreen from './components/AuthScreen';
@@ -25,20 +24,16 @@ function MainApp() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [lastPetType, setLastPetType] = useState('Perro (Canino)');
+  const [activeDiagnosis, setActiveDiagnosis] = useState(null);
 
   const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   // Custom Hooks
   const { coordinates, loading: geoLoading, error: geoError } = useGeolocation();
   const {
-    loading,
-    isCompressing,
-    currentDiagnosis,
-    clinics,
     history,
     error,
-    submitTriage,
-    resetDiagnosis,
+    fetchHistory,
   } = useTriage(user?.id);
 
   if (authLoading) {
@@ -62,19 +57,17 @@ function MainApp() {
     return <AuthScreen />;
   }
 
-  const handleTriageSubmit = ({ file, petType, symptomsDescription }) => {
-    setLastPetType(petType);
-    submitTriage({
-      file,
-      petType,
-      symptomsDescription,
-      userCoordinates: coordinates,
-    });
+  const handleDiagnosisComplete = (result, weight, species) => {
+    setActiveDiagnosis(result);
+    setLastPetType(species);
+    if (fetchHistory) {
+      fetchHistory();
+    }
   };
 
-  const handleReset = () => {
-    setIsChatModalOpen(false);
-    resetDiagnosis();
+  const handleOpenChat = (diag) => {
+    if (diag) setActiveDiagnosis(diag);
+    setIsChatModalOpen(true);
   };
 
   return (
@@ -132,32 +125,22 @@ function MainApp() {
           </div>
         )}
 
-        {/* Grid Layout: Consultation on Left, Map on Right */}
+        {/* Grid Layout: Triage on Left, Emergency Map on Right */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Form or Diagnosis Card */}
+          {/* Left Column: Triage Evaluator Component */}
           <div className="lg:col-span-6 space-y-6">
-            {!currentDiagnosis ? (
-              <ImageUploadForm
-                onSubmit={handleTriageSubmit}
-                loading={loading}
-                isCompressing={isCompressing}
-              />
-            ) : (
-              <DiagnosisResult
-                diagnosis={currentDiagnosis}
-                onReset={handleReset}
-                petType={lastPetType}
-                onOpenChat={() => setIsChatModalOpen(true)}
-              />
-            )}
+            <TriageEvaluator
+              userCoordinates={coordinates}
+              onDiagnosisComplete={handleDiagnosisComplete}
+              onOpenChat={handleOpenChat}
+            />
           </div>
 
-          {/* Right Column: Interactive Leaflet Map */}
+          {/* Right Column: Real-Time Emergency Map */}
           <div className="lg:col-span-6 space-y-6">
-            <VetMap
-              userLocation={coordinates}
-              clinics={clinics}
-              urgencyLevel={currentDiagnosis?.urgency_level || 'MODERATE'}
+            <EmergencyMap
+              externalUserLocation={coordinates}
+              urgencyLevel={activeDiagnosis?.urgency_level || 'MODERATE'}
             />
 
             {/* Quick Helper Guide */}
@@ -166,7 +149,7 @@ function MainApp() {
                 <span>Protocolo de Emergencia Veterinaria</span>
               </h4>
               <p className="leading-relaxed">
-                Si la mascota presenta sangrado activo incontrolable, pérdida de conciencia o asfixia, haz clic de inmediato en <strong>Call</strong> o <strong>Route</strong> sobre el marcador rojo más cercano para acudir a un hospital con servicio de quirófano 24 horas.
+                Si la mascota presenta sangrado activo incontrolable, pérdida de conciencia o asfixia, haz clic de inmediato en el botón flotante <strong>"Iniciar Navegación en Waze / Google Maps"</strong> o en <strong>Llamar</strong> sobre la clínica más cercana para acudir a un hospital con servicio de quirófano 24 horas.
               </p>
             </div>
           </div>
@@ -177,7 +160,7 @@ function MainApp() {
       <TriageChatModal
         isOpen={isChatModalOpen}
         onClose={() => setIsChatModalOpen(false)}
-        diagnosis={currentDiagnosis}
+        diagnosis={activeDiagnosis}
         petType={lastPetType}
       />
 
@@ -195,7 +178,7 @@ function MainApp() {
       />
 
       {/* Floating Chat Shortcut Button when diagnosis is active */}
-      {currentDiagnosis && !isChatModalOpen && (
+      {activeDiagnosis && !isChatModalOpen && (
         <button
           type="button"
           onClick={() => setIsChatModalOpen(true)}
@@ -214,7 +197,7 @@ function MainApp() {
           <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-600">
             <span className="px-2 py-0.5 bg-slate-100 rounded">Supabase Auth</span>
             <span className="px-2 py-0.5 bg-slate-100 rounded">React 18</span>
-            <span className="px-2 py-0.5 bg-slate-100 rounded">Web Workers</span>
+            <span className="px-2 py-0.5 bg-slate-100 rounded">Leaflet Map</span>
             <span className="px-2 py-0.5 bg-slate-100 rounded">Gemini 2.5 Flash</span>
           </div>
         </div>

@@ -1,9 +1,14 @@
+import { sendTriageDiagnosis, sendChatMessage } from './api';
+
 /**
  * ApiClient Service Class
  * Handles all HTTP REST communication with the FastAPI backend.
  */
 export class ApiClient {
-  constructor(baseUrl = 'http://localhost:8000/api/v1') {
+  constructor(
+    baseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
+      'http://localhost:8000/api/v1'
+  ) {
     this.baseUrl = baseUrl;
   }
 
@@ -13,24 +18,15 @@ export class ApiClient {
    * @returns {Promise<Object>} TriageAssessmentResponse
    */
   async diagnose(formData) {
-    try {
-      const response = await fetch(`${this.baseUrl}/diagnose`, {
-        method: 'POST',
-        body: formData,
-      });
+    return sendTriageDiagnosis(formData);
+  }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.detail || `Diagnosis request failed with status ${response.status}`
-        );
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('[ApiClient.diagnose] Error:', error);
-      throw error;
-    }
+  /**
+   * Alias for sendTriageDiagnosis
+   * @param {FormData} formData
+   */
+  async sendTriageDiagnosis(formData) {
+    return sendTriageDiagnosis(formData);
   }
 
   /**
@@ -99,33 +95,23 @@ export class ApiClient {
    * @returns {Promise<Object>} { reply, timestamp, triage_id }
    */
   async followUpChat(triageId, message, conversationHistory = []) {
-    try {
-      const response = await fetch(`${this.baseUrl}/triage/${triageId}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message,
-          conversation_history: conversationHistory,
-        }),
-      });
+    return sendChatMessage({
+      history: conversationHistory,
+      user_message: message,
+      triage_context: { record_id: triageId, id: triageId },
+    });
+  }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.detail || `Follow-up chat failed with status ${response.status}`
-        );
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('[ApiClient.followUpChat] Error:', error);
-      throw error;
-    }
+  /**
+   * Send chat message with full triage context
+   * @param {Object} params
+   */
+  async sendChatMessage({ history, user_message, triage_context }) {
+    return sendChatMessage({ history, user_message, triage_context });
   }
 }
 
 // Export singleton instance as default
 export const apiClient = new ApiClient();
+export { sendTriageDiagnosis, sendChatMessage };
 export default apiClient;

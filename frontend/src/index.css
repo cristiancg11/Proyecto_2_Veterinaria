@@ -54,6 +54,61 @@
   scrollbar-width: none;
 }
 
+/* Discreet dark mode scrollbars */
+.scrollbar-dark::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-dark::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 9999px;
+}
+.scrollbar-dark::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.7);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.9);
+}
+.scrollbar-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(51, 65, 85, 0.7) rgba(15, 23, 42, 0.6);
+}
+
+/* Radar pulse animations for real-time live map markers */
+@keyframes radar-beacon {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(2.5);
+    opacity: 0.05;
+  }
+  100% {
+    transform: scale(3.0);
+    opacity: 0;
+  }
+}
+
+@keyframes live-dot-glow {
+  0%, 100% {
+    box-shadow: 0 0 4px #10b981, 0 0 10px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 12px #10b981, 0 0 20px rgba(16, 185, 129, 0.8);
+  }
+}
+
+.animate-radar-beacon {
+  animation: radar-beacon 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-live-glow {
+  animation: live-dot-glow 1.8s infinite ease-in-out;
+}
+
 /* Print view optimization for emergency clinical sheet */
 @media print {
   body {

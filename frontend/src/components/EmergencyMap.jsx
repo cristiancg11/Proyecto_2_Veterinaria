@@ -285,8 +285,8 @@ export function EmergencyMap({
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
+        timeout: 15000,
+        maximumAge: 0,
       }
     );
   }, []);
@@ -467,18 +467,30 @@ export function EmergencyMap({
             type="button"
             onClick={requestUserLocation}
             disabled={geoLoading}
-            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs flex items-center space-x-2 transition cursor-pointer"
+            title="Obtener mi ubicación exacta (GPS)"
           >
-            <LocateFixed className={`w-3.5 h-3.5 text-rose-400 ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>{geoLoading ? 'Actualizando GPS...' : 'Mi Ubicación'}</span>
+            <LocateFixed className={`w-4 h-4 text-rose-400 ${geoLoading ? 'animate-spin' : ''}`} />
+            <span>{geoLoading ? 'Obteniendo GPS en alta precisión...' : 'Obtener mi ubicación exacta (GPS)'}</span>
           </button>
         </div>
       </div>
 
       {geoError && (
-        <div className="bg-amber-50 px-4 py-3 border border-amber-200 rounded-2xl text-amber-800 text-xs flex items-center space-x-2">
-          <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-          <span>{geoError}</span>
+        <div className="bg-amber-50 px-4 py-3.5 border border-amber-200 rounded-2xl text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center space-x-2.5">
+            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <span>{geoError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={requestUserLocation}
+            disabled={geoLoading}
+            className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center space-x-1.5 self-start sm:self-auto transition shadow-2xs cursor-pointer"
+          >
+            <LocateFixed className={`w-3.5 h-3.5 ${geoLoading ? 'animate-spin' : ''}`} />
+            <span>Reintentar GPS</span>
+          </button>
         </div>
       )}
 

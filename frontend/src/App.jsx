@@ -52,7 +52,7 @@ function MainApp() {
   }
 
   // Authentication Gate: Require user to sign in or register before entering
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user?.id) {
     return <AuthScreen />;
   }
 
@@ -154,19 +154,6 @@ function MainApp() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
       />
-
-      {/* Floating Chat Shortcut Button when diagnosis is active */}
-      {activeDiagnosis && !isChatModalOpen && (
-        <button
-          type="button"
-          onClick={() => setIsChatModalOpen(true)}
-          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-xs sm:text-sm rounded-full shadow-2xl shadow-rose-600/40 flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 cursor-pointer border border-rose-400"
-          title="Abrir Chat de Seguimiento con Asistente IA"
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span>Chat de Urgencias IA</span>
-        </button>
-      )}
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">

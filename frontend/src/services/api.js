@@ -91,35 +91,43 @@ export async function analyzeTriage(formData) {
 
 /**
  * Send interactive follow-up chat message with clinical triage context.
- * Communicates with POST /chat, with graceful fallback to /triage/:id/chat.
+ * Communicates with POST /triage/chat, with graceful fallback to /chat.
  *
  * @param {Object} params
  * @param {Array<{role: string, content: string}>} params.history - Conversational message history
  * @param {string} params.user_message - User's follow-up inquiry
  * @param {Object} params.triage_context - Evaluated case context (urgency, assessment, tips, etc.)
+ * @param {string} [params.triage_id] - Supabase triage_records record ID
  * @returns {Promise<{reply: string, timestamp?: string, triage_id?: string}>}
  */
 export async function sendChatMessage({
   history = [],
   user_message = '',
   triage_context = {},
+  triage_id = null,
 }) {
   if (!user_message.trim()) {
     throw new Error('user_message cannot be empty');
   }
 
-  const primaryEndpoint = `${API_BASE_URL}/chat`;
+  const triageId =
+    triage_id ||
+    triage_context?.record_id ||
+    triage_context?.id ||
+    'active-case';
+
+  // 1. Primary endpoint: /triage/chat
+  const primaryEndpoint = `${API_BASE_URL}/triage/chat`;
   try {
-    // 1. Primary endpoint: /chat
     const response = await fetch(primaryEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        history,
-        user_message,
-        triage_context,
+        message: user_message,
+        triage_id: triageId,
+        conversation_history: history,
       }),
     });
 
@@ -127,32 +135,30 @@ export async function sendChatMessage({
       return await response.json();
     }
 
-    // 2. Graceful fallback for backend instances exposing /triage/{triage_id}/chat
-    const triageId =
-      triage_context?.record_id ||
-      triage_context?.id ||
-      'active-case';
+    // 2. Graceful fallback: /chat
+    if (response.status === 404) {
+      const fallbackEndpoint = `${API_BASE_URL}/chat`;
+      const fallbackResponse = await fetch(fallbackEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          history,
+          user_message,
+          triage_context,
+        }),
+      });
 
-    const fallbackEndpoint = `${API_BASE_URL}/triage/${encodeURIComponent(triageId)}/chat`;
-    const fallbackResponse = await fetch(fallbackEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message: user_message,
-        conversation_history: history,
-      }),
-    });
-
-    if (!fallbackResponse.ok) {
-      const errorData = await fallbackResponse.json().catch(() => ({}));
-      throw new Error(
-        errorData.detail || `Chat request failed with status ${fallbackResponse.status}`
-      );
+      if (fallbackResponse.ok) {
+        return await fallbackResponse.json();
+      }
     }
 
-    return await fallbackResponse.json();
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.detail || `Chat request failed with status ${response.status}`
+    );
   } catch (error) {
     const isNetworkError =
       error.message?.includes('Failed to fetch') || error.name === 'TypeError';

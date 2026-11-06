@@ -79,11 +79,10 @@ export function AuthModal({ isOpen, onClose }) {
               setIsRegister(false);
               setError(null);
             }}
-            className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${
-              !isRegister
+            className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${!isRegister
                 ? 'border-rose-600 text-rose-600 bg-rose-50/30'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             <LogIn className="w-4 h-4" />
             <span>Iniciar Sesión</span>
@@ -94,11 +93,10 @@ export function AuthModal({ isOpen, onClose }) {
               setIsRegister(true);
               setError(null);
             }}
-            className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${
-              isRegister
+            className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${isRegister
                 ? 'border-rose-600 text-rose-600 bg-rose-50/30'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             <UserPlus className="w-4 h-4" />
             <span>Crear Cuenta</span>

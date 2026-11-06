@@ -43,7 +43,8 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
       if (!fetchErr && data && data.length > 0) {
         setMessages(
           data.map((msg) => ({
-            role: msg.sender === 'user' ? 'user' : 'model',
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            sender: msg.sender,
             content: msg.content,
             created_at: msg.created_at,
           }))
@@ -69,7 +70,7 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
     setError(null);
     setInputText('');
 
-    const newMessages = [...messages, { role: 'user', content: messageContent }];
+    const newMessages = [...messages, { role: 'user', sender: 'user', content: messageContent }];
     setMessages(newMessages);
     setLoading(true);
 
@@ -94,11 +95,12 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
         pet_type: petType,
       };
 
-      // Call API service with history, user_message, and triage_context
+      // Call API service with history, user_message, triage_context and triage_id
       const response = await sendChatMessage({
         history: newMessages.slice(0, -1),
         user_message: messageContent,
         triage_context: contextPayload,
+        triage_id: activeTriageId,
       });
 
       const replyText = response.reply || response.message || 'Respuesta clínica procesada.';
@@ -106,17 +108,18 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
       setMessages((prev) => [
         ...prev,
         {
-          role: 'model',
+          role: 'assistant',
+          sender: 'assistant',
           content: replyText,
         },
       ]);
 
-      // Persist AI reply to Supabase
+      // Persist AI reply to Supabase with sender: 'assistant'
       try {
         await supabase.from('triage_chat_messages').insert([
           {
             triage_id: activeTriageId,
-            sender: 'model',
+            sender: 'assistant',
             content: replyText,
           },
         ]);
@@ -145,7 +148,11 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
       {/* Messages container */}
       <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
         {messages.map((msg, index) => {
-          const isAi = msg.role === 'model';
+          const isAi =
+            msg.role === 'assistant' ||
+            msg.role === 'model' ||
+            msg.sender === 'assistant' ||
+            msg.sender === 'model';
           return (
             <div
               key={index}

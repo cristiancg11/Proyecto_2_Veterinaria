@@ -10,7 +10,6 @@ import {
   AlertCircle,
   Loader2,
   HeartPulse,
-  Droplets,
   Activity,
   ArrowLeft,
   ArrowRight,
@@ -192,121 +191,6 @@ const URGENCY_THEMES = {
     pulse: false,
   },
 };
-
-/**
- * Mini Calculadora de Reposición de Líquidos
- */
-function FluidCalculator({ weightKg }) {
-  const [dehydrationLevel, setDehydrationLevel] = useState(7);
-  const [maintenanceFactor] = useState(55);
-  const [isOpen, setIsOpen] = useState(true);
-
-  const weight = parseFloat(weightKg) || 10;
-
-  const maintenanceVolume = Math.round(weight * maintenanceFactor);
-  const deficitVolume = Math.round(weight * dehydrationLevel * 10);
-  const totalVolume24h = maintenanceVolume + deficitVolume;
-  const rateMlPerHour = (totalVolume24h / 24).toFixed(1);
-  const macrodripGttPerMin = Math.round((parseFloat(rateMlPerHour) * 20) / 60);
-
-  return (
-    <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-xl space-y-4">
-      <div
-        className="flex items-center justify-between cursor-pointer select-none"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-            <Droplets className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="font-bold text-sm sm:text-base text-slate-100 flex items-center space-x-2">
-              <span>Mini Calculadora de Reposición de Líquidos</span>
-              <span className="text-[10px] bg-blue-500/30 text-blue-300 px-2 py-0.5 rounded-full font-mono">
-                P: {weight} kg
-              </span>
-            </h4>
-            <p className="text-xs text-slate-400">
-              Estimación de fluidoterapia según el peso ingresado
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          className="text-slate-400 hover:text-white p-1 rounded-lg"
-        >
-          {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-        </button>
-      </div>
-
-      {isOpen && (
-        <div className="space-y-4 pt-3 border-t border-slate-800 text-xs">
-          <div>
-            <label className="block text-slate-300 font-semibold mb-2">
-              Grado Estimado de Deshidratación:
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { percent: 5, label: 'Leve (5%)', desc: 'Mucosas secas' },
-                { percent: 7, label: 'Moderado (7-8%)', desc: 'Pliegue cutáneo 2-3s' },
-                { percent: 10, label: 'Severo (10-12%)', desc: 'Ojos hundidos / Shock' },
-              ].map((opt) => (
-                <button
-                  key={opt.percent}
-                  type="button"
-                  onClick={() => setDehydrationLevel(opt.percent)}
-                  className={`p-2.5 rounded-2xl border text-left transition ${
-                    dehydrationLevel === opt.percent
-                      ? 'bg-blue-600 border-blue-400 text-white shadow-md shadow-blue-600/30 font-semibold'
-                      : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
-                  }`}
-                >
-                  <div className="font-bold">{opt.label}</div>
-                  <div className="text-[10px] text-slate-300/80 mt-0.5">{opt.desc}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950/70 p-4 rounded-2xl border border-slate-800">
-            <div className="space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase font-medium">Mantenimiento (24h)</span>
-              <div className="text-base font-black text-slate-100">{maintenanceVolume} ml</div>
-              <span className="text-[10px] text-slate-500">~{maintenanceFactor} ml/kg/día</span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase font-medium">Déficit a Reponer</span>
-              <div className="text-base font-black text-amber-400">{deficitVolume} ml</div>
-              <span className="text-[10px] text-slate-500">{weight}kg × {dehydrationLevel}%</span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase font-medium">Volumen Total (24h)</span>
-              <div className="text-base font-black text-emerald-400">{totalVolume24h} ml</div>
-              <span className="text-[10px] text-slate-500">Mant. + Déficit</span>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase font-medium">Ritmo Continuo</span>
-              <div className="text-base font-black text-cyan-400">{rateMlPerHour} ml/h</div>
-              <span className="text-[10px] text-slate-500">
-                {macrodripGttPerMin} gtt/min (Normo)
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-start space-x-2 text-[11px] text-slate-400 bg-slate-800/50 p-3 rounded-xl border border-slate-800">
-            <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-            <p className="leading-snug">
-              Cálculo orientativo según estándares WSAVA/AAHA (normogotero 20 gotas/ml). La administración parenteral de fluidos debe ser monitorizada por un profesional veterinario colegiado.
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function TriageEvaluator({
   onDiagnosisComplete,
@@ -1070,41 +954,84 @@ export function TriageEvaluator({
             </div>
 
             <div className="px-6 sm:px-8 space-y-6">
-              {/* Hallazgos Visuales & Diagnóstico Presuntivo */}
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <HeartPulse className="w-4 h-4 text-rose-500" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Hallazgos Visuales & Diagnóstico Presuntivo
-                  </h4>
+              {/* Diagnóstico Presuntivo & Hallazgos Visuales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Diagnóstico Presuntivo */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Stethoscope className="w-4 h-4 text-rose-600" />
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">
+                      Diagnóstico Presuntivo
+                    </h4>
+                  </div>
+                  <p className="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                    {diagnosisResult.presumptive_diagnosis || 'Evaluación de urgencia en proceso'}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Hipótesis diagnóstica generada por visión computacional multimodal.
+                  </p>
                 </div>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 text-slate-800 text-sm leading-relaxed">
-                  <p className="font-semibold text-slate-900 mb-1">
-                    {diagnosisResult.presumptive_diagnosis}
+
+                {/* Hallazgos Visuales */}
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 shadow-xs space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <HeartPulse className="w-4 h-4 text-blue-600" />
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">
+                      Hallazgos Visuales Detectados
+                    </h4>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                    {diagnosisResult.visual_findings || 'Análisis de imagen completado con éxito.'}
                   </p>
-                  <p className="text-slate-600 text-xs">
-                    {diagnosisResult.visual_findings}
+                </div>
+              </div>
+
+              {/* Recomendación de Centro de Atención y Tiempo Estimado */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2 text-[10px] uppercase font-black tracking-wider text-rose-400">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Recomendación de Derivación Médica</span>
+                  </div>
+                  <h4 className="text-base sm:text-lg font-extrabold text-white">
+                    {diagnosisResult.facility_recommendation ||
+                      (theme.label?.includes('CRÍTICO')
+                        ? 'Hospital Veterinario de Urgencias 24H (UCI & Cirugía)'
+                        : 'Clínica Veterinaria General')}
+                  </h4>
+                  <p className="text-xs text-slate-300">
+                    Acude al centro médico especializado más cercano sin demoras.
                   </p>
+                </div>
+
+                <div className="flex items-center space-x-2 bg-white/10 px-4 py-2.5 rounded-xl border border-white/10 self-start sm:self-auto">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <div className="text-xs">
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Ventana de Atención</span>
+                    <span className="font-extrabold text-amber-300">
+                      {diagnosisResult.vet_consultation_timeframe || 'Inmediata'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Riesgos Vitales Detectados */}
               {diagnosisResult.vital_risks && diagnosisResult.vital_risks.length > 0 && (
-                <div>
-                  <div className="flex items-center space-x-2 mb-2.5">
+                <div className="space-y-2.5">
+                  <div className="flex items-center space-x-2">
                     <AlertTriangle className="w-4 h-4 text-amber-500" />
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Riesgos y Complicaciones Detectadas
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-600">
+                      Riesgos Vitales y Complicaciones a Monitorear
                     </h4>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {diagnosisResult.vital_risks.map((risk, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start space-x-2.5 p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 text-amber-950 text-xs font-medium"
+                        className="flex items-start space-x-3 p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-amber-950 text-xs sm:text-sm font-semibold shadow-2xs"
                       >
-                        <span className="text-amber-600 font-bold">•</span>
-                        <span>{risk}</span>
+                        <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0 mt-1.5" />
+                        <span className="leading-snug">{risk}</span>
                       </div>
                     ))}
                   </div>
@@ -1112,40 +1039,35 @@ export function TriageEvaluator({
               )}
 
               {/* Primeros Auxilios Inmediatos Sugeridos */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
-                    <span>Primeros Auxilios Inmediatos Sugeridos</span>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-600 flex items-center space-x-2">
+                    <span>Pautas de Primeros Auxilios Inmediatos</span>
                   </h4>
-                  <span className="text-[11px] font-semibold text-slate-400">
-                    {diagnosisResult.first_aid_actions?.length || 0} pautas
+                  <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                    {diagnosisResult.first_aid_actions?.length || 0} pautas prioritarias
                   </span>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {diagnosisResult.first_aid_actions?.map((action, idx) => (
                     <div
                       key={idx}
-                      className="flex items-start space-x-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs sm:text-sm text-slate-800"
+                      className="flex items-start space-x-3.5 p-4 rounded-2xl bg-white border border-slate-200 text-xs sm:text-sm text-slate-800 shadow-2xs hover:border-slate-300 transition"
                     >
                       <div
-                        className="w-6 h-6 rounded-lg text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs"
+                        className="w-7 h-7 rounded-xl text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-2xs"
                         style={{ backgroundColor: theme.color }}
                       >
                         {idx + 1}
                       </div>
-                      <span className="leading-relaxed">{action}</span>
+                      <span className="leading-relaxed font-medium">{action}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Mini Calculadora de Reposición de Líquidos */}
-              <FluidCalculator weightKg={pesoKg} />
-
-              {/* ============================================================ */}
-              {/* 3. REDISEÑO DEL BLOQUE "¿DUDAS SOBRE CÓMO APLICAR LOS PRIMEROS AUXILIOS?" */}
-              {/* ============================================================ */}
+              {/* Asistente de Primeros Auxilios con IA */}
               <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-2xl p-6 shadow-xl space-y-4 text-white">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start space-x-3.5">

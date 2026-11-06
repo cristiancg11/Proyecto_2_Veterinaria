@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Bot, User, Sparkles, Loader2, MessageSquare, AlertCircle } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Loader2, MessageSquare, AlertCircle, X, Wifi } from 'lucide-react';
 import { sendChatMessage } from '../services/api';
 import { supabase } from '../services/supabaseClient';
 
@@ -192,6 +192,40 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[460px] max-h-[600px]">
+      {/* Real-time Connection Status Pill & Cancellation Header */}
+      <div className="px-4 py-2.5 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between text-xs select-none">
+        <div className="flex items-center space-x-2">
+          <span className="flex h-2 w-2 relative">
+            <span
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                isTyping ? 'bg-amber-400' : 'bg-emerald-400'
+              }`}
+            />
+            <span
+              className={`relative inline-flex rounded-full h-2 w-2 ${
+                isTyping ? 'bg-amber-500' : 'bg-emerald-500'
+              }`}
+            />
+          </span>
+          <span className="font-bold text-slate-700">
+            {isTyping ? 'Consultando al Asistente VetIA...' : 'Conectado con Asistente VetIA'}
+          </span>
+          <span className="text-[11px] text-slate-400 hidden sm:inline">• Paciente: {petType}</span>
+        </div>
+
+        {isTyping && (
+          <button
+            type="button"
+            onClick={handleCancelQuery}
+            className="text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-lg flex items-center space-x-1 cursor-pointer transition shadow-2xs"
+            title="Cancelar consulta en curso si no deseas esperar"
+          >
+            <X className="w-3 h-3 text-rose-600" />
+            <span>Cancelar consulta</span>
+          </button>
+        )}
+      </div>
+
       {/* Messages container */}
       <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
         {messages.map((msg, index) => {

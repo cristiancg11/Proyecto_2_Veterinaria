@@ -26,11 +26,26 @@ export function generateTriagePDF(data = {}) {
     format: 'a4',
   });
 
+  // Metadatos embebidos en el documento PDF
+  doc.setProperties({
+    title: 'VetIA - Ficha Clínica de Pre-Ingreso y Triage',
+    subject: 'Evaluación y Derivación Médica Veterinaria de Urgencias',
+    author: 'VetIA Rural Triage System',
+    keywords: 'VetIA, Triage, Veterinaria, Zootecnia, Urgencias, Nariño, Ficha Clínica',
+    creator: 'VetIA Rural Triage System - Motor Multimodal IA',
+  });
+
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 16;
   const contentWidth = pageWidth - margin * 2;
   let y = 0;
+
+  // Código de folio o seguimiento de caso único con timestamp
+  const now = new Date();
+  const timestampStr = now.toISOString().replace(/[-:T]/g, '').slice(0, 14);
+  const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const caseFolio = data.folio_code || data.case_id || `VET-NAR-${timestampStr}-${randomSuffix}`;
 
   // =========================================================================
   // 1. Encabezado institucional: Barra superior esmeralda oscuro (#064e3b)
@@ -47,6 +62,12 @@ export function generateTriagePDF(data = {}) {
   doc.setTextColor(255, 255, 255);
   doc.text('VetIA - Hospital Digital & Triage de Urgencias', margin, 13);
 
+  // Folio en esquina superior derecha del encabezado
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(167, 243, 208); // emerald-200
+  doc.text(`FOLIO: ${caseFolio}`, pageWidth - margin, 12, { align: 'right' });
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(209, 250, 229);
@@ -57,7 +78,6 @@ export function generateTriagePDF(data = {}) {
   // =========================================================================
   // 2. Metadatos del documento (Fecha/hora, ID de consulta y Nombre del tutor)
   // =========================================================================
-  const now = new Date();
   const formattedDate = data.created_at
     ? new Date(data.created_at).toLocaleString('es-CO', {
         dateStyle: 'medium',
@@ -68,7 +88,7 @@ export function generateTriagePDF(data = {}) {
         timeStyle: 'short',
       });
 
-  const recordId = data.record_id || data.id || `TRIAGE-${Date.now().toString(36).toUpperCase()}`;
+  const recordId = data.record_id || data.id || caseFolio;
   const tutorName = data.tutor_name || data.userName || data.user_email || 'Tutor Registrado';
 
   doc.setFillColor(248, 250, 252);
@@ -78,7 +98,7 @@ export function generateTriagePDF(data = {}) {
   doc.setFontSize(7.5);
   doc.setTextColor(100, 116, 139);
   doc.setFont('helvetica', 'bold');
-  doc.text('ID DE CONSULTA:', margin + 4, y + 5.5);
+  doc.text('FOLIO / EXPEDIENTE:', margin + 4, y + 5.5);
   doc.text('FECHA Y HORA:', margin + 65, y + 5.5);
   doc.text('NOMBRE DEL TUTOR / PRODUCTOR:', margin + 120, y + 5.5);
 
@@ -260,8 +280,13 @@ export function generateTriagePDF(data = {}) {
   doc.setTextColor(100, 116, 139);
   const disclaimer =
     'Documento de pre-ingreso orientativo generado por asistencia de IA de VetIA. La atención definitiva debe ser supervisada por un médico veterinario colegiado.';
-  const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth);
+  const disclaimerLines = doc.splitTextToSize(disclaimer, contentWidth - 45);
   doc.text(disclaimerLines, margin, footerY + 2);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(148, 163, 184);
+  doc.text(`Folio: ${caseFolio}`, pageWidth - margin, footerY + 3.5, { align: 'right' });
 
   // Nombre de descarga: Ficha_VetIA_[Especie]_[Fecha].pdf
   const rawFirstWord = species.split(' ')[0] || 'Paciente';

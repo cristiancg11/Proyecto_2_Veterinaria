@@ -28,6 +28,7 @@ import {
   Tag,
   FileText,
   Download,
+  Phone,
 } from 'lucide-react';
 import { analyzeTriage } from '../services/api';
 import { supabase } from '../services/supabaseClient';
@@ -361,14 +362,22 @@ export function TriageEvaluator({
   onOpenChat,
   userCoordinates = null,
 }) {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, tutorPhone, updateTutorPhone } = useAuth();
 
   // Form states con Bovino como valor por defecto rural
   const [especie, setEspecie] = useState('Bovino (Bovinos, Terneros y Vacas)');
   const [pesoKg, setPesoKg] = useState('450');
   const [descripcion, setDescripcion] = useState('');
+  const [tutorPhoneInput, setTutorPhoneInput] = useState(tutorPhone || userProfile?.phone || '');
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+
+  // Sync tutor phone from auth context if updated
+  React.useEffect(() => {
+    if (tutorPhone && !tutorPhoneInput) {
+      setTutorPhoneInput(tutorPhone);
+    }
+  }, [tutorPhone]);
 
   // Modals & UI helpers
   const [isGuidanceOpen, setIsGuidanceOpen] = useState(false);
@@ -637,7 +646,11 @@ export function TriageEvaluator({
     let persistentRecordId = `triage_${Date.now()}`;
     const species = especie;
     const description = descripcion.trim();
-    const tutorPhone = userProfile?.phone || user?.user_metadata?.phone || null;
+    const effectiveTutorPhone = tutorPhoneInput || tutorPhone || userProfile?.phone || null;
+
+    if (effectiveTutorPhone && updateTutorPhone) {
+      updateTutorPhone(effectiveTutorPhone);
+    }
 
     try {
       const { data, error } = await supabase.from('triage_records').insert([
@@ -654,7 +667,7 @@ export function TriageEvaluator({
           presumptive_diagnosis: confirmedResult.presumptive_diagnosis || [],
           first_aid_actions: confirmedResult.first_aid_actions || [],
           image_url: uploadedImageUrl || null,
-          tutor_phone: tutorPhone,
+          tutor_phone: effectiveTutorPhone,
         }
       ]).select();
 
@@ -1070,7 +1083,7 @@ export function TriageEvaluator({
               />
             </div>
 
-            {/* 3. Symptoms Description */}
+            {/* 4. Symptoms Description */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 4. Síntomas y Comportamiento Clínico <span className="text-rose-500">*</span>
@@ -1084,6 +1097,43 @@ export function TriageEvaluator({
                 placeholder="Describe qué sucedió, tiempo desde el inicio, postura de dolor, vómito, color de encías, sangrado o dificultad respiratoria..."
                 className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
               />
+            </div>
+
+            {/* 5. Celular / WhatsApp para contacto de urgencia */}
+            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/90 space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Celular / WhatsApp para contacto de urgencia:</span>
+                </label>
+                <span className="text-[10px] text-emerald-700 font-semibold">
+                  Se incluirá automáticamente en la derivación SOS de WhatsApp
+                </span>
+              </div>
+              <div className="relative max-w-sm">
+                <input
+                  type="tel"
+                  maxLength={10}
+                  value={tutorPhoneInput}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/\D/g, '');
+                    setTutorPhoneInput(cleaned);
+                    if (cleaned.length === 10 && updateTutorPhone) {
+                      updateTutorPhone(cleaned);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (tutorPhoneInput && updateTutorPhone) {
+                      updateTutorPhone(tutorPhoneInput);
+                    }
+                  }}
+                  disabled={loading}
+                  aria-label="Celular / WhatsApp para contacto de urgencia"
+                  placeholder="Ej: 3123456789"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-emerald-300 bg-white text-slate-900 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500 outline-none transition"
+                />
+                <Phone className="w-4 h-4 text-emerald-600 absolute left-3 top-1/2 -translate-y-1/2" />
+              </div>
             </div>
           </div>
 
@@ -1471,6 +1521,7 @@ export function TriageEvaluator({
                 weight_kg: pesoKg,
                 urgency_level: diagnosisResult.urgency_level,
                 description: descripcion,
+                tutor_phone: tutorPhoneInput || tutorPhone || userProfile?.phone || null,
               }}
             />
           </div>

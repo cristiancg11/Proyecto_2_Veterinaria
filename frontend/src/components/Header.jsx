@@ -1,9 +1,27 @@
-import React from 'react';
-import { History, HeartPulse, User, LogOut, LogIn } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { History, HeartPulse, User, LogOut, LogIn, Phone, Check, X, Edit2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
-  const { user, signOut, isAuthenticated } = useAuth();
+  const { user, tutorPhone, updateTutorPhone, signOut, isAuthenticated } = useAuth();
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [tempPhone, setTempPhone] = useState(tutorPhone || '');
+  const [isSavingPhone, setIsSavingPhone] = useState(false);
+
+  useEffect(() => {
+    setTempPhone(tutorPhone || '');
+  }, [tutorPhone]);
+
+  const handleSavePhone = async (e) => {
+    if (e) e.preventDefault();
+    setIsSavingPhone(true);
+    try {
+      await updateTutorPhone(tempPhone);
+      setIsEditingPhone(false);
+    } finally {
+      setIsSavingPhone(false);
+    }
+  };
 
   const userInitial = user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U';
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Owner';
@@ -47,9 +65,65 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
             )}
           </button>
 
-          {/* Authentication Status Button */}
+          {/* Authentication Status & Tutor Phone Badge */}
           {isAuthenticated ? (
             <div className="flex items-center space-x-2 pl-1 sm:pl-2 border-l border-slate-200">
+              {/* Tutor Phone badge / inline editor */}
+              <div className="relative">
+                {isEditingPhone ? (
+                  <form onSubmit={handleSavePhone} className="flex items-center space-x-1 bg-white border-2 border-emerald-500 rounded-xl px-2 py-0.5 shadow-md z-50">
+                    <Phone className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={tempPhone}
+                      onChange={(e) => setTempPhone(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Celular 10 dígitos"
+                      className="w-28 text-xs font-bold outline-none text-slate-800 bg-transparent"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSavingPhone}
+                      className="p-1 text-emerald-600 hover:text-emerald-700 cursor-pointer"
+                      title="Guardar teléfono de contacto"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingPhone(false);
+                        setTempPhone(tutorPhone || '');
+                      }}
+                      className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      title="Cancelar"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingPhone(true)}
+                    className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                      tutorPhone
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 shadow-2xs'
+                        : 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 shadow-xs'
+                    }`}
+                    title="Clic para editar tu celular o WhatsApp de contacto"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                    <span className="hidden sm:inline">
+                      {tutorPhone ? `Tel: ${tutorPhone}` : 'Añadir celular de contacto 📱'}
+                    </span>
+                    <span className="sm:hidden">
+                      {tutorPhone ? tutorPhone : '📱 Celular'}
+                    </span>
+                  </button>
+                )}
+              </div>
+
               <div className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-xs font-semibold">
                 <div className="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs font-bold">
                   {userInitial.toUpperCase()}

@@ -4,6 +4,11 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
 import {
+  getGoogleMapsLocationUrl,
+  getGoogleMapsDirectionsUrl,
+  haversineDistance,
+} from '../utils/geoDistance';
+import {
   Phone,
   Navigation,
   Clock,
@@ -579,20 +584,32 @@ export function EmergencyMap({
   // URLs for navigation and structured WhatsApp dispatch
   const getWhatsAppLink = useCallback(
     (clinic) => {
-      if (!clinic?.phone) return '#';
-      const cleanPhone = clinic.phone.replace(/[^0-9]/g, '');
+      if (!clinic) return '#';
+      const cleanPhone = (clinic.phone || '').replace(/[^0-9]/g, '');
       const waPhone = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone.replace(/^0+/, '')}`;
+
+      const uLat = Array.isArray(userLocation) ? userLocation[0] : (userLocation?.lat ?? userLat);
+      const uLng = Array.isArray(userLocation) ? userLocation[1] : (userLocation?.lng ?? userLng);
+      const distanceKm = clinic.distanceKm !== undefined ? clinic.distanceKm : haversineDistance(uLat, uLng, clinic.lat, clinic.lng);
+
+      const patientLocationUrl = getGoogleMapsLocationUrl(uLat, uLng);
+      const navigationRouteUrl = getGoogleMapsDirectionsUrl(uLat, uLng, clinic.lat, clinic.lng);
+
       const message =
-        "🚨 *URGENCIA VETIA - PRE-INGRESO EN CAMINO* 🚨\n" +
+        "🚨 *URGENCIA VETIA - PRE-INGRESO EN CAMINO* 🚨\n\n" +
         `🐾 Paciente: ${triage.species} (${triage.weight_kg} kg)\n` +
         `⚠️ Nivel: ${triage.urgency_level}\n` +
         `📋 Síntomas: ${triage.description}\n` +
         `👤 Tutor: ${userProfile.full_name || 'Tutor registrado'}\n` +
-        "📞 Teléfono de contacto del tutor: " + (tutorPhone || "No registrado") + "\n" +
-        `📍 Voy en camino hacia su sede.`;
+        "📞 Teléfono de contacto del tutor: " + (tutorPhone || "No registrado") + "\n\n" +
+        "📍 Ubicación actual del paciente (GPS): " + patientLocationUrl + "\n" +
+        "🏥 Veterinaria de destino: " + clinic.name + " (" + distanceKm + " km)\n" +
+        "🗺️ Ruta de navegación hacia la clínica: " + navigationRouteUrl + "\n\n" +
+        "📍 Voy en camino hacia su sede.";
+
       return `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
     },
-    [triage, userProfile, tutorPhone]
+    [triage, userProfile, tutorPhone, userLocation, userLat, userLng]
   );
 
   const getGoogleMapsLink = useCallback(

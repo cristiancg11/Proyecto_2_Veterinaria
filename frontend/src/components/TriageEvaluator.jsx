@@ -13,12 +13,17 @@ import {
   Droplets,
   Activity,
   ArrowLeft,
+  ArrowRight,
   MessageSquare,
   Clock,
   ChevronDown,
   ChevronUp,
   Info,
   MapPin,
+  Check,
+  HelpCircle,
+  Stethoscope,
+  ShieldCheck,
 } from 'lucide-react';
 import { analyzeTriage } from '../services/api';
 import { supabase } from '../services/supabaseClient';
@@ -63,7 +68,7 @@ function compressImageWithWorker(file) {
   });
 }
 
-// Visual themes mapped strictly to the urgency level or color code
+// Visual themes mapped strictly to urgency levels
 const URGENCY_THEMES = {
   CRITICO: {
     color: '#EF4444',
@@ -189,7 +194,7 @@ const URGENCY_THEMES = {
 };
 
 /**
- * Fluid Replacement Mini Calculator Component
+ * Mini Calculadora de Reposición de Líquidos
  */
 function FluidCalculator({ weightKg }) {
   const [dehydrationLevel, setDehydrationLevel] = useState(7);
@@ -294,7 +299,7 @@ function FluidCalculator({ weightKg }) {
           <div className="flex items-start space-x-2 text-[11px] text-slate-400 bg-slate-800/50 p-3 rounded-xl border border-slate-800">
             <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
             <p className="leading-snug">
-              Cálculo orientativo según estándares WSAVA/AAHA (normogotero 20 gotas/ml). La administración parenteral de fluidos debe ser ejecutada por personal médico veterinario.
+              Cálculo orientativo según estándares WSAVA/AAHA (normogotero 20 gotas/ml). La administración parenteral de fluidos debe ser monitorizada por un profesional veterinario colegiado.
             </p>
           </div>
         </div>
@@ -310,7 +315,7 @@ export function TriageEvaluator({
 }) {
   const { user } = useAuth();
 
-  // Form inputs
+  // Form states
   const [especie, setEspecie] = useState('Perro (Canino)');
   const [pesoKg, setPesoKg] = useState('8.5');
   const [descripcion, setDescripcion] = useState('');
@@ -321,12 +326,40 @@ export function TriageEvaluator({
   const [isGuidanceOpen, setIsGuidanceOpen] = useState(false);
   const [isGuidanceModalOpen, setIsGuidanceModalOpen] = useState(false);
 
-  // Status & State Machine: step = 'form' | 'result'
+  // State Machine: step = 'form' | 'confirm_test' | 'result'
   const [step, setStep] = useState('form');
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [networkError, setNetworkError] = useState('');
+
+  // Results & Stored Data
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
+  const [preliminaryResult, setPreliminaryResult] = useState(null);
   const [diagnosisResult, setDiagnosisResult] = useState(null);
+
+  // Test Clínico Confirmatorio (3 preguntas Sí/No)
+  const [testQuestions, setTestQuestions] = useState([
+    {
+      id: 'respiratory',
+      question: '¿Observas dificultad marcada para respirar, jadeo excesivo en reposo o respiración con la boca abierta?',
+      critical: true,
+    },
+    {
+      id: 'mucosa',
+      question: '¿Las encías se ven pálidas, blanquecinas o azuladas al presionar suavemente con tu dedo?',
+      critical: true,
+    },
+    {
+      id: 'consciousness',
+      question: '¿La mascota se encuentra desorientada, incapaz de mantenerse en pie o en letargia profunda?',
+      critical: true,
+    },
+  ]);
+  const [testAnswers, setTestAnswers] = useState({
+    respiratory: null,
+    mucosa: null,
+    consciousness: null,
+  });
 
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -363,7 +396,7 @@ export function TriageEvaluator({
   };
 
   /**
-   * Manejo del Evento de Envío del Formulario de Triage
+   * 1. Manejo del Evento de Envío del Formulario de Triage
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -392,7 +425,33 @@ export function TriageEvaluator({
     setLoading(true);
 
     try {
-      // Compresión opcional con Web Worker sin bloquear UI
+      // 1. Subida real de imagen a Supabase Storage (bucket triage-images)
+      let publicImageUrl = null;
+      try {
+        const fileExt = selectedFile.name.split('.').pop() || 'jpg';
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('triage-images')
+          .upload(fileName, selectedFile, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('triage-images')
+            .getPublicUrl(fileName);
+          publicImageUrl = urlData?.publicUrl || null;
+          console.log('[Supabase Storage] Imagen subida exitosamente:', publicImageUrl);
+        } else {
+          console.warn('[Supabase Storage] Aviso en subida de imagen:', uploadError.message);
+        }
+      } catch (storageErr) {
+        console.warn('[Supabase Storage] Excepción:', storageErr);
+      }
+      setUploadedImageUrl(publicImageUrl);
+
+      // Compresión en segundo plano con Web Worker
       const processedBlob = await compressImageWithWorker(selectedFile);
 
       // c) Construye un FormData
@@ -403,7 +462,7 @@ export function TriageEvaluator({
       formData.append('description', descripcion.trim());
       if (user?.id) formData.append('user_id', user.id);
 
-      // Sinónimos adicionales para compatibilidad total con endpoints backend
+      // Sinónimos para máxima compatibilidad con endpoints backend
       formData.append('especie', especie);
       formData.append('peso_kg', parsedWeight.toString());
       formData.append('descripcion', descripcion.trim());
@@ -418,8 +477,8 @@ export function TriageEvaluator({
       // d) Petición POST a http://localhost:8000/api/v1/triage/analyze
       const result = await analyzeTriage(formData);
 
-      // Normalización de respuesta
-      const normalizedResult = {
+      // Normalización preliminar de respuesta
+      const normalized = {
         ...result,
         urgency_level: result.urgency_level || result.color_code || 'MODERADO',
         color_code: result.color_code || result.urgency_level || 'YELLOW',
@@ -437,7 +496,7 @@ export function TriageEvaluator({
           result.first_aid_actions ||
           result.immediate_care_tips || [
             'Mantén a la mascota en reposo en un ambiente ventilado y templado.',
-            'Evita suministrar medicamentos de uso humano sin prescripción médica.',
+            'Evita suministrar medicamentos de uso humano sin supervisión veterinaria.',
             'Acude a un centro de urgencias para valoración clínica presencial.',
           ],
         vital_risks: result.vital_risks || [],
@@ -446,43 +505,24 @@ export function TriageEvaluator({
           (['CRITICO', 'CRITICAL', 'RED'].includes(result.urgency_level)
             ? 'Inmediato (menos de 1 hora)'
             : 'En el transcurso del día'),
-        requires_immediate_hospitalization:
-          result.requires_immediate_hospitalization ??
-          ['CRITICO', 'CRITICAL', 'RED'].includes(result.urgency_level),
+        image_url: publicImageUrl,
       };
 
-      // 2. Persistencia inmediata en Supabase (triage_records)
-      try {
-        const { error: insertError } = await supabase.from('triage_records').insert([
-          {
-            user_id: user?.id || null,
-            species: especie,
-            weight_kg: parsedWeight,
-            description: descripcion.trim(),
-            urgency_level: normalizedResult.urgency_level,
-            color_code: normalizedResult.color_code,
-            visual_findings: normalizedResult.visual_findings,
-            presumptive_diagnosis: normalizedResult.presumptive_diagnosis,
-            first_aid_actions: normalizedResult.first_aid_actions,
-          },
-        ]);
+      setPreliminaryResult(normalized);
 
-        if (insertError) {
-          console.warn('[Supabase Insert Error in triage_records]:', insertError.message);
-        } else {
-          console.log('[Supabase Insert]: Consulta guardada exitosamente en triage_records');
-        }
-      } catch (dbErr) {
-        console.warn('[Supabase Insert Exception]:', dbErr);
+      // Si el backend devolvió preguntas de confirmación personalizadas, cargarlas
+      if (result.confirmation_questions && Array.isArray(result.confirmation_questions)) {
+        setTestQuestions(
+          result.confirmation_questions.slice(0, 3).map((q, idx) => ({
+            id: `q_${idx}`,
+            question: q,
+            critical: true,
+          }))
+        );
       }
 
-      // 3. Transición Visual al Resultado y Desbloqueo del Mapa
-      setDiagnosisResult(normalizedResult);
-      setStep('result');
-
-      if (onDiagnosisComplete) {
-        onDiagnosisComplete(normalizedResult, parsedWeight, especie);
-      }
+      // 2. Transición al Test Clínico Confirmatorio (Paso Intermedio)
+      setStep('confirm_test');
     } catch (err) {
       // e) Si la petición falla, muestra el error detallado en una alerta roja
       console.error('[TriageEvaluator.handleSubmit] Error:', err);
@@ -495,14 +535,88 @@ export function TriageEvaluator({
     }
   };
 
+  /**
+   * 2. Finalización del Test Clínico Confirmatorio y Persistencia en Supabase
+   */
+  const handleConfirmPronostico = async () => {
+    setLoading(true);
+
+    const affirmativeCount = Object.values(testAnswers).filter((v) => v === true).length;
+    let finalUrgency = preliminaryResult.urgency_level;
+    let finalColor = preliminaryResult.color_code;
+
+    // Si respondió afirmativamente a signos vitales críticos, calibra a Urgente/Crítico
+    if (affirmativeCount >= 2) {
+      finalUrgency = 'CRITICO';
+      finalColor = 'RED';
+    } else if (affirmativeCount === 1 && finalUrgency === 'LEVE') {
+      finalUrgency = 'MODERADO';
+      finalColor = 'YELLOW';
+    }
+
+    const confirmedResult = {
+      ...preliminaryResult,
+      urgency_level: finalUrgency,
+      color_code: finalColor,
+      requires_immediate_hospitalization:
+        finalUrgency === 'CRITICO' || affirmativeCount >= 2,
+    };
+
+    // 2. Persistencia en Supabase (triage_records)
+    let persistentRecordId = `triage_${Date.now()}`;
+    try {
+      const { data: dbData, error: insertError } = await supabase
+        .from('triage_records')
+        .insert([
+          {
+            user_id: user?.id || null,
+            species: especie,
+            weight_kg: parseFloat(pesoKg),
+            description: descripcion.trim(),
+            urgency_level: confirmedResult.urgency_level,
+            color_code: confirmedResult.color_code,
+            visual_findings: confirmedResult.visual_findings,
+            presumptive_diagnosis: confirmedResult.presumptive_diagnosis,
+            first_aid_actions: confirmedResult.first_aid_actions,
+            image_url: uploadedImageUrl,
+          },
+        ])
+        .select();
+
+      if (insertError) {
+        console.warn('[Supabase Insert Error]:', insertError.message);
+      } else if (dbData && dbData[0]?.id) {
+        persistentRecordId = dbData[0].id;
+        console.log('[Supabase Insert]: Registro de triaje guardado con ID:', persistentRecordId);
+      }
+    } catch (dbErr) {
+      console.warn('[Supabase Insert Exception]:', dbErr);
+    }
+
+    confirmedResult.record_id = persistentRecordId;
+    confirmedResult.id = persistentRecordId;
+
+    // Transición visual a Resultados y Desbloqueo del Mapa
+    setDiagnosisResult(confirmedResult);
+    setStep('result');
+    setLoading(false);
+
+    if (onDiagnosisComplete) {
+      onDiagnosisComplete(confirmedResult, parseFloat(pesoKg), especie);
+    }
+  };
+
   const handleReset = () => {
     setDiagnosisResult(null);
+    setPreliminaryResult(null);
+    setUploadedImageUrl(null);
+    setTestAnswers({ respiratory: null, mucosa: null, consciousness: null });
     setStep('form');
     setNetworkError('');
     setValidationError('');
   };
 
-  // Determine active visual theme
+  // Tema visual activo
   const activeUrgencyKey =
     diagnosisResult?.urgency_level?.toUpperCase() ||
     diagnosisResult?.color_code?.toUpperCase() ||
@@ -512,8 +626,10 @@ export function TriageEvaluator({
 
   return (
     <div className="space-y-8">
-      {step === 'form' ? (
-        /* ESTADO 1: FORMULARIO DE INGRESO DE DATOS Y CARGA DE FOTO */
+      {/* ============================================================ */}
+      {/* PASO 1: FORMULARIO DE INGRESO DE DATOS Y CARGA DE FOTOGRAFÍA */}
+      {/* ============================================================ */}
+      {step === 'form' && (
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"
@@ -785,7 +901,7 @@ export function TriageEvaluator({
             </div>
           </div>
 
-          {/* Action Footer with Primary Evaluation Button */}
+          {/* Action Footer */}
           <div className="bg-slate-50 px-6 sm:px-8 py-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2 text-xs text-slate-500">
               <Activity className="w-4 h-4 text-rose-500" />
@@ -811,8 +927,106 @@ export function TriageEvaluator({
             </button>
           </div>
         </form>
-      ) : (
-        /* ESTADO 3: VEREDICTO DE IA DESPLEGADO + DESBLOQUEO INMEDIATO DEL MAPA */
+      )}
+
+      {/* ============================================================ */}
+      {/* PASO 2: TEST CLÍNICO RÁPIDO DE CONFIRMACIÓN (3 PREGUNTAS SÍ/NO) */}
+      {/* ============================================================ */}
+      {step === 'confirm_test' && preliminaryResult && (
+        <div className="bg-white rounded-3xl shadow-xl border-2 border-rose-200 p-6 sm:p-8 space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="space-y-2 border-b border-slate-100 pb-5">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold uppercase tracking-wider">
+              <Stethoscope className="w-3.5 h-3.5 text-rose-500" />
+              <span>Paso de Validación Médica</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              Test Clínico Rápido de Confirmación (3 preguntas)
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+              La IA ha evaluado la muestra como <strong>{preliminaryResult.urgency_level}</strong>. Responde estas 3 preguntas rápidas de inspección física para confirmar con máxima precisión el semáforo final y desbloquear el protocolo de urgencias.
+            </p>
+          </div>
+
+          {/* Interactive Sí / No Cards */}
+          <div className="space-y-4">
+            {testQuestions.map((item, idx) => (
+              <div
+                key={item.id}
+                className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-3 transition hover:border-slate-300"
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="w-7 h-7 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                    {idx + 1}
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-800 leading-snug">
+                    {item.question}
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pl-10">
+                  <button
+                    type="button"
+                    onClick={() => setTestAnswers((prev) => ({ ...prev, [item.id]: true }))}
+                    className={`py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition cursor-pointer ${
+                      testAnswers[item.id] === true
+                        ? 'bg-red-600 text-white border-red-600 shadow-md shadow-red-600/30'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Sí</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTestAnswers((prev) => ({ ...prev, [item.id]: false }))}
+                    className={`py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition cursor-pointer ${
+                      testAnswers[item.id] === false
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <X className="w-4 h-4" />
+                    <span>No</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Action Button */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
+            <span className="text-xs text-slate-500">
+              {Object.values(testAnswers).filter((v) => v !== null).length} de 3 respondidas
+            </span>
+
+            <button
+              type="button"
+              onClick={handleConfirmPronostico}
+              disabled={loading}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-black text-sm shadow-xl shadow-rose-600/30 transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Fijando diagnóstico en Supabase...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Confirmar Pronóstico y Desbloquear Mapa</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* PASO 3: VEREDICTO DE IA DESPLEGADO + DESBLOQUEO DEL MAPA      */}
+      {/* ============================================================ */}
+      {step === 'result' && diagnosisResult && (
         <div className="space-y-8 animate-in fade-in duration-300">
           {/* Card Destacada con Semáforo Clínico */}
           <div
@@ -837,7 +1051,7 @@ export function TriageEvaluator({
 
                 <div>
                   <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-wider">
-                    <span style={{ color: theme.color }}>Semáforo de Triage Clínico</span>
+                    <span style={{ color: theme.color }}>Semáforo de Triage Clínico Confirmado</span>
                     <span className="text-slate-400">•</span>
                     <span className="text-slate-600 font-semibold">{theme.sublabel}</span>
                   </div>
@@ -929,28 +1143,40 @@ export function TriageEvaluator({
               {/* Mini Calculadora de Reposición de Líquidos */}
               <FluidCalculator weightKg={pesoKg} />
 
-              {/* Chat IA CTA Banner */}
-              <div className="p-5 rounded-3xl bg-gradient-to-r from-rose-600 via-rose-700 to-red-600 text-white shadow-xl shadow-rose-600/20 border border-rose-500 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="space-y-1 text-center sm:text-left">
-                  <div className="flex items-center justify-center sm:justify-start space-x-2 text-rose-200 text-xs font-bold uppercase tracking-wider">
-                    <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span>Seguimiento Interactivo</span>
+              {/* ============================================================ */}
+              {/* 3. REDISEÑO DEL BLOQUE "¿DUDAS SOBRE CÓMO APLICAR LOS PRIMEROS AUXILIOS?" */}
+              {/* ============================================================ */}
+              <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-2xl p-6 shadow-xl space-y-4 text-white">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start space-x-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center flex-shrink-0 shadow-inner">
+                      <HeartPulse className="w-6 h-6 animate-pulse" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full flex items-center space-x-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+                          <span>Asistente IA en Vivo</span>
+                        </span>
+                        <span className="text-xs text-slate-400">• Orientación 24/7</span>
+                      </div>
+                      <h4 className="font-extrabold text-base sm:text-lg text-white mt-1">
+                        ¿Dudas sobre cómo aplicar los primeros auxilios?
+                      </h4>
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
+                        Conversa en tiempo real con el Asistente Clínico de VetIA manteniendo todo el contexto, antecedentes y fotografías de este triaje.
+                      </p>
+                    </div>
                   </div>
-                  <h4 className="font-bold text-base text-white">
-                    ¿Dudas sobre cómo aplicar los primeros auxilios?
-                  </h4>
-                  <p className="text-xs text-rose-100">
-                    Conversa con la IA manteniendo el contexto clínico y fotos de este triaje.
-                  </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => onOpenChat && onOpenChat(diagnosisResult)}
-                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white text-rose-700 hover:bg-rose-50 font-bold text-xs sm:text-sm shadow-md transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 flex-shrink-0 cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-900/40 flex items-center justify-center space-x-2.5 transition transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer border border-emerald-400/30"
                 >
-                  <MessageSquare className="w-4 h-4 text-rose-600" />
-                  <span>Consultar dudas con el Asistente IA</span>
+                  <MessageSquare className="w-5 h-5 text-emerald-100" />
+                  <span>Abrir Chat de Primeros Auxilios con la IA</span>
                 </button>
               </div>
             </div>
@@ -967,12 +1193,14 @@ export function TriageEvaluator({
               </button>
 
               <span className="text-[11px] text-slate-400">
-                Paciente: {especie} • {pesoKg} kg • Sincronizado en Supabase
+                Paciente: {especie} • {pesoKg} kg • Resguardado en Supabase
               </span>
             </div>
           </div>
 
-          {/* SECCIÓN INMEDIATA DEL MAPA (DESBLOQUEADA OBLIGATORIAMENTE JUSTO DEBAJO DEL DICTAMEN) */}
+          {/* ============================================================ */}
+          {/* SECCIÓN INMEDIATA DEL MAPA (DESBLOQUEADA JUSTO DEBAJO DEL DICTAMEN) */}
+          {/* ============================================================ */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center space-x-2 px-1">
               <MapPin className="w-5 h-5 text-rose-600 animate-bounce" />

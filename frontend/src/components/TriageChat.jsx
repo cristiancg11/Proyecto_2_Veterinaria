@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Bot, User, Sparkles, Loader2, MessageSquare, AlertCircle } from 'lucide-react';
 import { sendChatMessage } from '../services/api';
+import { supabase } from '../services/supabaseClient';
 
 const QUICK_PROMPTS = [
   '¿Puedo ofrecerle agua o alimento ahora mismo?',
@@ -10,10 +11,12 @@ const QUICK_PROMPTS = [
 ];
 
 export function TriageChat({ triageId, petType = 'Mascota', triageContext = null }) {
+  const activeTriageId = triageId || triageContext?.record_id || triageContext?.id || 'active-case';
+
   const [messages, setMessages] = useState([
     {
       role: 'model',
-      content: `Hola, soy el asistente veterinario de VetIA. He revisado el reporte de triaje de tu ${petType}. ¿Tienes alguna duda sobre los primeros auxilios inmediatos o cómo transportarlo al centro veterinario?`,
+      content: `Hola, soy el asistente clínico veterinario de VetIA. He revisado el reporte de triaje de tu ${petType}. ¿Tienes alguna duda sobre los primeros auxilios inmediatos o cómo transportarlo al centro veterinario?`,
     },
   ]);
   const [inputText, setInputText] = useState('');
@@ -25,6 +28,35 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Load chat history from Supabase triage_chat_messages
+  const loadChatHistory = useCallback(async () => {
+    if (!activeTriageId || activeTriageId === 'active-case') return;
+
+    try {
+      const { data, error: fetchErr } = await supabase
+        .from('triage_chat_messages')
+        .select('*')
+        .eq('triage_id', activeTriageId)
+        .order('created_at', { ascending: true });
+
+      if (!fetchErr && data && data.length > 0) {
+        setMessages(
+          data.map((msg) => ({
+            role: msg.sender === 'user' ? 'user' : 'model',
+            content: msg.content,
+            created_at: msg.created_at,
+          }))
+        );
+      }
+    } catch (err) {
+      console.warn('[TriageChat] Error al cargar historial previo de chat:', err);
+    }
+  }, [activeTriageId]);
+
+  useEffect(() => {
+    loadChatHistory();
+  }, [loadChatHistory]);
 
   useEffect(() => {
     scrollToBottom();
@@ -41,11 +73,24 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
     setMessages(newMessages);
     setLoading(true);
 
+    // Persist user message to Supabase
+    try {
+      await supabase.from('triage_chat_messages').insert([
+        {
+          triage_id: activeTriageId,
+          sender: 'user',
+          content: messageContent,
+        },
+      ]);
+    } catch (dbErr) {
+      console.warn('[TriageChat] Error guardando mensaje de usuario en Supabase:', dbErr);
+    }
+
     try {
       // Build clinical context payload
       const contextPayload = triageContext || {
-        record_id: triageId || 'active-case',
-        id: triageId || 'active-case',
+        record_id: activeTriageId,
+        id: activeTriageId,
         pet_type: petType,
       };
 
@@ -56,13 +101,28 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
         triage_context: contextPayload,
       });
 
+      const replyText = response.reply || response.message || 'Respuesta clínica procesada.';
+
       setMessages((prev) => [
         ...prev,
         {
           role: 'model',
-          content: response.reply || response.message || 'Respuesta recibida.',
+          content: replyText,
         },
       ]);
+
+      // Persist AI reply to Supabase
+      try {
+        await supabase.from('triage_chat_messages').insert([
+          {
+            triage_id: activeTriageId,
+            sender: 'model',
+            content: replyText,
+          },
+        ]);
+      } catch (dbErr) {
+        console.warn('[TriageChat] Error guardando respuesta IA en Supabase:', dbErr);
+      }
     } catch (err) {
       console.error('[TriageChat] Error al comunicarse con el asistente:', err);
       setError(

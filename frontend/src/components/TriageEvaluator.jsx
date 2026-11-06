@@ -632,13 +632,18 @@ export function TriageEvaluator({
 
     // 2. Persistencia en Supabase (triage_records)
     let persistentRecordId = `triage_${Date.now()}`;
+    const species = especie;
+    const description = descripcion.trim();
+
     try {
       const { data, error } = await supabase.from('triage_records').insert([
         {
           user_id: user?.id,
-          species: especie,
+          species: species,
+          pet_type: species,
           weight_kg: parseFloat(pesoKg) || 0,
-          description: descripcion.trim(),
+          description: description,
+          symptoms_description: description,
           urgency_level: confirmedResult.urgency_level,
           color_code: confirmedResult.color_code,
           visual_findings: confirmedResult.visual_findings || '',

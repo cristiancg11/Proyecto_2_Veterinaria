@@ -20,10 +20,12 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
     },
   ]);
   const [inputText, setInputText] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const loading = isTyping;
   const [error, setError] = useState(null);
 
   const messagesEndRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -63,16 +65,36 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
     scrollToBottom();
   }, [messages, loading]);
 
+  const handleCancelQuery = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsTyping(false);
+  };
+
   const handleSendMessage = async (textToSend) => {
     const messageContent = (textToSend || inputText).trim();
-    if (!messageContent || loading) return;
+    if (!messageContent || isTyping) return;
 
     setError(null);
     setInputText('');
 
     const newMessages = [...messages, { role: 'user', sender: 'user', content: messageContent }];
     setMessages(newMessages);
-    setLoading(true);
+    setIsTyping(true);
+
+    // Cancelar cualquier llamada previa pendiente
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    // Timeout de 20 segundos para desbloqueo estricto del chat
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 20000);
 
     // Persist user message to Supabase
     try {
@@ -101,7 +123,10 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
         user_message: messageContent,
         triage_context: contextPayload,
         triage_id: activeTriageId,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const replyText = response.reply || response.message || 'Respuesta clínica procesada.';
 
@@ -127,12 +152,34 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
         console.warn('[TriageChat] Error guardando respuesta IA en Supabase:', dbErr);
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error('[TriageChat] Error al comunicarse con el asistente:', err);
-      setError(
-        err.message || 'No se pudo obtener respuesta del asistente IA. Por favor intenta de nuevo.'
-      );
+
+      const isAborted =
+        err.name === 'AbortError' ||
+        err.message?.toLowerCase().includes('abort') ||
+        controller.signal.aborted;
+
+      const userNotice = isAborted
+        ? '⚠️ La consulta tardó más de 20 segundos en responder o fue cancelada para liberar la interfaz. Puedes volver a intentar ahora.'
+        : `⚠️ ${err.message || 'No se pudo obtener respuesta del asistente IA.'} Puedes reintentar tu pregunta.`;
+
+      setError(userNotice);
+
+      // Despliega burbuja en el chat con opción de reintento para que la UI nunca se quede colgada
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          sender: 'assistant',
+          isError: true,
+          content: userNotice,
+        },
+      ]);
     } finally {
-      setLoading(false);
+      clearTimeout(timeoutId);
+      setIsTyping(false);
+      abortControllerRef.current = null;
     }
   };
 

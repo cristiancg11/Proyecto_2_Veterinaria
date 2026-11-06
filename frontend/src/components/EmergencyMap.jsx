@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -8,6 +8,7 @@ import {
   Clock,
   MapPin,
   Compass,
+  Crosshair,
   LocateFixed,
   ExternalLink,
   Car,
@@ -43,35 +44,43 @@ export function haversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 /**
- * Custom SVG DivIcon for the pulsating user location
+ * Custom SVG DivIcon for the pulsating user location (Google Maps style animated radar)
  */
 function createUserPulseIcon() {
   return L.divIcon({
     className: 'custom-user-pulse-marker',
     html: `
-      <div style="position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+      <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
         <div style="
           position: absolute;
-          width: 34px;
-          height: 34px;
+          width: 44px;
+          height: 44px;
           border-radius: 50%;
-          background: rgba(37, 99, 235, 0.35);
+          background: rgba(37, 99, 235, 0.22);
+          animation: radar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        "></div>
+        <div style="
+          position: absolute;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: rgba(59, 130, 246, 0.35);
           animation: pulse-ring 2s infinite ease-in-out;
         "></div>
         <div style="
           position: relative;
-          width: 18px;
-          height: 18px;
+          width: 16px;
+          height: 16px;
           border-radius: 50%;
           background: #2563eb;
           border: 3px solid #ffffff;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.6), 0 0 14px rgba(37, 99, 235, 0.4);
         "></div>
       </div>
     `,
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
-    popupAnchor: [0, -17],
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -22],
   });
 }
 
@@ -143,6 +152,19 @@ function MapScrollIsolation() {
       container.removeEventListener('touchmove', stopScroll);
     };
   }, [map]);
+  return null;
+}
+
+/**
+ * Helper component to connect Leaflet map instance to external mapRef
+ */
+function MapController({ mapRef }) {
+  const map = useMap();
+  useEffect(() => {
+    if (mapRef) {
+      mapRef.current = map;
+    }
+  }, [map, mapRef]);
   return null;
 }
 
@@ -306,43 +328,75 @@ export function EmergencyMap({
   const [routeSteps, setRouteSteps] = useState([]);
   const [isRoutingLoading, setIsRoutingLoading] = useState(false);
 
-  // Request actual user location via navigator.geolocation.getCurrentPosition
-  const requestUserLocation = useCallback(() => {
-    if (!('geolocation' in navigator)) {
-      setGeoError('Geolocalización no soportada por el navegador.');
-      return;
-    }
+  // Map reference to access Leaflet map instance directly
+  const mapRef = useRef(null);
 
-    setGeoLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        });
-        setGeoError(null);
-        setGeoLoading(false);
-      },
-      (err) => {
-        console.warn('[EmergencyMap] Fallback to default coordinates:', err.message);
-        setGeoError('Ubicación GPS no disponible en tiempo real. Usando coordenadas urbanas de referencia.');
-        setGeoLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 0,
+  // High-accuracy Geolocation Options
+  const geoOptions = useMemo(
+    () => ({
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    }),
+    []
+  );
+
+  // Request actual user location via navigator.geolocation.getCurrentPosition
+  const requestUserLocation = useCallback(
+    (shouldFlyTo = false) => {
+      if (!('geolocation' in navigator)) {
+        setGeoError('Geolocalización no soportada por el navegador.');
+        return;
       }
-    );
-  }, []);
+
+      setGeoLoading(true);
+      setGeoError(null);
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setUserLocation({
+            lat: latitude,
+            lng: longitude,
+          });
+          setGeoError(null);
+          setGeoLoading(false);
+
+          if (mapRef.current) {
+            if (shouldFlyTo && typeof mapRef.current.flyTo === 'function') {
+              mapRef.current.flyTo([latitude, longitude], 15, {
+                animate: true,
+                duration: 1.5,
+              });
+            } else if (typeof mapRef.current.setView === 'function') {
+              mapRef.current.setView([latitude, longitude], 15);
+            }
+          }
+        },
+        (err) => {
+          console.warn('Error obteniendo GPS:', err.message);
+          setGeoError('Ubicación GPS no disponible en tiempo real. Usando coordenadas urbanas de referencia.');
+          setGeoLoading(false);
+        },
+        geoOptions
+      );
+    },
+    [geoOptions]
+  );
 
   useEffect(() => {
     if (externalUserLocation?.lat && externalUserLocation?.lng) {
       setUserLocation(externalUserLocation);
     } else {
-      requestUserLocation();
+      if ('geolocation' in navigator) {
+        requestUserLocation(false);
+      }
     }
   }, [externalUserLocation, requestUserLocation]);
+
+  const handleGpsSync = () => {
+    requestUserLocation(true);
+  };
 
   // Calculate dynamic coordinates for clinics relative to the user position
   // and compute distance via Haversine formula
@@ -510,13 +564,13 @@ export function EmergencyMap({
 
           <button
             type="button"
-            onClick={requestUserLocation}
+            onClick={handleGpsSync}
             disabled={geoLoading}
             className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs flex items-center space-x-2 transition cursor-pointer"
-            title="Obtener mi ubicación actual (GPS)"
+            title="Centrar en mi ubicación GPS en vivo"
           >
-            <LocateFixed className={`w-4 h-4 text-rose-400 ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>{geoLoading ? 'Obteniendo GPS...' : 'Obtener mi ubicación actual (GPS)'}</span>
+            <Crosshair className={`w-4 h-4 text-rose-400 ${geoLoading ? 'animate-spin' : ''}`} />
+            <span>{geoLoading ? 'Obteniendo GPS...' : 'Centrar en mi ubicación GPS en vivo'}</span>
           </button>
         </div>
       </div>
@@ -529,12 +583,12 @@ export function EmergencyMap({
           </div>
           <button
             type="button"
-            onClick={requestUserLocation}
+            onClick={handleGpsSync}
             disabled={geoLoading}
             className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center space-x-1.5 self-start sm:self-auto transition shadow-2xs cursor-pointer"
           >
-            <LocateFixed className={`w-3.5 h-3.5 ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>Obtener mi ubicación actual (GPS)</span>
+            <Crosshair className={`w-3.5 h-3.5 ${geoLoading ? 'animate-spin' : ''}`} />
+            <span>Centrar en mi ubicación GPS en vivo</span>
           </button>
         </div>
       )}
@@ -547,7 +601,24 @@ export function EmergencyMap({
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
         >
+          {/* Botón Flotante de Sincronización GPS Inmediata con flyTo */}
+          <button
+            type="button"
+            onClick={handleGpsSync}
+            disabled={geoLoading}
+            className="absolute top-4 right-4 z-[1000] bg-white hover:bg-slate-50 text-slate-800 hover:text-blue-600 px-3.5 py-2.5 rounded-2xl shadow-xl border border-slate-200/90 backdrop-blur-md text-xs font-bold flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 cursor-pointer group"
+            title="Centrar en mi ubicación GPS en vivo"
+          >
+            <div className="w-6 h-6 rounded-lg bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center text-blue-600 transition">
+              <Crosshair className={`w-4 h-4 text-blue-600 ${geoLoading ? 'animate-spin' : ''}`} />
+            </div>
+            <span className="hidden sm:inline font-extrabold text-slate-800 group-hover:text-blue-600">
+              {geoLoading ? 'Obteniendo GPS...' : 'Centrar en mi ubicación GPS en vivo'}
+            </span>
+          </button>
+
           <MapContainer
+            ref={mapRef}
             center={[userLocation.lat, userLocation.lng]}
             zoom={14}
             scrollWheelZoom={true}
@@ -560,6 +631,7 @@ export function EmergencyMap({
 
             <MapScrollIsolation />
             <MapRecenter center={[userLocation.lat, userLocation.lng]} />
+            <MapController mapRef={mapRef} />
 
             {/* User Pulsing Pin */}
             <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>

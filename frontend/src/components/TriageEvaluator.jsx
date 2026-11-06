@@ -470,21 +470,46 @@ export function TriageEvaluator({
     });
   };
 
-  // Voice transcription states and automatic data-binding
+  // Voice transcription states and real-time live data-binding
   const [voiceSuccessMessage, setVoiceSuccessMessage] = useState('');
+  const [liveSpeechText, setLiveSpeechText] = useState('');
+  const baseDescriptionRef = useRef('');
+
+  // Handle live transcription stream from Web Speech API
+  const handleLiveTranscriptChange = (liveText) => {
+    setLiveSpeechText(liveText);
+    if (liveText && liveText.trim()) {
+      const base = baseDescriptionRef.current.trim();
+      const piped = base ? `${base} ${liveText.trim()}` : liveText.trim();
+      setDescripcion(piped);
+    }
+  };
 
   const handleVoiceTranscription = (voiceData) => {
     if (!voiceData) return;
 
     // 1. Data-binding for symptoms / description
-    const transcribedText = (voiceData.transcription || voiceData.extracted_symptoms || '').trim();
+    const transcribedText = (
+      voiceData.transcription ||
+      voiceData.extracted_symptoms ||
+      liveSpeechText ||
+      ''
+    ).trim();
+
     if (transcribedText) {
       setDescripcion((prev) => {
-        const trimmed = prev.trim();
-        if (!trimmed) return transcribedText;
-        return `${trimmed}\n\n[Dictado por Voz]: ${transcribedText}`;
+        const base = baseDescriptionRef.current.trim();
+        if (base) {
+          if (base.toLowerCase().includes(transcribedText.toLowerCase())) {
+            return base;
+          }
+          return `${base}\n\n[Dictado por Voz]: ${transcribedText}`;
+        }
+        return transcribedText;
       });
+      baseDescriptionRef.current = '';
     }
+    setLiveSpeechText('');
 
     // 2. Data-binding for species selector
     if (voiceData.detected_species) {
@@ -1194,6 +1219,7 @@ export function TriageEvaluator({
                 </label>
                 <VoiceRecordButton
                   onTranscriptionComplete={handleVoiceTranscription}
+                  onLiveTranscriptChange={handleLiveTranscriptChange}
                   currentSpecies={selectedSpeciesObj?.id || especie}
                   userId={user?.id}
                   disabled={loading}
@@ -1217,10 +1243,21 @@ export function TriageEvaluator({
                 </div>
               )}
 
+              {liveSpeechText && (
+                <div className="mb-2 px-3 py-2 rounded-xl bg-slate-900 border border-emerald-500/80 text-emerald-300 text-xs flex items-center space-x-2 animate-pulse shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping flex-shrink-0" />
+                  <span className="font-bold text-emerald-400 flex-shrink-0">Dictando en vivo:</span>
+                  <span className="truncate italic font-medium">&ldquo;{liveSpeechText}&rdquo;</span>
+                </div>
+              )}
+
               <textarea
                 rows={4}
                 value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                onChange={(e) => {
+                  setDescripcion(e.target.value);
+                  baseDescriptionRef.current = e.target.value;
+                }}
                 disabled={loading}
                 aria-label="Descripción de síntomas y comportamiento clínico del paciente"
                 placeholder="Describe qué sucedió, tiempo desde el inicio, postura de dolor, vómito, color de encías, sangrado o dificultad respiratoria..."

@@ -38,6 +38,7 @@ import PhotoGuidanceModal from './PhotoGuidanceModal';
 import EmergencyMap from './EmergencyMap';
 import generateTriagePDF from '../utils/generateTriagePDF';
 import compressImage from '../utils/imageCompressor';
+import VoiceRecordButton from './VoiceRecordButton';
 
 /**
  * Off-thread image compressor helper using Web Worker
@@ -467,6 +468,44 @@ export function TriageEvaluator({
       if (trimmed.toLowerCase().includes(symptomText.toLowerCase())) return prev;
       return `${trimmed}. ${symptomText}`;
     });
+  };
+
+  // Voice transcription states and automatic data-binding
+  const [voiceSuccessMessage, setVoiceSuccessMessage] = useState('');
+
+  const handleVoiceTranscription = (voiceData) => {
+    if (!voiceData) return;
+
+    // 1. Data-binding for symptoms / description
+    const transcribedText = (voiceData.transcription || voiceData.extracted_symptoms || '').trim();
+    if (transcribedText) {
+      setDescripcion((prev) => {
+        const trimmed = prev.trim();
+        if (!trimmed) return transcribedText;
+        return `${trimmed}\n\n[Dictado por Voz]: ${transcribedText}`;
+      });
+    }
+
+    // 2. Data-binding for species selector
+    if (voiceData.detected_species) {
+      const detectedKey = voiceData.detected_species.toLowerCase();
+      const matchedSpecies = RURAL_SPECIES_LIST.find(
+        (sp) =>
+          sp.id.toLowerCase() === detectedKey ||
+          sp.name.toLowerCase().includes(detectedKey) ||
+          detectedKey.includes(sp.id.toLowerCase()) ||
+          detectedKey.includes(sp.name.toLowerCase())
+      );
+      if (matchedSpecies) {
+        handleSelectSpecies(matchedSpecies);
+      }
+    }
+
+    // 3. Show feedback notification
+    setVoiceSuccessMessage('¡Síntomas cargados por voz con éxito! ✅');
+    setTimeout(() => {
+      setVoiceSuccessMessage('');
+    }, 6000);
   };
 
   const fileInputRef = useRef(null);
@@ -1149,9 +1188,35 @@ export function TriageEvaluator({
 
             {/* 4. Symptoms Description */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                4. Síntomas y Comportamiento Clínico <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  4. Síntomas y Comportamiento Clínico <span className="text-rose-500">*</span>
+                </label>
+                <VoiceRecordButton
+                  onTranscriptionComplete={handleVoiceTranscription}
+                  currentSpecies={selectedSpeciesObj?.id || especie}
+                  userId={user?.id}
+                  disabled={loading}
+                />
+              </div>
+
+              {voiceSuccessMessage && (
+                <div className="mb-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center justify-between shadow-sm animate-fadeIn">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>{voiceSuccessMessage}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setVoiceSuccessMessage('')}
+                    className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-1"
+                    aria-label="Cerrar notificación"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
               <textarea
                 rows={4}
                 value={descripcion}

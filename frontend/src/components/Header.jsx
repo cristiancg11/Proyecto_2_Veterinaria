@@ -57,11 +57,13 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
                 <span className="max-w-[100px] truncate hidden md:inline">{userName}</span>
               </div>
               <button
+                type="button"
                 onClick={signOut}
-                title="Sign Out"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                title="Cerrar Sesión en Supabase"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs sm:text-sm font-bold transition shadow-2xs cursor-pointer"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4 text-rose-600" />
+                <span>Cerrar Sesión</span>
               </button>
             </div>
           ) : (

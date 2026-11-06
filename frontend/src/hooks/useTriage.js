@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import apiClient from '../services/ApiClient';
+import { supabase } from '../services/supabaseClient';
 
 /**
  * Helper to offload image resizing/compression to a dedicated Web Worker.
@@ -60,7 +61,23 @@ export function useTriage(userId = null) {
   // Fetch consultation history from Supabase, user-scoped if authenticated
   const fetchHistory = useCallback(async () => {
     try {
-      const records = await apiClient.getHistory(10, userId);
+      let query = supabase
+        .from('triage_records')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (userId) {
+        query = query.eq('user_id', userId);
+      }
+
+      const { data, error: sbError } = await query;
+      if (!sbError && data && data.length > 0) {
+        setHistory(data);
+        return;
+      }
+
+      // Fallback to apiClient if Supabase query is empty or failed
+      const records = await apiClient.getHistory(15, userId);
       setHistory(records || []);
     } catch (err) {
       console.warn('[useTriage.fetchHistory] Warning:', err);

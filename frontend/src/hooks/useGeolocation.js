@@ -43,7 +43,7 @@ export function useGeolocation() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 20000,
         maximumAge: 0,
       }
     );

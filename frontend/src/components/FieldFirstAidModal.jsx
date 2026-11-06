@@ -375,3 +375,4 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
 }
 
 export default FieldFirstAidModal;
+

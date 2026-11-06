@@ -359,4 +359,5 @@ export function AuthScreen() {
   );
 }
 
+export { AuthScreen as Auth };
 export default AuthScreen;

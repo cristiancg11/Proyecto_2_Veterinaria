@@ -124,6 +124,28 @@ function MapRecenter({ center }) {
   return null;
 }
 
+/**
+ * Helper component to isolate scroll & wheel zoom within Leaflet container
+ */
+function MapScrollIsolation() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    if (!container) return;
+    L.DomEvent.disableScrollPropagation(container);
+    const stopScroll = (e) => {
+      e.stopPropagation();
+    };
+    container.addEventListener('wheel', stopScroll, { passive: true });
+    container.addEventListener('touchmove', stopScroll, { passive: true });
+    return () => {
+      container.removeEventListener('wheel', stopScroll);
+      container.removeEventListener('touchmove', stopScroll);
+    };
+  }, [map]);
+  return null;
+}
+
 // Emergency Veterinary Clinics & Agricultural Supply Stores (Almacenes Agropecuarios)
 const CLINIC_PRESETS = [
   {
@@ -308,7 +330,7 @@ export function EmergencyMap({
       },
       {
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 20000,
         maximumAge: 0,
       }
     );
@@ -491,10 +513,10 @@ export function EmergencyMap({
             onClick={requestUserLocation}
             disabled={geoLoading}
             className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs flex items-center space-x-2 transition cursor-pointer"
-            title="Obtener mi ubicación exacta (GPS)"
+            title="Obtener mi ubicación actual (GPS)"
           >
             <LocateFixed className={`w-4 h-4 text-rose-400 ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>{geoLoading ? 'Obteniendo GPS en alta precisión...' : 'Obtener mi ubicación exacta (GPS)'}</span>
+            <span>{geoLoading ? 'Obteniendo GPS...' : 'Obtener mi ubicación actual (GPS)'}</span>
           </button>
         </div>
       </div>
@@ -512,7 +534,7 @@ export function EmergencyMap({
             className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center space-x-1.5 self-start sm:self-auto transition shadow-2xs cursor-pointer"
           >
             <LocateFixed className={`w-3.5 h-3.5 ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>Reintentar GPS</span>
+            <span>Obtener mi ubicación actual (GPS)</span>
           </button>
         </div>
       )}
@@ -520,11 +542,15 @@ export function EmergencyMap({
       {/* Main Grid: Interactive Map + Turn-by-Turn Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Leaflet Map Container */}
-        <div className="lg:col-span-7 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[520px] relative">
+        <div
+          className="lg:col-span-7 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden touch-none flex flex-col h-[520px] relative"
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+        >
           <MapContainer
             center={[userLocation.lat, userLocation.lng]}
             zoom={14}
-            scrollWheelZoom={false}
+            scrollWheelZoom={true}
             className="h-full w-full"
           >
             <TileLayer
@@ -532,6 +558,7 @@ export function EmergencyMap({
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
+            <MapScrollIsolation />
             <MapRecenter center={[userLocation.lat, userLocation.lng]} />
 
             {/* User Pulsing Pin */}

@@ -13,7 +13,7 @@ import {
 import { supabase } from '../services/supabaseClient';
 import ClinicalSheetModal from './ClinicalSheetModal';
 
-export function HistoryModal({ isOpen, onClose, history = [] }) {
+export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }) {
   const [supabaseRecords, setSupabaseRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [queryError, setQueryError] = useState(null);
@@ -35,6 +35,7 @@ export function HistoryModal({ isOpen, onClose, history = [] }) {
         setQueryError(error.message);
       } else if (data) {
         setSupabaseRecords(data);
+        if (onRefresh) onRefresh();
       }
     } catch (err) {
       console.warn('[HistoryModal] Exception querying Supabase:', err);
@@ -42,7 +43,7 @@ export function HistoryModal({ isOpen, onClose, history = [] }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [onRefresh]);
 
   useEffect(() => {
     if (isOpen) {

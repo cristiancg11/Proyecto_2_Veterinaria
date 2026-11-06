@@ -4,7 +4,7 @@ import TriageEvaluator from './components/TriageEvaluator';
 import TriageChatModal from './components/TriageChatModal';
 import HistoryModal from './components/HistoryModal';
 import AuthModal from './components/AuthModal';
-import AuthScreen from './components/AuthScreen';
+import AuthScreen, { Auth } from './components/AuthScreen';
 import FarmOverviewBanner from './components/FarmOverviewBanner';
 import FieldFirstAidModal from './components/FieldFirstAidModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -55,8 +55,8 @@ function MainApp() {
   }
 
   // Authentication Gate: Require user to sign in or register before entering
-  if (!isAuthenticated || !user?.id) {
-    return <AuthScreen />;
+  if (!user || !user?.id) {
+    return <Auth />;
   }
 
   const handleDiagnosisComplete = (result, weight, species) => {
@@ -164,6 +164,7 @@ function MainApp() {
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         history={history}
+        onRefresh={fetchHistory}
       />
 
       {/* Authentication Modal */}

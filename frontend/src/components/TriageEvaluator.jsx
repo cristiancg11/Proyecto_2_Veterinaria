@@ -633,32 +633,33 @@ export function TriageEvaluator({
     // 2. Persistencia en Supabase (triage_records)
     let persistentRecordId = `triage_${Date.now()}`;
     try {
-      const { data: dbData, error: insertError } = await supabase
-        .from('triage_records')
-        .insert([
-          {
-            user_id: user?.id || null,
-            species: especie,
-            weight_kg: parseFloat(pesoKg),
-            description: descripcion.trim(),
-            urgency_level: confirmedResult.urgency_level,
-            color_code: confirmedResult.color_code,
-            visual_findings: confirmedResult.visual_findings,
-            presumptive_diagnosis: confirmedResult.presumptive_diagnosis,
-            first_aid_actions: confirmedResult.first_aid_actions,
-            image_url: uploadedImageUrl,
-          },
-        ])
-        .select();
+      const { data, error } = await supabase.from('triage_records').insert([
+        {
+          user_id: user?.id,
+          species: especie,
+          weight_kg: parseFloat(pesoKg) || 0,
+          description: descripcion.trim(),
+          urgency_level: confirmedResult.urgency_level,
+          color_code: confirmedResult.color_code,
+          visual_findings: confirmedResult.visual_findings || '',
+          presumptive_diagnosis: confirmedResult.presumptive_diagnosis || [],
+          first_aid_actions: confirmedResult.first_aid_actions || [],
+          image_url: uploadedImageUrl || null
+        }
+      ]).select();
 
-      if (insertError) {
-        console.warn('[Supabase Insert Error]:', insertError.message);
-      } else if (dbData && dbData[0]?.id) {
-        persistentRecordId = dbData[0].id;
-        console.log('[Supabase Insert]: Registro de triaje guardado con ID:', persistentRecordId);
+      if (error) {
+        console.error("Error al guardar en Supabase triage_records:", error);
+        alert("Error al registrar consulta en la base de datos: " + error.message);
+      } else {
+        console.log("Consulta guardada exitosamente:", data);
+        if (data && data[0]?.id) {
+          persistentRecordId = data[0].id;
+        }
       }
-    } catch (dbErr) {
-      console.warn('[Supabase Insert Exception]:', dbErr);
+    } catch (err) {
+      console.error("Error al guardar en Supabase triage_records:", err);
+      alert("Error al registrar consulta en la base de datos: " + err.message);
     }
 
     confirmedResult.record_id = persistentRecordId;

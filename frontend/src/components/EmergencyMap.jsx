@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, ZoomControl, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
@@ -160,6 +160,7 @@ function MapScrollIsolation() {
 
 /**
  * Helper component to connect Leaflet map instance to external mapRef
+ * Safely cleans up the reference upon unmounting to prevent memory leaks and container reuse errors
  */
 function MapController({ mapRef }) {
   const map = useMap();
@@ -167,6 +168,11 @@ function MapController({ mapRef }) {
     if (mapRef) {
       mapRef.current = map;
     }
+    return () => {
+      if (mapRef) {
+        mapRef.current = null;
+      }
+    };
   }, [map, mapRef]);
   return null;
 }
@@ -402,8 +408,16 @@ export function EmergencyMap({
         }
       },
       (err) => {
-        console.warn('GPS error:', err.message);
-        setGeoError('GPS no disponible en tiempo real. Usando coordenadas urbanas de referencia.');
+        console.warn('GPS error:', err.message, 'code:', err.code);
+        let errorMsg = 'GPS no disponible en tiempo real. Usando coordenadas urbanas de referencia.';
+        if (err.code === 1) {
+          errorMsg = 'Permiso de ubicación denegado. Habilita el GPS en la configuración del navegador para rastreo en vivo.';
+        } else if (err.code === 2) {
+          errorMsg = 'Sin señal satelital directa o satélites fuera de alcance en esta zona rural. Manteniendo coordenadas de referencia.';
+        } else if (err.code === 3) {
+          errorMsg = 'Tiempo de espera de señal GPS agotado. Reintentando sincronización con antenas de red...';
+        }
+        setGeoError(errorMsg);
         setGeoLoading(false);
       },
       geoOptions
@@ -416,7 +430,13 @@ export function EmergencyMap({
         setUserLocation(coords);
         setGpsActive(true);
       },
-      (err) => console.warn('Watch GPS error:', err.message),
+      (err) => {
+        console.warn('Watch GPS error:', err.message, 'code:', err.code);
+        if (err.code === 2) {
+          // Satélites no disponibles momentáneamente en área rural
+          setGpsActive(false);
+        }
+      },
       geoOptions
     );
 
@@ -687,12 +707,13 @@ export function EmergencyMap({
           </button>
 
           <MapContainer
-            ref={mapRef}
             center={userCoords}
             zoom={14}
+            zoomControl={false}
             scrollWheelZoom={true}
             className="h-full w-full"
           >
+            <ZoomControl position="bottomright" />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

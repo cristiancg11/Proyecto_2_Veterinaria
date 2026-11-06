@@ -81,11 +81,13 @@ export function VoiceRecordButton({
   if (isProcessing) {
     return (
       <div
-        className={`inline-flex items-center space-x-2.5 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm font-semibold shadow-sm ${className}`}
+        role="status"
+        aria-live="polite"
+        className={`inline-flex items-center space-x-2.5 px-4 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${className}`}
       >
-        <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
+        <Loader2 className="w-4 h-4 animate-spin text-amber-600" aria-hidden="true" />
         <span className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+          <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" aria-hidden="true" />
           <span>IA transcribiendo y evaluando síntomas...</span>
         </span>
       </div>
@@ -98,9 +100,18 @@ export function VoiceRecordButton({
       <div
         className={`flex flex-wrap items-center gap-2 p-2.5 sm:p-3 rounded-2xl bg-rose-50 border-2 border-rose-300 shadow-md ${className}`}
       >
+        {/* ARIA Live Region for screen readers */}
+        <div role="status" aria-live="polite" className="sr-only">
+          Grabando audio de urgencia. Tiempo transcurrido: {recordingTime}. Presiona Espacio o Enter en el botón Terminar para finalizar.
+        </div>
+
         {/* Pulsing indicator & timer */}
-        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white border border-rose-200">
-          <span className="relative flex h-3 w-3">
+        <div
+          role="timer"
+          aria-label={`Tiempo de grabación actual: ${recordingTime}`}
+          className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white border border-rose-200"
+        >
+          <span className="relative flex h-3 w-3" aria-hidden="true">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span>
           </span>
@@ -110,7 +121,7 @@ export function VoiceRecordButton({
         </div>
 
         {/* Audio soundwave bars */}
-        <div className="hidden sm:flex items-center space-x-1 px-2 h-6">
+        <div className="hidden sm:flex items-center space-x-1 px-2 h-6" aria-hidden="true">
           <div className="w-1 bg-rose-500 rounded-full animate-wave-bar-1"></div>
           <div className="w-1 bg-rose-500 rounded-full animate-wave-bar-2"></div>
           <div className="w-1 bg-rose-600 rounded-full animate-wave-bar-3"></div>
@@ -122,9 +133,16 @@ export function VoiceRecordButton({
         <button
           type="button"
           onClick={handleFinish}
-          className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs sm:text-sm shadow transition"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleFinish();
+            }
+          }}
+          aria-label="Detener grabación de audio y enviar a evaluación con IA"
+          className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs sm:text-sm shadow transition focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
         >
-          <Square className="w-3.5 h-3.5 fill-current" />
+          <Square className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
           <span>Terminar y Analizar ⏹️</span>
         </button>
 
@@ -132,9 +150,16 @@ export function VoiceRecordButton({
         <button
           type="button"
           onClick={handleCancel}
-          className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium text-xs transition"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleCancel();
+            }
+          }}
+          aria-label="Cancelar y descartar grabación de voz actual"
+          className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium text-xs transition focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3.5 h-3.5" aria-hidden="true" />
           <span>Cancelar</span>
         </button>
       </div>
@@ -144,14 +169,26 @@ export function VoiceRecordButton({
   // 3. Resting idle state
   return (
     <div className={`inline-flex flex-col ${className}`}>
+      {/* ARIA Live Region for screen readers */}
+      <div role="status" aria-live="polite" className="sr-only">
+        Grabador de voz en espera. Presiona el botón para iniciar grabación de síntomas.
+      </div>
+
       <button
         type="button"
         onClick={handleStart}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleStart();
+          }
+        }}
         disabled={disabled}
-        className="group inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        aria-label="Iniciar grabación de voz para describir urgencia veterinaria"
+        className="group inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
       >
         <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-          <Mic className="w-3.5 h-3.5 text-white" />
+          <Mic className="w-3.5 h-3.5 text-white" aria-hidden="true" />
         </div>
         <span>Describir urgencia por voz 🎙️</span>
       </button>

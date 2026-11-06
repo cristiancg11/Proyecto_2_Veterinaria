@@ -6,6 +6,7 @@ import {
   Loader2,
   Volume2,
   Sparkles,
+  AlertCircle,
 } from 'lucide-react';
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
 import { sendVoiceTriageAudio } from '../services/voiceTriageService';
@@ -25,6 +26,8 @@ export function VoiceRecordButton({
   const {
     isRecording,
     recordingTime,
+    permissionError,
+    clearError,
     startRecording,
     stopRecording,
     cancelRecording,
@@ -152,6 +155,33 @@ export function VoiceRecordButton({
         </div>
         <span>Describir urgencia por voz 🎙️</span>
       </button>
+
+      {permissionError && (
+        <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs shadow-sm max-w-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-bold text-amber-950">Acceso al micrófono restringido</p>
+                <p className="text-amber-800 text-[11px] leading-relaxed">
+                  {permissionError}
+                </p>
+                <p className="text-amber-700 text-[10px]">
+                  💡 Haz clic en el candado 🔒 en la barra de tu navegador para permitir el micrófono, o continúa escribiendo tus síntomas abajo sin problema.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={clearError}
+              className="text-amber-700 hover:text-amber-900 font-bold px-1 py-0.5 text-xs"
+              aria-label="Cerrar aviso de permisos"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {errorMessage && (
         <span className="text-[11px] text-rose-600 mt-1 font-medium">

@@ -26,12 +26,15 @@ import {
   Plus,
   Scale,
   Tag,
+  FileText,
+  Download,
 } from 'lucide-react';
 import { analyzeTriage } from '../services/api';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import PhotoGuidanceModal from './PhotoGuidanceModal';
 import EmergencyMap from './EmergencyMap';
+import generateTriagePDF from '../utils/generateTriagePDF';
 
 /**
  * Off-thread image compressor helper using Web Worker
@@ -680,6 +683,21 @@ export function TriageEvaluator({
     }
   };
 
+  const handleExportPDF = () => {
+    if (!diagnosisResult) return;
+    generateTriagePDF({
+      ...diagnosisResult,
+      species: especie,
+      pet_type: especie,
+      weight_kg: pesoKg,
+      peso_kg: pesoKg,
+      description: descripcion,
+      symptoms_description: descripcion,
+      tutor_name: user?.user_metadata?.full_name || user?.email || 'Tutor Registrado',
+      created_at: diagnosisResult.created_at || new Date().toISOString(),
+    });
+  };
+
   const handleReset = () => {
     setDiagnosisResult(null);
     setPreliminaryResult(null);
@@ -1321,6 +1339,29 @@ export function TriageEvaluator({
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Botón de Acción Destacado: Descargar Ficha Clínica (PDF) */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl shadow-xs">
+                <div className="space-y-0.5">
+                  <h5 className="font-extrabold text-sm text-emerald-950 flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-emerald-600" />
+                    <span>Ficha Médica de Pre-Ingreso Generada</span>
+                  </h5>
+                  <p className="text-xs text-emerald-800 leading-snug">
+                    Descarga el informe oficial en PDF para entregar al especialista veterinario o archivar en tu expediente.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleExportPDF}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-5 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition cursor-pointer flex-shrink-0"
+                  title="Descargar Ficha Clínica (PDF)"
+                >
+                  <FileText className="w-5 h-5" />
+                  <span>Descargar Ficha Clínica (PDF)</span>
+                </button>
               </div>
 
               {/* Asistente de Primeros Auxilios con IA */}

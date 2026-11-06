@@ -8,10 +8,12 @@ import {
   HeartPulse,
   Scale,
   FileText,
+  Download,
   Image as ImageIcon,
 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import ClinicalSheetModal from './ClinicalSheetModal';
+import generateTriagePDF from '../utils/generateTriagePDF';
 
 export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }) {
   const [supabaseRecords, setSupabaseRecords] = useState([]);
@@ -238,8 +240,39 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                       {assessmentText}
                     </div>
 
-                    {/* Botón Ver Ficha Completa */}
-                    <div className="flex justify-end pt-1">
+                    {/* Botones: Descargar PDF e Inspeccionar Ficha Completa */}
+                    <div className="flex items-center justify-end space-x-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          generateTriagePDF({
+                            ...record,
+                            species: speciesName,
+                            pet_type: speciesName,
+                            weight_kg: record.weight_kg,
+                            peso_kg: record.weight_kg,
+                            description: descriptionText,
+                            symptoms_description: descriptionText,
+                            urgency_level: record.urgency_level,
+                            color_code: record.color_code,
+                            presumptive_diagnosis: assessmentText,
+                            visual_findings: record.visual_findings || assessmentText,
+                            first_aid_actions: record.first_aid_actions || [
+                              'Reposo en área templada y ventilada.',
+                              'No suministrar medicamentos sin aval veterinario.',
+                              'Traslado a centro de atención presencial.',
+                            ],
+                            record_id: record.id,
+                            created_at: record.created_at,
+                          });
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
+                        title="Re-descargar Ficha Clínica en PDF"
+                      >
+                        <Download className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Descargar PDF</span>
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => setSelectedRecordForSheet(record)}

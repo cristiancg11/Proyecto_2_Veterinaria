@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, Printer, HeartPulse, Building2, ShieldAlert } from 'lucide-react';
+import { X, Printer, HeartPulse, Building2, ShieldAlert, Download } from 'lucide-react';
+import generateTriagePDF from '../utils/generateTriagePDF';
 
 export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Mascota' }) {
   if (!isOpen || !diagnosis) return null;
@@ -43,11 +44,28 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
 
           <div className="flex items-center space-x-2">
             <button
+              type="button"
+              onClick={() =>
+                generateTriagePDF({
+                  ...diagnosis,
+                  species: petType,
+                  pet_type: petType,
+                  presumptive_diagnosis: diagnosis.preliminary_assessment,
+                  first_aid_actions: diagnosis.immediate_care_tips,
+                })
+              }
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition cursor-pointer"
+              title="Descargar Ficha en PDF"
+            >
+              <Download className="w-4 h-4" />
+              <span>Descargar PDF</span>
+            </button>
+            <button
               onClick={handlePrint}
               className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimir / Guardar como PDF</span>
+              <span>Imprimir</span>
             </button>
             <button
               onClick={onClose}

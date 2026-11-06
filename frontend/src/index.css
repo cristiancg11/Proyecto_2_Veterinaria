@@ -168,3 +168,22 @@
   animation: wave-pulse 1s ease-in-out infinite 0.3s;
 }
 
+/* Glowing emerald styles for live voice stream rendering */
+.live-dictation-stream {
+  color: #6ee7b7; /* text-emerald-300 */
+  animation: emerald-glow-pulse 1.8s infinite ease-in-out;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+@keyframes emerald-glow-pulse {
+  0%, 100% {
+    opacity: 0.95;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.35);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 18px rgba(52, 211, 153, 0.7);
+  }
+}
+
+

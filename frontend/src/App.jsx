@@ -5,6 +5,8 @@ import TriageChatModal from './components/TriageChatModal';
 import HistoryModal from './components/HistoryModal';
 import AuthModal from './components/AuthModal';
 import AuthScreen from './components/AuthScreen';
+import FarmOverviewBanner from './components/FarmOverviewBanner';
+import FieldFirstAidModal from './components/FieldFirstAidModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import useGeolocation from './hooks/useGeolocation';
 import useTriage from './hooks/useTriage';
@@ -22,7 +24,8 @@ function MainApp() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
-  const [lastPetType, setLastPetType] = useState('Perro (Canino)');
+  const [isFieldFirstAidOpen, setIsFieldFirstAidOpen] = useState(false);
+  const [lastPetType, setLastPetType] = useState('Bovino (Bovinos, Terneros y Vacas)');
   const [activeDiagnosis, setActiveDiagnosis] = useState(null);
 
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -124,8 +127,16 @@ function MainApp() {
           </div>
         )}
 
-        {/* Core Triage Evaluation & Automatic Sequential Map Unlocking */}
-        <div className="max-w-5xl mx-auto">
+        {/* Plus al Iniciar Sesión: Dashboard de Bienvenida Zootécnico */}
+        <div className="max-w-5xl mx-auto space-y-6">
+          <FarmOverviewBanner
+            historyCount={history.length}
+            userName={user?.user_metadata?.full_name || user?.email || 'Productor'}
+            onOpenFieldFirstAid={() => setIsFieldFirstAidOpen(true)}
+            onOpenHistory={() => setIsHistoryOpen(true)}
+          />
+
+          {/* Core Triage Evaluation & Automatic Sequential Map Unlocking */}
           <TriageEvaluator
             userCoordinates={coordinates}
             onDiagnosisComplete={handleDiagnosisComplete}
@@ -133,6 +144,12 @@ function MainApp() {
           />
         </div>
       </main>
+
+      {/* Guía Rápida de Primeros Auxilios de Campo Modal */}
+      <FieldFirstAidModal
+        isOpen={isFieldFirstAidOpen}
+        onClose={() => setIsFieldFirstAidOpen(false)}
+      />
 
       {/* Interactive AI Follow-up Chat Modal */}
       <TriageChatModal

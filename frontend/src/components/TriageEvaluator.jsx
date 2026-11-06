@@ -23,6 +23,9 @@ import {
   HelpCircle,
   Stethoscope,
   ShieldCheck,
+  Plus,
+  Scale,
+  Tag,
 } from 'lucide-react';
 import { analyzeTriage } from '../services/api';
 import { supabase } from '../services/supabaseClient';
@@ -192,6 +195,164 @@ const URGENCY_THEMES = {
   },
 };
 
+/**
+ * Cuadrícula de Especies Rurales y Zootécnicas Profesionales
+ */
+export const RURAL_SPECIES_LIST = [
+  {
+    id: 'bovino',
+    name: 'Bovino',
+    sublabel: 'Bovinos, Terneros y Vacas',
+    emoji: '🐄',
+    defaultWeight: '450',
+    weightRange: '80 - 750 kg',
+    weightPresets: ['120', '280', '450', '650'],
+    category: 'Rumiante Mayor',
+    badgeColor: 'border-emerald-500 bg-emerald-50 text-emerald-800',
+    symptomsSuggestions: [
+      'Timpanismo ruminal / vientre hinchado como tambor en flanco izquierdo',
+      'Claudicación severa o pezuña inflamada por gabarro / pododermatitis',
+      'Diarrea profusa acuosa o deshidratación en ternero lactante',
+      'Fiebre, tos seca y secreción nasal purulenta con disnea',
+      'Inapetencia aguda y caída drástica en producción lechera',
+      'Dificultad o sangrado en parto / sospecha de distocia',
+    ],
+  },
+  {
+    id: 'equino',
+    name: 'Equino',
+    sublabel: 'Caballos, Mulas y Asnos',
+    emoji: '🐎',
+    defaultWeight: '380',
+    weightRange: '150 - 550 kg',
+    weightPresets: ['180', '320', '400', '520'],
+    category: 'Monogástrico Mayor',
+    badgeColor: 'border-amber-500 bg-amber-50 text-amber-800',
+    symptomsSuggestions: [
+      'Cólico agudo: manotea el suelo, suda y se mira los flancos',
+      'Herida cortante profunda por alambre de púa con sangrado activo',
+      'Cojera aguda sin apoyo del miembro o inflamación en casco/tendón',
+      'Dificultad respiratoria, aleteo nasal y silbidos al respirar',
+      'Sudoración fría y deshidratación tras esfuerzo de faena',
+      'Apatía severa con cabeza baja y negación a beber agua',
+    ],
+  },
+  {
+    id: 'porcino',
+    name: 'Porcino',
+    sublabel: 'Cerdos, Cerdas y Lechones',
+    emoji: '🐖',
+    defaultWeight: '95',
+    weightRange: '1.5 - 280 kg',
+    weightPresets: ['15', '45', '95', '180'],
+    category: 'Monogástrico de Granja',
+    badgeColor: 'border-rose-500 bg-rose-50 text-rose-800',
+    symptomsSuggestions: [
+      'Diarrea con sangre o heces acuosas amarillentas en lechones',
+      'Respiración abdominal forzada, tos y fiebre alta',
+      'Manchas violáceas o eritema en orejas y vientre',
+      'Postración en cama húmeda y rechazo de alimento',
+      'Temblores musculares o marcha tambaleante / ataxia',
+      'Inflamación caliente en pezuñas o articulaciones',
+    ],
+  },
+  {
+    id: 'ovino_caprino',
+    name: 'Ovino / Caprino',
+    sublabel: 'Ovejas, Carneros y Cabras',
+    emoji: '🐑',
+    defaultWeight: '45',
+    weightRange: '15 - 90 kg',
+    weightPresets: ['15', '30', '45', '70'],
+    category: 'Rumiante Menor',
+    badgeColor: 'border-teal-500 bg-teal-50 text-teal-800',
+    symptomsSuggestions: [
+      'Gusanera / miasis activa en lana húmeda o herida de esquila',
+      'Diarrea profusa y letargo marcado en cordero o cabrito',
+      'Ubre asimétrica, dura o mastitis con leche grumosa',
+      'Mucosas oculares pálidas/blancas (sospecha de Haemonchus / anemia)',
+      'Cojera interdigital con dolor al apoyar la pezuña',
+      'Dificultad respiratoria con secreción nasal bilateral',
+    ],
+  },
+  {
+    id: 'aves_corral',
+    name: 'Aves de Corral',
+    sublabel: 'Gallinas, Pollos y Pavos',
+    emoji: '🐔',
+    defaultWeight: '2.4',
+    weightRange: '0.1 - 6.0 kg',
+    weightPresets: ['0.8', '1.8', '2.5', '4.0'],
+    category: 'Avícola de Campo',
+    badgeColor: 'border-yellow-500 bg-yellow-50 text-yellow-800',
+    symptomsSuggestions: [
+      'Dificultad respiratoria con estertores y pico entreabierto',
+      'Cresta y barbillas pálidas, arrugadas o moradas (cianosis)',
+      'Diarrea blanquecina calosa o verdosa con plumas sucias',
+      'Alas caídas, plumaje erizado y aislamiento en rincón',
+      'Hinchazón periorbitaria y secreción ocular espumosa',
+      'Inmovilidad o parálisis de patas en aves de traspatio',
+    ],
+  },
+  {
+    id: 'cuyes_conejos',
+    name: 'Cuyes / Conejos',
+    sublabel: 'Cuyes, Cobayos y Conejos de Granja',
+    emoji: '🐹',
+    defaultWeight: '1.2',
+    weightRange: '0.4 - 4.5 kg',
+    weightPresets: ['0.6', '1.0', '1.5', '2.5'],
+    category: 'Cunicular / Granja',
+    badgeColor: 'border-orange-500 bg-orange-50 text-orange-800',
+    symptomsSuggestions: [
+      'Timpanismo cecal: abdomen tenso y abultado por pasto mojado',
+      'Diarrea severa con pelo erizado y deshidratación rápida',
+      'Cuello torcido (tortícolis) o pérdida de equilibrio',
+      'Estornudos frecuentes con secreción nasal mucosa',
+      'Falta total de apetito e inmovilidad en rincón de la poza',
+      'Costras o descamación en orejas y patas (ácaros/sarna)',
+    ],
+  },
+  {
+    id: 'canino',
+    name: 'Canino',
+    sublabel: 'Perros de labor, pastoreo y compañía',
+    emoji: '🐕',
+    defaultWeight: '22',
+    weightRange: '4 - 55 kg',
+    weightPresets: ['8', '18', '28', '40'],
+    category: 'Canino Rural',
+    badgeColor: 'border-blue-500 bg-blue-50 text-blue-800',
+    symptomsSuggestions: [
+      'Sospecha de mordedura de serpiente con hinchazón facial aguda',
+      'Herida profunda por alambre de púa o herramienta de faena',
+      'Intoxicación aguda por agroquímicos, venenos o cebos',
+      'Vómito persistente, diarrea con sangre y postración',
+      'Agotamiento extremo o golpe de calor durante labor de arreo',
+      'Claudicación con dolor agudo al pisar espinas o astillas',
+    ],
+  },
+  {
+    id: 'felino',
+    name: 'Felino',
+    sublabel: 'Gatos de finca y control biológico',
+    emoji: '🐈',
+    defaultWeight: '4.2',
+    weightRange: '2.5 - 7.0 kg',
+    weightPresets: ['3.0', '4.2', '5.5', '7.0'],
+    category: 'Felino Rural',
+    badgeColor: 'border-purple-500 bg-purple-50 text-purple-800',
+    symptomsSuggestions: [
+      'Absceso purulento o herida inflamada por pelea territorial',
+      'Dificultad o maullidos de queja al intentar orinar en arenero',
+      'Sospecha de envenenamiento o babeo profuso con pupilas raras',
+      'Dificultad respiratoria marcada y postura en esfinge',
+      'Cojera por corte en almohadilla o traumatismo en tejado',
+      'Inapetencia total y deshidratación evidente',
+    ],
+  },
+];
+
 export function TriageEvaluator({
   onDiagnosisComplete,
   onOpenChat,
@@ -199,9 +360,9 @@ export function TriageEvaluator({
 }) {
   const { user } = useAuth();
 
-  // Form states
-  const [especie, setEspecie] = useState('Perro (Canino)');
-  const [pesoKg, setPesoKg] = useState('8.5');
+  // Form states con Bovino como valor por defecto rural
+  const [especie, setEspecie] = useState('Bovino (Bovinos, Terneros y Vacas)');
+  const [pesoKg, setPesoKg] = useState('450');
   const [descripcion, setDescripcion] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -221,21 +382,21 @@ export function TriageEvaluator({
   const [preliminaryResult, setPreliminaryResult] = useState(null);
   const [diagnosisResult, setDiagnosisResult] = useState(null);
 
-  // Test Clínico Confirmatorio (3 preguntas Sí/No)
+  // Test Clínico Confirmatorio adaptado a campo (3 preguntas Sí/No)
   const [testQuestions, setTestQuestions] = useState([
     {
       id: 'respiratory',
-      question: '¿Observas dificultad marcada para respirar, jadeo excesivo en reposo o respiración con la boca abierta?',
+      question: '¿Observas dificultad respiratoria marcada, quejidos, aleteo nasal, boca abierta o cuello extendido?',
       critical: true,
     },
     {
       id: 'mucosa',
-      question: '¿Las encías se ven pálidas, blanquecinas o azuladas al presionar suavemente con tu dedo?',
+      question: '¿Las mucosas conjuntivales (ojos) o encías se aprecian pálidas, amarillentas o azuladas/cianóticas?',
       critical: true,
     },
     {
       id: 'consciousness',
-      question: '¿La mascota se encuentra desorientada, incapaz de mantenerse en pie o en letargia profunda?',
+      question: '¿El animal se encuentra postrado en suelo, incapaz de mantenerse en pie, en letargia profunda o con temblores?',
       critical: true,
     },
   ]);
@@ -244,6 +405,29 @@ export function TriageEvaluator({
     mucosa: null,
     consciousness: null,
   });
+
+  // Selected species object helper
+  const selectedSpeciesObj =
+    RURAL_SPECIES_LIST.find(
+      (s) =>
+        s.name.toLowerCase() === especie.toLowerCase() ||
+        especie.toLowerCase().includes(s.name.toLowerCase()) ||
+        s.sublabel.toLowerCase().includes(especie.toLowerCase())
+    ) || RURAL_SPECIES_LIST[0];
+
+  const handleSelectSpecies = (sp) => {
+    setEspecie(`${sp.name} (${sp.sublabel})`);
+    setPesoKg(sp.defaultWeight);
+  };
+
+  const handleAddSymptom = (symptomText) => {
+    setDescripcion((prev) => {
+      const trimmed = prev.trim();
+      if (!trimmed) return symptomText;
+      if (trimmed.toLowerCase().includes(symptomText.toLowerCase())) return prev;
+      return `${trimmed}. ${symptomText}`;
+    });
+  };
 
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -554,68 +738,134 @@ export function TriageEvaluator({
               </div>
             )}
 
-            {/* 1. Species & Weight Selector */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  1. Especie del Paciente <span className="text-rose-500">*</span>
+            {/* 1. Selector Visual de Especies Rurales (Grid de 8 Tarjetas Interactivas) */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
+                  1. Especie Zootécnica / Animal Rural <span className="text-rose-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEspecie('Perro (Canino)')}
-                    className={`py-3 px-4 rounded-xl border font-semibold text-xs sm:text-sm flex items-center justify-center space-x-2 transition cursor-pointer ${
-                      especie.includes('Perro')
-                        ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-xs'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span>🐕</span>
-                    <span>Perro (Canino)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setEspecie('Gato (Felino)')}
-                    className={`py-3 px-4 rounded-xl border font-semibold text-xs sm:text-sm flex items-center justify-center space-x-2 transition cursor-pointer ${
-                      especie.includes('Gato')
-                        ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-xs'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span>🐈</span>
-                    <span>Gato (Felino)</span>
-                  </button>
-                </div>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 self-start sm:self-auto">
+                  Seleccionado: <strong>{selectedSpeciesObj.emoji} {selectedSpeciesObj.name}</strong> • Ref: {selectedSpeciesObj.defaultWeight} kg
+                </span>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  2. Peso Corporal (kg) <span className="text-rose-500">*</span>
+              {/* Grid 8 Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                {RURAL_SPECIES_LIST.map((sp) => {
+                  const isSelected =
+                    especie.toLowerCase().includes(sp.name.toLowerCase()) ||
+                    sp.name.toLowerCase() === especie.toLowerCase();
+
+                  return (
+                    <button
+                      key={sp.id}
+                      type="button"
+                      onClick={() => handleSelectSpecies(sp)}
+                      className={`p-3.5 rounded-2xl border text-left transition relative flex flex-col justify-between space-y-2 cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/25 shadow-sm'
+                          : 'bg-white border-slate-200/90 hover:bg-slate-50/80 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl sm:text-3xl">{sp.emoji}</span>
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                            isSelected
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-100 text-slate-500'
+                          }`}
+                        >
+                          {sp.category}
+                        </span>
+                      </div>
+
+                      <div className="space-y-0.5">
+                        <div className="font-extrabold text-xs sm:text-sm text-slate-900 leading-tight">
+                          {sp.name}
+                        </div>
+                        <div className="text-[10px] text-slate-500 truncate leading-tight">
+                          {sp.sublabel}
+                        </div>
+                      </div>
+
+                      <div className="pt-1 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                        <span className="text-slate-400">Peso Ref:</span>
+                        <span className="font-black text-slate-700">~{sp.defaultWeight} kg</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Orientación de Síntomas Frecuentes en la Especie Seleccionada */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-700">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Síntomas Frecuentes en {selectedSpeciesObj.name} (Toca para agregar al reporte):</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 hidden sm:inline">Guía campesina y zootécnica</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedSpeciesObj.symptomsSuggestions.map((symptom, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleAddSymptom(symptom)}
+                      className="text-[11px] font-medium px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/50 hover:text-emerald-800 text-slate-700 transition flex items-center space-x-1 shadow-2xs cursor-pointer text-left"
+                      title="Haz clic para añadir a la descripción clínica"
+                    >
+                      <Plus className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                      <span>{symptom}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Peso Corporal Estimado (kg) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  2. Peso Corporal Estimado (kg) <span className="text-rose-500">*</span>
                 </label>
-                <div className="relative">
+                <span className="text-[11px] text-slate-400">
+                  Rango referencial: {selectedSpeciesObj.weightRange}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                <div className="sm:col-span-5 relative">
                   <input
                     type="number"
                     step="0.1"
                     min="0.1"
-                    max="120"
+                    max="1500"
                     value={pesoKg}
                     onChange={(e) => setPesoKg(e.target.value)}
-                    placeholder="Ej: 7.5"
+                    placeholder="Ej: 450"
                     disabled={loading}
-                    className="w-full pl-4 pr-14 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
+                    className="w-full pl-4 pr-14 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
                     KG
                   </div>
                 </div>
-                <div className="flex gap-1.5 mt-2">
-                  {['2.5', '5.0', '10.0', '20.0', '35.0'].map((w) => (
+
+                <div className="sm:col-span-7 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] text-slate-400 mr-1 hidden sm:inline">Ajuste rápido:</span>
+                  {selectedSpeciesObj.weightPresets.map((w) => (
                     <button
                       key={w}
                       type="button"
                       onClick={() => setPesoKg(w)}
-                      className="text-[10px] font-semibold px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition"
+                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${
+                        pesoKg === w
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
                     >
                       {w} kg
                     </button>
@@ -624,7 +874,7 @@ export function TriageEvaluator({
               </div>
             </div>
 
-            {/* 2. Photo Upload & Preview with Photo Tips Accordion */}
+            {/* 3. Photo Upload & Preview with Photo Tips Accordion */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -649,7 +899,7 @@ export function TriageEvaluator({
                 >
                   <div className="flex items-center space-x-2 text-xs font-bold text-amber-950">
                     <Info className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>Consejos para una foto diagnóstica precisa (Vómito, Mucosas y Heridas)</span>
+                    <span>Consejos para una foto diagnóstica precisa (Campo, Mucosas, Pezuñas y Heridas)</span>
                   </div>
                   <button type="button" className="text-amber-800 p-1">
                     {isGuidanceOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -661,30 +911,30 @@ export function TriageEvaluator({
                     <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
                       <div className="font-bold text-amber-900 flex items-center space-x-1">
                         <span>🧪</span>
-                        <span>Muestras (Vómito/Heces)</span>
+                        <span>Muestras de Campo (Diarreas / Salivación)</span>
                       </div>
                       <p className="text-[11px] text-amber-800 leading-snug">
-                        Foto cenital (desde arriba a 90°) con buena luz natural. Evita el flash reflejado sobre líquidos.
+                        Foto cenital a 90° con luz natural de día en corral o cama. Evita reflejo de flash sobre fluidos.
                       </p>
                     </div>
 
                     <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
                       <div className="font-bold text-amber-900 flex items-center space-x-1">
-                        <span>👄</span>
-                        <span>Mucosas / Ojos</span>
+                        <span>👁️</span>
+                        <span>Mucosas Oculares / Belfo (FAMACHA)</span>
                       </div>
                       <p className="text-[11px] text-amber-800 leading-snug">
-                        Foto nítida a 15 cm levantando con calma el belfo dental para ver coloración de encías (rosada, pálida o azul).
+                        Foto nítida a 20 cm retrayendo suavemente párpado inferior o belfo para ver si hay palidez por anemia.
                       </p>
                     </div>
 
                     <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
                       <div className="font-bold text-amber-900 flex items-center space-x-1">
-                        <span>🩹</span>
-                        <span>Piel / Heridas</span>
+                        <span>🦶</span>
+                        <span>Pezuñas / Aplomos / Heridas</span>
                       </div>
                       <p className="text-[11px] text-amber-800 leading-snug">
-                        Estrategia doble: Una toma cercana (macro) enfocada en los bordes + toma amplia de contexto anatómico.
+                        Toma macro del casco libre de barro o corte por alambre de púa, más toma amplia de postura del animal.
                       </p>
                     </div>
                   </div>

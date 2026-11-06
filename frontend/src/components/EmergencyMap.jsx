@@ -76,14 +76,15 @@ function createUserPulseIcon() {
 }
 
 /**
- * Custom SVG DivIcon for emergency & general veterinary clinics
+ * Custom SVG DivIcon for emergency & general veterinary clinics & agricultural supply stores
  */
-function createClinicIcon(isEmergency, isSelected = false) {
-  const bgColor = isEmergency ? '#ef4444' : '#10b981';
+function createClinicIcon(isEmergency, isSelected = false, isStore = false) {
+  const bgColor = isStore ? '#059669' : isEmergency ? '#ef4444' : '#2563eb';
   const badgeBorder = isSelected ? '3px solid #f59e0b' : '2px solid #ffffff';
   const shadow = isSelected
     ? '0 0 14px rgba(245, 158, 11, 0.85), 0 3px 8px rgba(0,0,0,0.4)'
     : '0 3px 6px rgba(0,0,0,0.3)';
+  const iconSymbol = isStore ? '🌾' : '+';
 
   return L.divIcon({
     className: 'custom-clinic-marker',
@@ -101,7 +102,7 @@ function createClinicIcon(isEmergency, isSelected = false) {
         border: ${badgeBorder};
         box-shadow: ${shadow};
       ">
-        <span style="transform: rotate(45deg); font-weight: 900; font-size: ${isSelected ? '18px' : '15px'};">+</span>
+        <span style="transform: rotate(45deg); font-weight: 900; font-size: ${isSelected ? '16px' : '14px'};">${iconSymbol}</span>
       </div>
     `,
     iconSize: [38, 38],
@@ -123,55 +124,77 @@ function MapRecenter({ center }) {
   return null;
 }
 
-// Emergency Veterinary Clinics template
+// Emergency Veterinary Clinics & Agricultural Supply Stores (Almacenes Agropecuarios)
 const CLINIC_PRESETS = [
   {
     id: 'vet-urg-01',
-    name: 'Hospital Veterinario de Urgencias 24H San Juan',
-    address: 'Av. Principal #45-12, Sector Norte',
+    name: 'Hospital Veterinario de Urgencias 24H y Grandes Animales San Juan',
+    category: 'Hospital de Urgencias Pecuarias',
+    address: 'Vía Principal km 4, Sector Agropecuario Norte',
     phone: '+57 300 123 4567',
-    hours: 'Abierto 24 Horas / UCI & Quirófano',
+    hours: 'Abierto 24 Horas / Quirófano Bovinos & Equinos',
     isEmergency: true,
+    isStore: false,
     dLat: 0.0085,
     dLng: -0.0075,
   },
   {
     id: 'vet-urg-02',
-    name: "Centro Quirúrgico y Traumatología Animal 'La Cruz'",
-    address: 'Calle 68 #22-80, Zona Médica',
+    name: "Almacén Agropecuario & Farmacia Veterinaria CampoSur",
+    category: 'Almacén Agropecuario & Fármacos',
+    address: 'Carrera 12 #45-30, Parque Central Agropecuario',
     phone: '+57 311 987 6543',
+    hours: 'Lun - Dom: 6:00 AM - 9:00 PM / Sueros, Fármacos y Botiquín',
+    isEmergency: false,
+    isStore: true,
+    dLat: -0.0050,
+    dLng: 0.0065,
+  },
+  {
+    id: 'vet-urg-03',
+    name: "Centro Quirúrgico y Traumatología Animal 'La Cruz'",
+    category: 'Clínica Quirúrgica de Urgencias',
+    address: 'Calle 68 #22-80, Zona Médica Veterinaria',
+    phone: '+57 311 555 4321',
     hours: 'Abierto 24 Horas / Cirugía de Emergencia',
     isEmergency: true,
+    isStore: false,
     dLat: -0.0110,
     dLng: 0.0088,
   },
   {
-    id: 'vet-urg-03',
-    name: 'Hospital Clínico VET-SOS Emergencias 24/7',
-    address: 'Transversal 23 #97-15, Sector Chicó',
+    id: 'vet-urg-04',
+    name: 'Distribuidora Agropecuaria & Botiquín Ganadero Central',
+    category: 'Almacén de Insumos Agropecuarios',
+    address: 'Transversal 23 #97-15, Sector Ferias Ganaderas',
     phone: '+57 301 555 9911',
-    hours: 'Abierto 24 Horas / Cuidados Intensivos',
-    isEmergency: true,
+    hours: 'Lun - Sáb: 6:30 AM - 7:30 PM / Electrolitos y Material de Campo',
+    isEmergency: false,
+    isStore: true,
     dLat: 0.0062,
     dLng: 0.0105,
   },
   {
-    id: 'vet-urg-04',
-    name: 'Clínica Veterinaria & Diagnóstico Integral PetCare',
-    address: 'Carrera 15 #85-30, Barrio El Prado',
+    id: 'vet-urg-05',
+    name: 'Hospital Clínico VET-SOS Emergencias 24/7 (Rumiantes y Menores)',
+    category: 'Hospital Clínico Integral 24H',
+    address: 'Avenida Ganadera #15-80, Vía Alterna',
     phone: '+57 315 456 7890',
-    hours: 'Lun - Dom: 6:00 AM - 10:00 PM',
-    isEmergency: false,
+    hours: 'Abierto 24 Horas / Cuidados Críticos y Laboratorio de Campo',
+    isEmergency: true,
+    isStore: false,
     dLat: 0.0038,
     dLng: -0.0048,
   },
   {
-    id: 'vet-urg-05',
-    name: 'Consultorio Veterinario Huellitas & Especialidades',
-    address: 'Diagonal 40 #19-45, Centro',
+    id: 'vet-urg-06',
+    name: 'Agroveterinaria & Servicios Zootécnicos del Oriente',
+    category: 'Asistencia Técnica y Farmacia',
+    address: 'Diagonal 40 #19-45, Vereda El Progreso',
     phone: '+57 320 654 3210',
-    hours: 'Lun - Sáb: 8:00 AM - 7:00 PM',
+    hours: 'Lun - Sáb: 7:00 AM - 6:00 PM / Asistencia Técnica y Fármacos',
     isEmergency: false,
+    isStore: true,
     dLat: -0.0078,
     dLng: -0.0102,
   },
@@ -444,10 +467,10 @@ export function EmergencyMap({
             <span>Navegación Guiada de Emergencia</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Veterinarias Disponibles para este Caso
+            Centros Veterinarios & Almacenes Agropecuarios Cercanos
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Centros médicos de urgencia ordenados por cercanía GPS con ruta y giros paso a paso en tiempo real.
+            Hospitales pecuarios, clínicas de urgencia y distribuidores de insumos agropecuarios ordenados por cercanía GPS con ruta en tiempo real.
           </p>
         </div>
 
@@ -536,10 +559,10 @@ export function EmergencyMap({
               />
             )}
 
-            {/* Clinics Markers */}
+            {/* Clinics & Stores Markers */}
             {clinicsWithDistance.map((clinic) => {
               const isSelected = activeClinic?.id === clinic.id;
-              const icon = createClinicIcon(clinic.isEmergency, isSelected);
+              const icon = createClinicIcon(clinic.isEmergency, isSelected, clinic.isStore);
 
               return (
                 <Marker
@@ -551,16 +574,18 @@ export function EmergencyMap({
                   }}
                 >
                   <Popup className="custom-popup">
-                    <div className="p-2 space-y-2 min-w-[210px] text-xs">
+                    <div className="p-2 space-y-2 min-w-[220px] text-xs">
                       <div className="flex items-center justify-between">
                         <span
                           className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                            clinic.isEmergency
+                            clinic.isStore
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : clinic.isEmergency
                               ? 'bg-rose-100 text-rose-700'
-                              : 'bg-emerald-100 text-emerald-700'
+                              : 'bg-blue-100 text-blue-700'
                           }`}
                         >
-                          {clinic.isEmergency ? '24H URGENCIAS' : 'CONSULTA GENERAL'}
+                          {clinic.category || (clinic.isEmergency ? '24H URGENCIAS' : 'CONSULTA GENERAL')}
                         </span>
                         <span className="font-bold text-slate-700">{clinic.distanceKm} km</span>
                       </div>
@@ -742,14 +767,14 @@ export function EmergencyMap({
         </div>
       </div>
 
-      {/* Interactive Clinics Cards List Ordered by Distance */}
+      {/* Interactive Clinics & Agro-Stores Cards List Ordered by Distance */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base sm:text-lg font-black text-slate-900">
-            Red de Clínicas y Hospitales Veterinarios Cercanos
+            Red de Centros Veterinarios y Almacenes Agropecuarios Cercanos
           </h3>
           <span className="text-xs text-slate-500">
-            {clinicsWithDistance.length} centros identificados
+            {clinicsWithDistance.length} puntos de atención identificados
           </span>
         </div>
 
@@ -771,12 +796,14 @@ export function EmergencyMap({
                   <div className="flex items-center justify-between gap-1">
                     <span
                       className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                        clinic.isEmergency
+                        clinic.isStore
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          : clinic.isEmergency
                           ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                          : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                          : 'bg-blue-100 text-blue-700 border border-blue-200'
                       }`}
                     >
-                      {clinic.isEmergency ? '24H URGENCIAS' : 'CONSULTA GENERAL'}
+                      {clinic.category || (clinic.isEmergency ? '24H URGENCIAS' : 'CONSULTA GENERAL')}
                     </span>
 
                     <span className="text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">

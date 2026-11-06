@@ -57,6 +57,21 @@ const GUIDANCE_TOPICS = [
     exampleTitle: 'Estrategia Macro + Contexto',
     exampleDesc: '1 toma de detalle + 1 toma amplia para ubicar con exactitud la zona anatómica.',
   },
+  {
+    id: 'pezuñas',
+    icon: '🦶',
+    title: 'Pezuñas, Cascos y Aplomos (Gabarro / Claudicación)',
+    subtitle: 'Inspección de apoyo podal y espacio interdigital',
+    badge: 'Zootecnia & Campo',
+    tips: [
+      'Inmoviliza al animal con seguridad en manga o manea antes de levantar la extremidad.',
+      'Limpia con agua o cepillo suave el barro adherido al espacio interdigital y suela del casco.',
+      'Toma una foto cercana del bulbo del talón y la corona de la pezuña con buena luz natural.',
+      'Toma una foto panorámica lateral de la postura de apoyo para registrar el grado de claudicación.',
+    ],
+    exampleTitle: 'Detalle de pezuña limpia',
+    exampleDesc: 'Foto macro del espacio interdigital libre de barro para apreciar grietas, eritema o flemón.',
+  },
 ];
 
 export function PhotoGuidanceModal({ isOpen, onClose }) {

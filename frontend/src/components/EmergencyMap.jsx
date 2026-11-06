@@ -26,6 +26,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 /**
@@ -376,6 +378,7 @@ export function EmergencyMap({
   const [routeDistanceKm, setRouteDistanceKm] = useState(null);
   const [routeSteps, setRouteSteps] = useState([]);
   const [isRoutingLoading, setIsRoutingLoading] = useState(false);
+  const [showWaPreview, setShowWaPreview] = useState(false);
 
   // Map reference to access Leaflet map instance directly
   const mapRef = useRef(null);
@@ -581,12 +584,10 @@ export function EmergencyMap({
     };
   }, [activeClinic, userCoords, userLat, userLng]);
 
-  // URLs for navigation and structured WhatsApp dispatch
-  const getWhatsAppLink = useCallback(
+  // Helper para generar el texto del mensaje estructurado de WhatsApp con coordenadas GPS vivas
+  const getWhatsAppMessageText = useCallback(
     (clinic) => {
-      if (!clinic) return '#';
-      const cleanPhone = (clinic.phone || '').replace(/[^0-9]/g, '');
-      const waPhone = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone.replace(/^0+/, '')}`;
+      if (!clinic) return '';
 
       const uLat = Array.isArray(userLocation) ? userLocation[0] : (userLocation?.lat ?? userLat);
       const uLng = Array.isArray(userLocation) ? userLocation[1] : (userLocation?.lng ?? userLng);
@@ -600,7 +601,7 @@ export function EmergencyMap({
         ? "📍 Coordenadas: Obteniendo señal GPS... (" + patientLocationUrl + ")"
         : "📍 Ubicación actual del paciente (GPS): " + patientLocationUrl;
 
-      const message =
+      return (
         "🚨 *URGENCIA VETIA - PRE-INGRESO EN CAMINO* 🚨\n\n" +
         `🐾 Paciente: ${triage.species} (${triage.weight_kg} kg)\n` +
         `⚠️ Nivel: ${triage.urgency_level}\n` +
@@ -610,11 +611,22 @@ export function EmergencyMap({
         gpsLocationSnippet + "\n" +
         "🏥 Veterinaria de destino: " + clinic.name + " (" + distanceKm + " km)\n" +
         "🗺️ Ruta de navegación hacia la clínica: " + navigationRouteUrl + "\n\n" +
-        "📍 Voy en camino hacia su sede.";
+        "📍 Voy en camino hacia su sede."
+      );
+    },
+    [triage, userProfile, tutorPhone, userLocation, userLat, userLng, geoLoading, gpsActive, externalUserLocation]
+  );
 
+  // URLs for navigation and structured WhatsApp dispatch
+  const getWhatsAppLink = useCallback(
+    (clinic) => {
+      if (!clinic) return '#';
+      const cleanPhone = (clinic.phone || '').replace(/[^0-9]/g, '');
+      const waPhone = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone.replace(/^0+/, '')}`;
+      const message = getWhatsAppMessageText(clinic);
       return `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
     },
-    [triage, userProfile, tutorPhone, userLocation, userLat, userLng]
+    [getWhatsAppMessageText]
   );
 
   const getGoogleMapsLink = useCallback(
@@ -636,6 +648,7 @@ export function EmergencyMap({
   const googleMapsUrl = activeClinic ? getGoogleMapsLink(activeClinic) : '#';
   const wazeUrl = activeClinic ? getWazeLink(activeClinic) : '#';
   const activeWhatsAppUrl = activeClinic ? getWhatsAppLink(activeClinic) : '#';
+  const activeWhatsAppMessageText = activeClinic ? getWhatsAppMessageText(activeClinic) : '';
 
   const userIcon = createUserPulseIcon(gpsActive);
 
@@ -909,6 +922,31 @@ export function EmergencyMap({
                   <span className="text-sm">💬</span>
                   <span>Avisar por WhatsApp</span>
                 </a>
+              </div>
+
+              {/* Vista previa del mensaje con GPS incluido */}
+              <div className="pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setShowWaPreview(!showWaPreview)}
+                  className="w-full flex items-center justify-between py-1.5 px-3 bg-emerald-50/80 hover:bg-emerald-100/80 border border-emerald-200/90 rounded-xl text-[11px] font-bold text-emerald-900 transition cursor-pointer"
+                >
+                  <div className="flex items-center space-x-1.5">
+                    <span>💬</span>
+                    <span>Vista previa del mensaje con GPS incluido</span>
+                  </div>
+                  {showWaPreview ? (
+                    <ChevronUp className="w-3.5 h-3.5 text-emerald-700 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5 text-emerald-700 flex-shrink-0" />
+                  )}
+                </button>
+
+                {showWaPreview && (
+                  <div className="mt-1.5 p-3 bg-slate-900 text-slate-100 rounded-xl text-[11px] font-mono whitespace-pre-wrap leading-relaxed border border-slate-700 shadow-inner max-h-48 overflow-y-auto scrollbar-dark">
+                    {activeWhatsAppMessageText || 'Generando vista previa del mensaje con GPS...'}
+                  </div>
+                )}
               </div>
 
               {/* External Navigation Shortcuts (Waze / Google Maps) */}

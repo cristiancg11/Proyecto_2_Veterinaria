@@ -390,8 +390,32 @@ export function TriageEvaluator({
   // State Machine: step = 'form' | 'confirm_test' | 'result'
   const [step, setStep] = useState('form');
   const [loading, setLoading] = useState(false);
+  const [loadingSeconds, setLoadingSeconds] = useState(0);
   const [validationError, setValidationError] = useState('');
   const [networkError, setNetworkError] = useState('');
+
+  // Contador y etapas dinámicas progresivas durante la inferencia IA
+  React.useEffect(() => {
+    let interval = null;
+    if (loading) {
+      setLoadingSeconds(0);
+      interval = setInterval(() => {
+        setLoadingSeconds((s) => s + 1);
+      }, 1000);
+    } else {
+      setLoadingSeconds(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [loading]);
+
+  const getLoadingMessage = () => {
+    if (loadingSeconds < 2) return 'Analizando imagen...';
+    if (loadingSeconds < 5) return 'Evaluando descarte clínico...';
+    if (loadingSeconds < 8) return 'Calculando semáforo de urgencia...';
+    return 'Finalizando orientación veterinaria...';
+  };
 
   // Results & Stored Data
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
@@ -1191,8 +1215,11 @@ export function TriageEvaluator({
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Analizando imagen y síntomas con IA clínica...</span>
+                  <Loader2 className="w-5 h-5 animate-spin text-white" />
+                  <div className="flex items-center space-x-1.5 text-left">
+                    <span>{getLoadingMessage()}</span>
+                    <span className="text-rose-200 text-xs font-mono">({loadingSeconds}s)</span>
+                  </div>
                 </>
               ) : (
                 <>

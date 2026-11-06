@@ -595,6 +595,11 @@ export function EmergencyMap({
       const patientLocationUrl = getGoogleMapsLocationUrl(uLat, uLng);
       const navigationRouteUrl = getGoogleMapsDirectionsUrl(uLat, uLng, clinic.lat, clinic.lng);
 
+      const isGpsPending = geoLoading || (!gpsActive && !externalUserLocation);
+      const gpsLocationSnippet = isGpsPending
+        ? "📍 Coordenadas: Obteniendo señal GPS... (" + patientLocationUrl + ")"
+        : "📍 Ubicación actual del paciente (GPS): " + patientLocationUrl;
+
       const message =
         "🚨 *URGENCIA VETIA - PRE-INGRESO EN CAMINO* 🚨\n\n" +
         `🐾 Paciente: ${triage.species} (${triage.weight_kg} kg)\n` +
@@ -602,7 +607,7 @@ export function EmergencyMap({
         `📋 Síntomas: ${triage.description}\n` +
         `👤 Tutor: ${userProfile.full_name || 'Tutor registrado'}\n` +
         "📞 Teléfono de contacto del tutor: " + (tutorPhone || "No registrado") + "\n\n" +
-        "📍 Ubicación actual del paciente (GPS): " + patientLocationUrl + "\n" +
+        gpsLocationSnippet + "\n" +
         "🏥 Veterinaria de destino: " + clinic.name + " (" + distanceKm + " km)\n" +
         "🗺️ Ruta de navegación hacia la clínica: " + navigationRouteUrl + "\n\n" +
         "📍 Voy en camino hacia su sede.";

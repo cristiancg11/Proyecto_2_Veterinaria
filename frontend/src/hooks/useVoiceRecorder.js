@@ -32,9 +32,8 @@ function getSupportedMimeType() {
 }
 
 /**
- * Custom hook to record audio using the native MediaRecorder Web API.
- * Provides recording controls, elapsed duration, permission error handling,
- * and automatic audio stream cleanup.
+ * Custom hook to record audio using the native MediaRecorder Web API
+ * and stream real-time text transcription using Web Speech API (SpeechRecognition).
  */
 export function useVoiceRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -42,14 +41,17 @@ export function useVoiceRecorder() {
   const [recordingTime, setRecordingTime] = useState('00:00');
   const [audioBlob, setAudioBlob] = useState(null);
   const [permissionError, setPermissionError] = useState(null);
+  const [liveTranscript, setLiveTranscript] = useState('');
 
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
   const chunksRef = useRef([]);
   const timerIntervalRef = useRef(null);
   const mimeTypeRef = useRef('');
+  const recognitionRef = useRef(null);
+  const isManuallyStoppedRef = useRef(false);
 
-  const isSupported =
+  const isAudioSupported =
     typeof window !== 'undefined' &&
     !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
 
@@ -69,9 +71,29 @@ export function useVoiceRecorder() {
     }
   }, []);
 
+  // Stop Web Speech Recognition safely
+  const stopRecognition = useCallback(() => {
+    isManuallyStoppedRef.current = true;
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (err) {
+        // Ignore stop errors if already stopped
+      }
+    }
+  }, []);
+
   // Cancel recording and discard data
   const cancelRecording = useCallback(() => {
     clearTimer();
+    stopRecognition();
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch (e) {
+        // Ignore abort errors
+      }
+    }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
         mediaRecorderRef.current.stop();
@@ -84,15 +106,18 @@ export function useVoiceRecorder() {
     setIsRecording(false);
     setRecordingSeconds(0);
     setRecordingTime('00:00');
-  }, [clearTimer, stopTracks]);
+    setLiveTranscript('');
+  }, [clearTimer, stopTracks, stopRecognition]);
 
-  // Start recording
+  // Start recording audio and live speech recognition
   const startRecording = useCallback(async () => {
     setPermissionError(null);
     setAudioBlob(null);
+    setLiveTranscript('');
     chunksRef.current = [];
+    isManuallyStoppedRef.current = false;
 
-    if (!isSupported) {
+    if (!isAudioSupported) {
       setPermissionError('Tu navegador no soporta grabación de voz o la Web Audio API.');
       return false;
     }
@@ -125,6 +150,51 @@ export function useVoiceRecorder() {
       setRecordingSeconds(0);
       setRecordingTime('00:00');
 
+      // Initialize Web Speech API for real-time live transcription
+      const SpeechRecognition =
+        typeof window !== 'undefined'
+          ? window.SpeechRecognition || window.webkitSpeechRecognition
+          : null;
+
+      if (SpeechRecognition) {
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = 'es-CO';
+
+          recognition.onresult = (event) => {
+            let fullTranscript = '';
+            for (let i = 0; i < event.results.length; i++) {
+              fullTranscript += event.results[i][0].transcript;
+            }
+            if (fullTranscript.trim()) {
+              setLiveTranscript(fullTranscript.trim());
+            }
+          };
+
+          recognition.onerror = (event) => {
+            console.warn('[useVoiceRecorder] SpeechRecognition error:', event.error);
+          };
+
+          recognition.onend = () => {
+            // Automatically restart if user is still actively recording
+            if (!isManuallyStoppedRef.current && mediaRecorderRef.current?.state === 'recording') {
+              try {
+                recognition.start();
+              } catch (e) {
+                // Ignore if restart fails
+              }
+            }
+          };
+
+          recognition.start();
+          recognitionRef.current = recognition;
+        } catch (speechErr) {
+          console.warn('[useVoiceRecorder] Web Speech Recognition no pudo iniciarse:', speechErr);
+        }
+      }
+
       // Setup duration timer
       let seconds = 0;
       clearTimer();
@@ -145,14 +215,16 @@ export function useVoiceRecorder() {
         setPermissionError(`Error de micrófono: ${err.message || 'No se pudo iniciar la grabación.'}`);
       }
       stopTracks();
+      stopRecognition();
       return false;
     }
-  }, [isSupported, clearTimer, stopTracks]);
+  }, [isAudioSupported, clearTimer, stopTracks, stopRecognition]);
 
   // Stop recording and return the recorded Blob
   const stopRecording = useCallback(() => {
     return new Promise((resolve) => {
       clearTimer();
+      stopRecognition();
 
       if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') {
         setIsRecording(false);
@@ -180,23 +252,26 @@ export function useVoiceRecorder() {
         resolve(null);
       }
     });
-  }, [clearTimer, stopTracks]);
+  }, [clearTimer, stopTracks, stopRecognition]);
 
   // Unmount cleanup
   useEffect(() => {
     return () => {
       clearTimer();
       stopTracks();
+      stopRecognition();
     };
-  }, [clearTimer, stopTracks]);
+  }, [clearTimer, stopTracks, stopRecognition]);
 
   return {
     isRecording,
     recordingSeconds,
     recordingTime,
     audioBlob,
+    liveTranscript,
+    setLiveTranscript,
     permissionError,
-    isSupported,
+    isSupported: isAudioSupported,
     startRecording,
     stopRecording,
     cancelRecording,

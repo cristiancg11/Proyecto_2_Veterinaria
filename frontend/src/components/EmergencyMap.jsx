@@ -324,13 +324,14 @@ export function EmergencyMap({
   onBackToTriage = null,
   triageData = null,
 }) {
-  const { user, userProfile: authProfile } = useAuth();
+  const { user, userProfile: authProfile, tutorPhone: authTutorPhone } = useAuth();
+  const tutorPhone = triageData?.tutor_phone || authTutorPhone || authProfile?.phone || user?.user_metadata?.phone || '';
   const userProfile = useMemo(
     () => ({
       full_name: authProfile?.full_name || user?.user_metadata?.full_name || 'Tutor registrado',
-      phone: authProfile?.phone || user?.user_metadata?.phone || 'No especificado',
+      phone: tutorPhone || 'No registrado',
     }),
-    [authProfile, user]
+    [authProfile, user, tutorPhone]
   );
 
   const triage = useMemo(
@@ -587,11 +588,11 @@ export function EmergencyMap({
         `⚠️ Nivel: ${triage.urgency_level}\n` +
         `📋 Síntomas: ${triage.description}\n` +
         `👤 Tutor: ${userProfile.full_name || 'Tutor registrado'}\n` +
-        `📞 Contacto: ${userProfile.phone || 'No especificado'}\n` +
+        "📞 Teléfono de contacto del tutor: " + (tutorPhone || "No registrado") + "\n" +
         `📍 Voy en camino hacia su sede.`;
       return `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
     },
-    [triage, userProfile]
+    [triage, userProfile, tutorPhone]
   );
 
   const getGoogleMapsLink = useCallback(

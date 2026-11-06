@@ -726,6 +726,8 @@ export function TriageEvaluator({
       {step === 'form' && (
         <form
           onSubmit={handleSubmit}
+          role="region"
+          aria-label="Formulario de Evaluación de Triage Clínico Veterinario"
           className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"
         >
           {/* Header */}
@@ -745,7 +747,11 @@ export function TriageEvaluator({
           <div className="p-6 sm:p-8 space-y-6">
             {/* Validation & Network Error Alerts */}
             {validationError && (
-              <div className="flex items-start space-x-3 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs sm:text-sm">
+              <div
+                role="alert"
+                aria-live="polite"
+                className="flex items-start space-x-3 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs sm:text-sm"
+              >
                 <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <h5 className="font-bold">Datos Incompletos</h5>
@@ -755,7 +761,11 @@ export function TriageEvaluator({
             )}
 
             {networkError && (
-              <div className="flex items-start space-x-3 p-4 bg-rose-50 border-2 border-rose-300 rounded-2xl text-rose-900 text-xs sm:text-sm shadow-sm">
+              <div
+                role="alert"
+                aria-live="polite"
+                className="flex items-start space-x-3 p-4 bg-rose-50 border-2 border-rose-300 rounded-2xl text-rose-900 text-xs sm:text-sm shadow-sm"
+              >
                 <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <h5 className="font-bold text-rose-950">Aviso en la Evaluación</h5>
@@ -767,7 +777,7 @@ export function TriageEvaluator({
             {/* 1. Selector Visual de Especies Rurales (Grid de 8 Tarjetas Interactivas) */}
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
+                <label id="species-grid-label" className="block text-xs font-black text-slate-800 uppercase tracking-wider">
                   1. Especie Zootécnica / Animal Rural <span className="text-rose-500">*</span>
                 </label>
                 <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 self-start sm:self-auto">
@@ -775,8 +785,12 @@ export function TriageEvaluator({
                 </span>
               </div>
 
-              {/* Grid 8 Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+              {/* Grid 8 Cards con soporte accesible por teclado y ARIA */}
+              <div
+                role="radiogroup"
+                aria-labelledby="species-grid-label"
+                className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3"
+              >
                 {RURAL_SPECIES_LIST.map((sp) => {
                   const isSelected =
                     especie.toLowerCase().includes(sp.name.toLowerCase()) ||
@@ -786,15 +800,25 @@ export function TriageEvaluator({
                     <button
                       key={sp.id}
                       type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      aria-label={`${sp.name}: ${sp.sublabel}, peso de referencia aproximado ${sp.defaultWeight} kilogramos`}
+                      tabIndex={0}
                       onClick={() => handleSelectSpecies(sp)}
-                      className={`p-3.5 rounded-2xl border text-left transition relative flex flex-col justify-between space-y-2 cursor-pointer ${
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleSelectSpecies(sp);
+                        }
+                      }}
+                      className={`p-3.5 rounded-2xl border text-left transition relative flex flex-col justify-between space-y-2 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
                         isSelected
                           ? 'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/25 shadow-sm'
                           : 'bg-white border-slate-200/90 hover:bg-slate-50/80 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-2xl sm:text-3xl">{sp.emoji}</span>
+                        <span className="text-2xl sm:text-3xl" aria-hidden="true">{sp.emoji}</span>
                         <span
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
                             isSelected
@@ -873,6 +897,7 @@ export function TriageEvaluator({
                     onChange={(e) => setPesoKg(e.target.value)}
                     placeholder="Ej: 450"
                     disabled={loading}
+                    aria-label="Peso corporal estimado en kilogramos"
                     className="w-full pl-4 pr-14 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
@@ -1055,6 +1080,7 @@ export function TriageEvaluator({
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 disabled={loading}
+                aria-label="Descripción de síntomas y comportamiento clínico del paciente"
                 placeholder="Describe qué sucedió, tiempo desde el inicio, postura de dolor, vómito, color de encías, sangrado o dificultad respiratoria..."
                 className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
               />
@@ -1187,9 +1213,16 @@ export function TriageEvaluator({
       {/* PASO 3: VEREDICTO DE IA DESPLEGADO + DESBLOQUEO DEL MAPA      */}
       {/* ============================================================ */}
       {step === 'result' && diagnosisResult && (
-        <div className="space-y-8 animate-in fade-in duration-300">
+        <div
+          role="region"
+          aria-label="Resultados de Evaluación de Triage Veterinario y Semáforo Clínico"
+          className="space-y-8 animate-in fade-in duration-300"
+        >
           {/* Card Destacada con Semáforo Clínico */}
           <div
+            role="alert"
+            aria-live="assertive"
+            aria-label={`Semáforo de urgencia clínica: ${theme.label}. ${theme.sublabel}`}
             className={`bg-white rounded-3xl shadow-md border-2 ${theme.border} overflow-hidden space-y-6 transition-all duration-300 ${
               theme.pulse ? 'ring-4 ring-rose-500/20' : ''
             }`}

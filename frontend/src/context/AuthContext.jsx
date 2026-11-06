@@ -12,6 +12,13 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tutorPhone, setTutorPhone] = useState(() => {
+    try {
+      return localStorage.getItem('vetia_tutor_phone') || '';
+    } catch {
+      return '';
+    }
+  });
 
   useEffect(() => {
     // 1. Initial active session retrieval from Supabase
@@ -21,6 +28,15 @@ export function AuthProvider({ children }) {
         if (sbSession?.user) {
           setSession(sbSession);
           setUser(sbSession.user);
+          const metaPhone = sbSession.user.user_metadata?.phone;
+          if (metaPhone) {
+            setTutorPhone(metaPhone);
+            try {
+              localStorage.setItem('vetia_tutor_phone', metaPhone);
+            } catch (e) {
+              console.warn('[AuthProvider] localStorage sync warn:', e);
+            }
+          }
         } else {
           setSession(null);
           setUser(null);
@@ -41,6 +57,15 @@ export function AuthProvider({ children }) {
       if (newSession?.user) {
         setSession(newSession);
         setUser(newSession.user);
+        const metaPhone = newSession.user.user_metadata?.phone;
+        if (metaPhone) {
+          setTutorPhone(metaPhone);
+          try {
+            localStorage.setItem('vetia_tutor_phone', metaPhone);
+          } catch (e) {
+            console.warn('[AuthProvider] localStorage sync warn:', e);
+          }
+        }
       } else {
         setSession(null);
         setUser(null);
@@ -171,6 +196,47 @@ export function AuthProvider({ children }) {
   };
 
   /**
+   * Actualiza el teléfono de contacto del tutor y lo persiste en Supabase Auth metadata,
+   * tabla profiles y localStorage como fallback.
+   */
+  const updateTutorPhone = async (newPhone) => {
+    const raw = String(newPhone || '').trim();
+    const sanitized = raw.replace(/[^\d+]/g, '');
+
+    setTutorPhone(sanitized);
+    try {
+      localStorage.setItem('vetia_tutor_phone', sanitized);
+    } catch (e) {
+      console.warn('[AuthContext.updateTutorPhone] localStorage error:', e);
+    }
+
+    if (user) {
+      try {
+        const { data, error } = await supabase.auth.updateUser({
+          data: { phone: sanitized },
+        });
+        if (!error && data?.user) {
+          setUser(data.user);
+        }
+      } catch (authErr) {
+        console.warn('[AuthContext.updateTutorPhone] Error actualizando user_metadata:', authErr);
+      }
+
+      try {
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          phone: sanitized || null,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (dbErr) {
+        console.warn('[AuthContext.updateTutorPhone] Error actualizando profiles:', dbErr);
+      }
+    }
+
+    return sanitized;
+  };
+
+  /**
    * Sign Out from Supabase Auth
    */
   const signOut = async () => {
@@ -184,11 +250,13 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const effectivePhone = tutorPhone || user?.user_metadata?.phone || null;
+
   const userProfile = {
     id: user?.id,
     email: user?.email,
     full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Tutor',
-    phone: user?.user_metadata?.phone || null,
+    phone: effectivePhone,
   };
 
   return (
@@ -196,7 +264,9 @@ export function AuthProvider({ children }) {
       value={{
         user,
         userProfile,
-        phone: user?.user_metadata?.phone || null,
+        phone: effectivePhone,
+        tutorPhone: effectivePhone,
+        updateTutorPhone,
         session,
         loading,
         signIn,

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useAuth } from '../context/AuthContext';
 import {
   Phone,
   Navigation,
@@ -46,7 +47,7 @@ export function haversineDistance(lat1, lon1, lat2, lon2) {
 /**
  * Custom SVG DivIcon for the pulsating user location (Google Maps style animated radar)
  */
-function createUserPulseIcon() {
+function createUserPulseIcon(gpsActive = false) {
   return L.divIcon({
     className: 'custom-user-pulse-marker',
     html: `
@@ -75,7 +76,9 @@ function createUserPulseIcon() {
           background: #2563eb;
           border: 3px solid #ffffff;
           box-shadow: 0 2px 8px rgba(37, 99, 235, 0.6), 0 0 14px rgba(37, 99, 235, 0.4);
-        "></div>
+        ">
+          ${gpsActive ? '<span style="position: absolute; top: -3px; right: -3px; width: 7px; height: 7px; border-radius: 50%; background: #10b981; border: 1.5px solid #fff;"></span>' : ''}
+        </div>
       </div>
     `,
     iconSize: [44, 44],
@@ -313,10 +316,44 @@ export function EmergencyMap({
   externalUserLocation = null,
   urgencyLevel = 'MODERATE',
   onBackToTriage = null,
+  triageData = null,
 }) {
-  const [userLocation, setUserLocation] = useState(externalUserLocation || FALLBACK_LOCATION);
+  const { user, userProfile: authProfile } = useAuth();
+  const userProfile = useMemo(
+    () => ({
+      full_name: authProfile?.full_name || user?.user_metadata?.full_name || 'Tutor registrado',
+      phone: authProfile?.phone || user?.user_metadata?.phone || 'No especificado',
+    }),
+    [authProfile, user]
+  );
+
+  const triage = useMemo(
+    () => ({
+      species: triageData?.species || triageData?.pet_type || 'Paciente Animal',
+      weight_kg: triageData?.weight_kg || triageData?.peso_kg || 'N/R',
+      urgency_level: triageData?.urgency_level || urgencyLevel || 'MODERADO',
+      description: triageData?.description || triageData?.symptoms_description || 'Evaluación de urgencia en camino',
+    }),
+    [triageData, urgencyLevel]
+  );
+
+  const initialCoords = useMemo(() => {
+    if (externalUserLocation) {
+      return Array.isArray(externalUserLocation)
+        ? externalUserLocation
+        : [externalUserLocation.lat, externalUserLocation.lng];
+    }
+    return [FALLBACK_LOCATION.lat, FALLBACK_LOCATION.lng];
+  }, [externalUserLocation]);
+
+  const [userLocation, setUserLocation] = useState(initialCoords);
+  const [gpsActive, setGpsActive] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState(null);
+
+  const userLat = Array.isArray(userLocation) ? userLocation[0] : (userLocation?.lat ?? FALLBACK_LOCATION.lat);
+  const userLng = Array.isArray(userLocation) ? userLocation[1] : (userLocation?.lng ?? FALLBACK_LOCATION.lng);
+  const userCoords = useMemo(() => [userLat, userLng], [userLat, userLng]);
 
   // Selected clinic for Turn-by-Turn navigation
   const [selectedClinicId, setSelectedClinicId] = useState(null);
@@ -331,83 +368,81 @@ export function EmergencyMap({
   // Map reference to access Leaflet map instance directly
   const mapRef = useRef(null);
 
-  // High-accuracy Geolocation Options
-  const geoOptions = useMemo(
-    () => ({
+  // Rastreo GPS continuo en tiempo real de alta precisión (watchPosition + getCurrentPosition)
+  const startLiveTracking = useCallback(() => {
+    if (!('geolocation' in navigator)) {
+      alert('Tu navegador no soporta geolocalización GPS.');
+      setGeoError('Tu navegador no soporta geolocalización GPS.');
+      return;
+    }
+
+    setGeoLoading(true);
+    setGeoError(null);
+
+    const geoOptions = {
       enableHighAccuracy: true,
       timeout: 10000,
       maximumAge: 0,
-    }),
-    []
-  );
+    };
 
-  // Request actual user location via navigator.geolocation.getCurrentPosition
-  const requestUserLocation = useCallback(
-    (shouldFlyTo = false) => {
-      if (!('geolocation' in navigator)) {
-        setGeoError('Geolocalización no soportada por el navegador.');
-        return;
-      }
-
-      setGeoLoading(true);
-      setGeoError(null);
-
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setUserLocation({
-            lat: latitude,
-            lng: longitude,
-          });
-          setGeoError(null);
-          setGeoLoading(false);
-
-          if (mapRef.current) {
-            if (shouldFlyTo && typeof mapRef.current.flyTo === 'function') {
-              mapRef.current.flyTo([latitude, longitude], 15, {
-                animate: true,
-                duration: 1.5,
-              });
-            } else if (typeof mapRef.current.setView === 'function') {
-              mapRef.current.setView([latitude, longitude], 15);
-            }
+    // 1. Lectura inmediata
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = [pos.coords.latitude, pos.coords.longitude];
+        setUserLocation(coords);
+        setGpsActive(true);
+        setGeoLoading(false);
+        setGeoError(null);
+        if (mapRef.current) {
+          if (typeof mapRef.current.flyTo === 'function') {
+            mapRef.current.flyTo(coords, 15, { animate: true, duration: 1.5 });
+          } else if (typeof mapRef.current.setView === 'function') {
+            mapRef.current.setView(coords, 15);
           }
-        },
-        (err) => {
-          console.warn('Error obteniendo GPS:', err.message);
-          setGeoError('Ubicación GPS no disponible en tiempo real. Usando coordenadas urbanas de referencia.');
-          setGeoLoading(false);
-        },
-        geoOptions
-      );
-    },
-    [geoOptions]
-  );
+        }
+      },
+      (err) => {
+        console.warn('GPS error:', err.message);
+        setGeoError('GPS no disponible en tiempo real. Usando coordenadas urbanas de referencia.');
+        setGeoLoading(false);
+      },
+      geoOptions
+    );
+
+    // 2. Rastreo activo continuo (watchPosition)
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const coords = [pos.coords.latitude, pos.coords.longitude];
+        setUserLocation(coords);
+        setGpsActive(true);
+      },
+      (err) => console.warn('Watch GPS error:', err.message),
+      geoOptions
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
 
   useEffect(() => {
-    if (externalUserLocation?.lat && externalUserLocation?.lng) {
-      setUserLocation(externalUserLocation);
-    } else {
-      if ('geolocation' in navigator) {
-        requestUserLocation(false);
+    const clearWatch = startLiveTracking();
+    return () => {
+      if (typeof clearWatch === 'function') {
+        clearWatch();
       }
-    }
-  }, [externalUserLocation, requestUserLocation]);
+    };
+  }, [startLiveTracking]);
 
   const handleGpsSync = () => {
-    requestUserLocation(true);
+    startLiveTracking();
   };
 
   // Calculate dynamic coordinates for clinics relative to the user position
   // and compute distance via Haversine formula
   const clinicsWithDistance = useMemo(() => {
-    const baseLat = userLocation.lat;
-    const baseLng = userLocation.lng;
-
     return CLINIC_PRESETS.map((clinic) => {
-      const clinicLat = parseFloat((baseLat + clinic.dLat).toFixed(6));
-      const clinicLng = parseFloat((baseLng + clinic.dLng).toFixed(6));
-      const distance = haversineDistance(baseLat, baseLng, clinicLat, clinicLng);
+      const clinicLat = parseFloat((userLat + clinic.dLat).toFixed(6));
+      const clinicLng = parseFloat((userLng + clinic.dLng).toFixed(6));
+      const distance = haversineDistance(userLat, userLng, clinicLat, clinicLng);
 
       return {
         ...clinic,
@@ -416,7 +451,7 @@ export function EmergencyMap({
         distanceKm: distance,
       };
     }).sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [userLocation]);
+  }, [userLat, userLng]);
 
   // Default to nearest clinic if not selected
   const activeClinic = useMemo(() => {
@@ -429,7 +464,7 @@ export function EmergencyMap({
 
   // Fetch real-time OSRM driving route with turn-by-turn steps
   useEffect(() => {
-    if (!activeClinic || !userLocation) return;
+    if (!activeClinic || !userCoords) return;
 
     let isMounted = true;
     const controller = new AbortController();
@@ -437,8 +472,6 @@ export function EmergencyMap({
     async function fetchOsrmRoute() {
       setIsRoutingLoading(true);
 
-      const userLat = userLocation.lat;
-      const userLng = userLocation.lng;
       const clinicLat = activeClinic.lat;
       const clinicLng = activeClinic.lng;
 
@@ -520,18 +553,48 @@ export function EmergencyMap({
       isMounted = false;
       controller.abort();
     };
-  }, [activeClinic, userLocation]);
+  }, [activeClinic, userCoords, userLat, userLng]);
 
-  // URLs for navigation
-  const googleMapsUrl = activeClinic
-    ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${activeClinic.lat},${activeClinic.lng}`
-    : '#';
+  // URLs for navigation and structured WhatsApp dispatch
+  const getWhatsAppLink = useCallback(
+    (clinic) => {
+      if (!clinic?.phone) return '#';
+      const cleanPhone = clinic.phone.replace(/[^0-9]/g, '');
+      const waPhone = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone.replace(/^0+/, '')}`;
+      const message =
+        "🚨 *URGENCIA VETIA - PRE-INGRESO EN CAMINO* 🚨\n" +
+        `🐾 Paciente: ${triage.species} (${triage.weight_kg} kg)\n` +
+        `⚠️ Nivel: ${triage.urgency_level}\n` +
+        `📋 Síntomas: ${triage.description}\n` +
+        `👤 Tutor: ${userProfile.full_name || 'Tutor registrado'}\n` +
+        `📞 Contacto: ${userProfile.phone || 'No especificado'}\n` +
+        `📍 Voy en camino hacia su sede.`;
+      return `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
+    },
+    [triage, userProfile]
+  );
 
-  const wazeUrl = activeClinic
-    ? `https://waze.com/ul?ll=${activeClinic.lat},${activeClinic.lng}&navigate=yes`
-    : '#';
+  const getGoogleMapsLink = useCallback(
+    (clinic) => {
+      if (!clinic) return '#';
+      return `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${clinic.lat},${clinic.lng}`;
+    },
+    [userLat, userLng]
+  );
 
-  const userIcon = createUserPulseIcon();
+  const getWazeLink = useCallback(
+    (clinic) => {
+      if (!clinic) return '#';
+      return `https://waze.com/ul?ll=${clinic.lat},${clinic.lng}&navigate=yes`;
+    },
+    []
+  );
+
+  const googleMapsUrl = activeClinic ? getGoogleMapsLink(activeClinic) : '#';
+  const wazeUrl = activeClinic ? getWazeLink(activeClinic) : '#';
+  const activeWhatsAppUrl = activeClinic ? getWhatsAppLink(activeClinic) : '#';
+
+  const userIcon = createUserPulseIcon(gpsActive);
 
   return (
     <div className="space-y-6">
@@ -567,10 +630,10 @@ export function EmergencyMap({
             onClick={handleGpsSync}
             disabled={geoLoading}
             className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs flex items-center space-x-2 transition cursor-pointer"
-            title="Centrar en mi ubicación GPS en vivo"
+            title="Activar mi GPS en vivo"
           >
-            <Crosshair className={`w-4 h-4 text-rose-400 ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>{geoLoading ? 'Obteniendo GPS...' : 'Centrar en mi ubicación GPS en vivo'}</span>
+            <Crosshair className={`w-4 h-4 text-emerald-400 ${geoLoading ? 'animate-spin' : ''}`} />
+            <span>{geoLoading ? 'Conectando GPS...' : gpsActive ? 'GPS en vivo activo' : 'Activar mi GPS en vivo'}</span>
           </button>
         </div>
       </div>
@@ -588,7 +651,7 @@ export function EmergencyMap({
             className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center space-x-1.5 self-start sm:self-auto transition shadow-2xs cursor-pointer"
           >
             <Crosshair className={`w-3.5 h-3.5 ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>Centrar en mi ubicación GPS en vivo</span>
+            <span>Activar mi GPS en vivo</span>
           </button>
         </div>
       )}
@@ -606,20 +669,26 @@ export function EmergencyMap({
             type="button"
             onClick={handleGpsSync}
             disabled={geoLoading}
-            className="absolute top-4 right-4 z-[1000] bg-white hover:bg-slate-50 text-slate-800 hover:text-blue-600 px-3.5 py-2.5 rounded-2xl shadow-xl border border-slate-200/90 backdrop-blur-md text-xs font-bold flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 cursor-pointer group"
-            title="Centrar en mi ubicación GPS en vivo"
+            className="absolute top-4 right-4 z-[1000] bg-white hover:bg-slate-50 text-slate-800 hover:text-emerald-600 px-3.5 py-2.5 rounded-2xl shadow-xl border border-slate-200/90 backdrop-blur-md text-xs font-bold flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 cursor-pointer group"
+            title="Activar mi GPS en vivo"
           >
-            <div className="w-6 h-6 rounded-lg bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center text-blue-600 transition">
-              <Crosshair className={`w-4 h-4 text-blue-600 ${geoLoading ? 'animate-spin' : ''}`} />
+            <div className="w-6 h-6 rounded-lg bg-emerald-50 group-hover:bg-emerald-100 flex items-center justify-center text-emerald-600 transition">
+              <Crosshair className={`w-4 h-4 text-emerald-600 ${geoLoading ? 'animate-spin' : ''}`} />
             </div>
-            <span className="hidden sm:inline font-extrabold text-slate-800 group-hover:text-blue-600">
-              {geoLoading ? 'Obteniendo GPS...' : 'Centrar en mi ubicación GPS en vivo'}
+            <span className="hidden sm:inline font-extrabold text-slate-800 group-hover:text-emerald-600">
+              {geoLoading ? 'Conectando GPS...' : gpsActive ? 'GPS en vivo activo' : 'Activar mi GPS en vivo'}
             </span>
+            {gpsActive && (
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+            )}
           </button>
 
           <MapContainer
             ref={mapRef}
-            center={[userLocation.lat, userLocation.lng]}
+            center={userCoords}
             zoom={14}
             scrollWheelZoom={true}
             className="h-full w-full"
@@ -630,16 +699,24 @@ export function EmergencyMap({
             />
 
             <MapScrollIsolation />
-            <MapRecenter center={[userLocation.lat, userLocation.lng]} />
+            <MapRecenter center={userCoords} />
             <MapController mapRef={mapRef} />
 
             {/* User Pulsing Pin */}
-            <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
+            <Marker position={userCoords} icon={userIcon}>
               <Popup>
                 <div className="p-1 space-y-1 text-xs">
-                  <span className="font-bold text-blue-600 block">Tu ubicación en tiempo real</span>
-                  <span className="text-slate-500 font-mono text-[11px]">
-                    {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+                  <div className="flex items-center space-x-1.5">
+                    <span className={`w-2 h-2 rounded-full ${gpsActive ? 'bg-emerald-500 animate-pulse' : 'bg-blue-600'}`}></span>
+                    <span className="font-bold text-blue-600 block">
+                      {gpsActive ? 'Tu ubicación GPS en vivo' : 'Tu ubicación aproximada'}
+                    </span>
+                  </div>
+                  <span className="text-slate-500 font-mono text-[11px] block">
+                    {userLat.toFixed(5)}, {userLng.toFixed(5)}
+                  </span>
+                  <span className="text-[10px] text-emerald-600 font-semibold block">
+                    {gpsActive ? '● Transmitiendo en tiempo real' : '○ GPS en espera'}
                   </span>
                 </div>
               </Popup>
@@ -779,23 +856,15 @@ export function EmergencyMap({
                   <span>Llamar a Urgencias</span>
                 </a>
 
-                {(() => {
-                  const cleanPhone = (activeClinic?.phone || '').replace(/[^0-9]/g, '');
-                  const waMsg = encodeURIComponent(
-                    `Hola, voy en camino con mi mascota en estado ${urgencyLevel}. Requiere atención inmediata.`
-                  );
-                  return (
-                    <a
-                      href={`https://wa.me/${cleanPhone}?text=${waMsg}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
-                    >
-                      <span className="text-sm">💬</span>
-                      <span>Avisar por WhatsApp</span>
-                    </a>
-                  );
-                })()}
+                <a
+                  href={activeWhatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
+                >
+                  <span className="text-sm">💬</span>
+                  <span>Avisar por WhatsApp</span>
+                </a>
               </div>
 
               {/* External Navigation Shortcuts (Waze / Google Maps) */}
@@ -947,24 +1016,16 @@ export function EmergencyMap({
                     <Phone className="w-4 h-4 text-rose-400" />
                   </a>
 
-                  {(() => {
-                    const cleanPhone = (clinic.phone || '').replace(/[^0-9]/g, '');
-                    const waMsg = encodeURIComponent(
-                      `Hola, voy en camino con mi mascota en estado ${urgencyLevel}. Requiere atención inmediata.`
-                    );
-                    return (
-                      <a
-                        href={`https://wa.me/${cleanPhone}?text=${waMsg}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition flex-shrink-0"
-                        title="Avisar por WhatsApp"
-                      >
-                        <span className="text-xs">💬</span>
-                      </a>
-                    );
-                  })()}
+                  <a
+                    href={getWhatsAppLink(clinic)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition flex-shrink-0"
+                    title="Avisar por WhatsApp"
+                  >
+                    <span className="text-xs">💬</span>
+                  </a>
                 </div>
               </div>
             );

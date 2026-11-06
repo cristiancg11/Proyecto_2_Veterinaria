@@ -100,6 +100,7 @@ export function AuthProvider({ children }) {
   const signUp = async (email, password, metadata = {}) => {
     const normalizedEmail = email.trim().toLowerCase();
     const fullName = (metadata.full_name || '').trim() || normalizedEmail.split('@')[0];
+    const phone = (metadata.phone || '').trim();
     const endpointUrl = `${SUPABASE_URL}/auth/v1/signup`;
 
     try {
@@ -109,7 +110,9 @@ export function AuthProvider({ children }) {
         options: {
           data: {
             full_name: fullName,
+            phone: phone || null,
             role: 'tutor',
+            ...metadata,
           },
         },
       });
@@ -148,6 +151,7 @@ export function AuthProvider({ children }) {
           id: registeredUserId,
           email: normalizedEmail,
           full_name: fullName,
+          phone: phone || null,
           role: 'tutor',
           updated_at: new Date().toISOString(),
         });
@@ -180,10 +184,19 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const userProfile = {
+    id: user?.id,
+    email: user?.email,
+    full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Tutor',
+    phone: user?.user_metadata?.phone || null,
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
+        userProfile,
+        phone: user?.user_metadata?.phone || null,
         session,
         loading,
         signIn,

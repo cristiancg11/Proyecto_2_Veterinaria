@@ -274,3 +274,4 @@ export function generateTriagePDF(data = {}) {
 }
 
 export default generateTriagePDF;
+

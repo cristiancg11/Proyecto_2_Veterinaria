@@ -4,6 +4,7 @@ import {
   Mail,
   Lock,
   User,
+  Phone,
   AlertCircle,
   CheckCircle2,
   Loader2,
@@ -33,6 +34,7 @@ export function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -51,8 +53,14 @@ export function AuthScreen() {
           setLoading(false);
           return;
         }
+        const cleanedPhone = phoneNumber.replace(/\D/g, '');
+        if (!cleanedPhone || cleanedPhone.length !== 10) {
+          setError('Número de Celular / WhatsApp obligatorio de 10 dígitos (ej. 3123456789).');
+          setLoading(false);
+          return;
+        }
         setSuccessMessage('Creando expediente de tutor en Supabase...');
-        await signUp(email, password, { full_name: fullName.trim() });
+        await signUp(email, password, { full_name: fullName.trim(), phone: cleanedPhone });
         setSuccessMessage('¡Cuenta creada exitosamente en Supabase! Ingresando al panel...');
       } else {
         await signIn(email, password);
@@ -247,24 +255,49 @@ export function AuthScreen() {
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {isRegister && (
-              <div className="space-y-2">
-                <label htmlFor="auth-name" className="block text-sm font-semibold text-slate-300">
-                  Nombre Completo del Tutor <span className="text-red-400">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    id="auth-name"
-                    type="text"
-                    required
-                    autoComplete="name"
-                    placeholder="Ej. Dra. Mariana Torres o Carlos Ramírez"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className={`peer ${inputBase}`}
-                  />
-                  <User className={iconBase} />
+              <>
+                <div className="space-y-2">
+                  <label htmlFor="auth-name" className="block text-sm font-semibold text-slate-300">
+                    Nombre Completo del Tutor <span className="text-red-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="auth-name"
+                      type="text"
+                      required
+                      autoComplete="name"
+                      placeholder="Ej. Dra. Mariana Torres o Carlos Ramírez"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className={`peer ${inputBase}`}
+                    />
+                    <User className={iconBase} />
+                  </div>
                 </div>
-              </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="auth-phone" className="block text-sm font-semibold text-slate-300">
+                      Número de Celular / WhatsApp del Tutor <span className="text-red-400">*</span>
+                    </label>
+                    <span className="text-[11px] text-slate-400">10 dígitos (Colombia)</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="auth-phone"
+                      type="tel"
+                      required
+                      maxLength={10}
+                      autoComplete="tel"
+                      placeholder="Ej. 3123456789"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      className={`peer ${inputBase}`}
+                    />
+                    <Phone className={iconBase} />
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="space-y-2">

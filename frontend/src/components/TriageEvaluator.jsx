@@ -361,7 +361,7 @@ export function TriageEvaluator({
   onOpenChat,
   userCoordinates = null,
 }) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
 
   // Form states con Bovino como valor por defecto rural
   const [especie, setEspecie] = useState('Bovino (Bovinos, Terneros y Vacas)');
@@ -637,6 +637,7 @@ export function TriageEvaluator({
     let persistentRecordId = `triage_${Date.now()}`;
     const species = especie;
     const description = descripcion.trim();
+    const tutorPhone = userProfile?.phone || user?.user_metadata?.phone || null;
 
     try {
       const { data, error } = await supabase.from('triage_records').insert([
@@ -652,7 +653,8 @@ export function TriageEvaluator({
           visual_findings: confirmedResult.visual_findings || '',
           presumptive_diagnosis: confirmedResult.presumptive_diagnosis || [],
           first_aid_actions: confirmedResult.first_aid_actions || [],
-          image_url: uploadedImageUrl || null
+          image_url: uploadedImageUrl || null,
+          tutor_phone: tutorPhone,
         }
       ]).select();
 
@@ -1431,6 +1433,12 @@ export function TriageEvaluator({
             <EmergencyMap
               externalUserLocation={userCoordinates}
               urgencyLevel={diagnosisResult.urgency_level}
+              triageData={{
+                species: especie,
+                weight_kg: pesoKg,
+                urgency_level: diagnosisResult.urgency_level,
+                description: descripcion,
+              }}
             />
           </div>
         </div>

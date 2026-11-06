@@ -55,6 +55,10 @@ export function useVoiceRecorder() {
     typeof window !== 'undefined' &&
     !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
 
+  const hasSpeechRecognition =
+    typeof window !== 'undefined' &&
+    !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
   // Clear timer helper
   const clearTimer = useCallback(() => {
     if (timerIntervalRef.current) {
@@ -150,7 +154,7 @@ export function useVoiceRecorder() {
       setRecordingSeconds(0);
       setRecordingTime('00:00');
 
-      // Initialize Web Speech API for real-time live transcription
+      // Initialize Web Speech API for real-time live transcription (with graceful fallback if unsupported)
       const SpeechRecognition =
         typeof window !== 'undefined'
           ? window.SpeechRecognition || window.webkitSpeechRecognition
@@ -174,7 +178,7 @@ export function useVoiceRecorder() {
           };
 
           recognition.onerror = (event) => {
-            console.warn('[useVoiceRecorder] SpeechRecognition error:', event.error);
+            console.warn('[useVoiceRecorder] SpeechRecognition error (continuando grabación de audio estándar):', event.error);
           };
 
           recognition.onend = () => {
@@ -183,7 +187,7 @@ export function useVoiceRecorder() {
               try {
                 recognition.start();
               } catch (e) {
-                // Ignore if restart fails
+                // Ignore if restart fails, audio stream continues unaffected
               }
             }
           };
@@ -191,8 +195,11 @@ export function useVoiceRecorder() {
           recognition.start();
           recognitionRef.current = recognition;
         } catch (speechErr) {
-          console.warn('[useVoiceRecorder] Web Speech Recognition no pudo iniciarse:', speechErr);
+          console.info('[useVoiceRecorder] SpeechRecognition no pudo inicializarse; continuando grabación por audio:', speechErr);
         }
+      } else {
+        // Fallback for browsers lacking SpeechRecognition (e.g. Firefox, older Safari)
+        console.info('[useVoiceRecorder] SpeechRecognition no está disponible en este navegador. El audio se grabará y procesará al terminar.');
       }
 
       // Setup duration timer
@@ -272,6 +279,7 @@ export function useVoiceRecorder() {
     setLiveTranscript,
     permissionError,
     isSupported: isAudioSupported,
+    hasSpeechRecognition,
     startRecording,
     stopRecording,
     cancelRecording,

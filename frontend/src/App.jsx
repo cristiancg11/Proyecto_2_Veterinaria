@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
 import TriageEvaluator from './components/TriageEvaluator';
-import EmergencyMap from './components/EmergencyMap';
 import TriageChatModal from './components/TriageChatModal';
 import HistoryModal from './components/HistoryModal';
 import AuthModal from './components/AuthModal';
 import AuthScreen from './components/AuthScreen';
-import AnalyzingScreen from './components/AnalyzingScreen';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import useGeolocation from './hooks/useGeolocation';
 import useTriage from './hooks/useTriage';
@@ -18,11 +16,6 @@ import {
   HeartPulse,
   Loader2,
   MessageSquare,
-  ClipboardList,
-  Activity,
-  CheckCircle2,
-  Compass,
-  ArrowLeft,
 } from 'lucide-react';
 
 function MainApp() {
@@ -30,11 +23,7 @@ function MainApp() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [lastPetType, setLastPetType] = useState('Perro (Canino)');
-  const [lastWeight, setLastWeight] = useState('8.5');
   const [activeDiagnosis, setActiveDiagnosis] = useState(null);
-
-  // State Machine Stages: 'FORM' (Estado 1) | 'ANALYZING' (Estado 2) | 'RESULTS' (Estado 3) | 'MAP_ROUTING' (Estado 4)
-  const [stage, setStage] = useState('FORM');
 
   const { user, isAuthenticated, loading: authLoading } = useAuth();
 
@@ -70,8 +59,6 @@ function MainApp() {
   const handleDiagnosisComplete = (result, weight, species) => {
     setActiveDiagnosis(result);
     setLastPetType(species);
-    setLastWeight(weight.toString());
-    setStage('RESULTS');
     if (fetchHistory) {
       fetchHistory();
     }
@@ -82,14 +69,9 @@ function MainApp() {
     setIsChatModalOpen(true);
   };
 
-  const handleResetToForm = () => {
-    setActiveDiagnosis(null);
-    setStage('FORM');
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-slate-100/70 text-slate-900">
-      {/* Top Navigation */}
+      {/* Top Navigation Bar with Historial de Consultas */}
       <Header
         onOpenHistory={() => setIsHistoryOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
@@ -142,157 +124,14 @@ function MainApp() {
           </div>
         )}
 
-        {/* Sequential Stepper Navigation Indicator */}
-        <div className="bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs overflow-x-auto">
-          <div className="flex items-center justify-between min-w-[580px] text-xs">
-            {/* Step 1 */}
-            <div
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-xl font-bold transition ${
-                stage === 'FORM'
-                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[11px] flex items-center justify-center font-bold">
-                1
-              </span>
-              <span>Datos & Foto</span>
-            </div>
-
-            <div className="h-0.5 flex-1 bg-slate-200 mx-2" />
-
-            {/* Step 2 */}
-            <div
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-xl font-bold transition ${
-                stage === 'ANALYZING'
-                  ? 'bg-rose-50 text-rose-700 border border-rose-200 animate-pulse'
-                  : 'text-slate-500'
-              }`}
-            >
-              <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[11px] flex items-center justify-center font-bold">
-                2
-              </span>
-              <span>Análisis Gemini AI</span>
-            </div>
-
-            <div className="h-0.5 flex-1 bg-slate-200 mx-2" />
-
-            {/* Step 3 */}
-            <div
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-xl font-bold transition ${
-                stage === 'RESULTS'
-                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                  : 'text-slate-500'
-              }`}
-            >
-              <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[11px] flex items-center justify-center font-bold">
-                3
-              </span>
-              <span>Resultados & Triaje</span>
-            </div>
-
-            <div className="h-0.5 flex-1 bg-slate-200 mx-2" />
-
-            {/* Step 4 */}
-            <div
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-xl font-bold transition ${
-                stage === 'MAP_ROUTING'
-                  ? 'bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs'
-                  : 'text-slate-500'
-              }`}
-            >
-              <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[11px] flex items-center justify-center font-bold">
-                4
-              </span>
-              <span>Veterinarias & Ruta GPS</span>
-            </div>
-          </div>
+        {/* Core Triage Evaluation & Automatic Sequential Map Unlocking */}
+        <div className="max-w-5xl mx-auto">
+          <TriageEvaluator
+            userCoordinates={coordinates}
+            onDiagnosisComplete={handleDiagnosisComplete}
+            onOpenChat={handleOpenChat}
+          />
         </div>
-
-        {/* CONDITIONAL RENDERING OF STATES (STATE MACHINE) */}
-
-        {/* ESTADO 1 & ESTADO 3: Formulario o Resultados */}
-        {(stage === 'FORM' || stage === 'RESULTS') && (
-          <div className="max-w-4xl mx-auto">
-            <TriageEvaluator
-              userCoordinates={coordinates}
-              stage={stage}
-              onStageChange={setStage}
-              onDiagnosisComplete={handleDiagnosisComplete}
-              onOpenChat={handleOpenChat}
-              onProceedToMap={() => setStage('MAP_ROUTING')}
-            />
-          </div>
-        )}
-
-        {/* ESTADO 2: Pantalla de carga animada */}
-        {stage === 'ANALYZING' && (
-          <div className="max-w-2xl mx-auto py-8">
-            <AnalyzingScreen petType={lastPetType} weight={lastWeight} />
-          </div>
-        )}
-
-        {/* ESTADO 4: Mapa interactivo y Veterinarias Disponibles */}
-        {stage === 'MAP_ROUTING' && (
-          <div className="space-y-6">
-            {/* Quick Case Summary Header Bar */}
-            {activeDiagnosis && (
-              <div className="p-4 bg-white rounded-3xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center space-x-3">
-                  <div
-                    className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold text-xs"
-                    style={{
-                      backgroundColor:
-                        activeDiagnosis.urgency_level === 'CRITICO' || activeDiagnosis.urgency_level === 'CRITICAL'
-                          ? '#EF4444'
-                          : activeDiagnosis.urgency_level === 'URGENTE'
-                          ? '#F97316'
-                          : activeDiagnosis.urgency_level === 'MODERADO'
-                          ? '#F59E0B'
-                          : '#10B981',
-                    }}
-                  >
-                    <HeartPulse className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-800">
-                      Caso Activo: {lastPetType} ({lastWeight} kg)
-                    </div>
-                    <div className="text-[11px] text-slate-500">
-                      Severidad: <strong>{activeDiagnosis.urgency_level}</strong> • Marco de atención: {activeDiagnosis.vet_consultation_timeframe}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setStage('RESULTS')}
-                    className="px-3 py-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center space-x-1.5 transition cursor-pointer"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Ver Primeros Auxilios</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleResetToForm}
-                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition cursor-pointer"
-                  >
-                    Nueva Consulta
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Interactive Turn-by-Turn Map & Clinics Module */}
-            <EmergencyMap
-              externalUserLocation={coordinates}
-              urgencyLevel={activeDiagnosis?.urgency_level || 'MODERATE'}
-              onBackToTriage={() => setStage('RESULTS')}
-            />
-          </div>
-        )}
       </main>
 
       {/* Interactive AI Follow-up Chat Modal */}
@@ -303,7 +142,7 @@ function MainApp() {
         petType={lastPetType}
       />
 
-      {/* History Drawer Modal */}
+      {/* Historial de Consultas Drawer Modal (Synchronized with Supabase triage_records) */}
       <HistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}

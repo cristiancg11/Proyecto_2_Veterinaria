@@ -632,29 +632,60 @@ export function EmergencyMap({
               </a>
             </div>
 
-            {/* External Navigation Shortcuts (Waze / Google Maps) */}
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <a
-                href={googleMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 py-3 px-4 rounded-2xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold shadow-2xs transition"
-              >
-                <span>🗺️</span>
-                <span>Google Maps</span>
-                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-              </a>
+            {/* Direct SOS Action Buttons: Phone, WhatsApp & Maps */}
+            <div className="space-y-2 pt-1">
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  href={`tel:${activeClinic?.phone}`}
+                  className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
+                >
+                  <Phone className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Llamar a Urgencias</span>
+                </a>
 
-              <a
-                href={wazeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition"
-              >
-                <span>🚗</span>
-                <span>Abrir en Waze</span>
-                <ExternalLink className="w-3.5 h-3.5 text-blue-200" />
-              </a>
+                {(() => {
+                  const cleanPhone = (activeClinic?.phone || '').replace(/[^0-9]/g, '');
+                  const waMsg = encodeURIComponent(
+                    `Hola, voy en camino con mi mascota en estado ${urgencyLevel}. Requiere atención inmediata.`
+                  );
+                  return (
+                    <a
+                      href={`https://wa.me/${cleanPhone}?text=${waMsg}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
+                    >
+                      <span className="text-sm">💬</span>
+                      <span>Avisar por WhatsApp</span>
+                    </a>
+                  );
+                })()}
+              </div>
+
+              {/* External Navigation Shortcuts (Waze / Google Maps) */}
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold shadow-2xs transition"
+                >
+                  <span>🗺️</span>
+                  <span>Google Maps</span>
+                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                </a>
+
+                <a
+                  href={wazeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/25 transition"
+                >
+                  <span>🚗</span>
+                  <span>Abrir en Waze</span>
+                  <ExternalLink className="w-3 h-3 text-blue-200" />
+                </a>
+              </div>
             </div>
 
             {/* Turn-by-Turn Steps List */}
@@ -775,8 +806,27 @@ export function EmergencyMap({
                     className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition flex-shrink-0"
                     title={`Llamar a ${clinic.name}`}
                   >
-                    <Phone className="w-4 h-4" />
+                    <Phone className="w-4 h-4 text-rose-400" />
                   </a>
+
+                  {(() => {
+                    const cleanPhone = (clinic.phone || '').replace(/[^0-9]/g, '');
+                    const waMsg = encodeURIComponent(
+                      `Hola, voy en camino con mi mascota en estado ${urgencyLevel}. Requiere atención inmediata.`
+                    );
+                    return (
+                      <a
+                        href={`https://wa.me/${cleanPhone}?text=${waMsg}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition flex-shrink-0"
+                        title="Avisar por WhatsApp"
+                      >
+                        <span className="text-xs">💬</span>
+                      </a>
+                    );
+                  })()}
                 </div>
               </div>
             );

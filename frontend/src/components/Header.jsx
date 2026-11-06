@@ -35,12 +35,13 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
         <div className="flex items-center space-x-2 sm:space-x-3">
           <button
             onClick={onOpenHistory}
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-medium transition shadow-sm"
+            className="flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition shadow-xs cursor-pointer"
+            title="Ver Historial de Consultas en Supabase"
           >
-            <History className="w-4 h-4 text-slate-500" />
-            <span className="hidden sm:inline">My History</span>
+            <History className="w-4 h-4 text-rose-600" />
+            <span className="hidden sm:inline">Historial de Consultas</span>
             {historyCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 rounded-full bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold">
+              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold">
                 {historyCount}
               </span>
             )}

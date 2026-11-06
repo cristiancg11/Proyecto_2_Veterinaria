@@ -13,22 +13,18 @@ import {
   Droplets,
   Activity,
   ArrowLeft,
-  ArrowRight,
   MessageSquare,
-  ShieldAlert,
+  Clock,
   ChevronDown,
   ChevronUp,
-  Clock,
-  Building2,
-  Calculator,
-  Compass,
-  HelpCircle,
   Info,
   MapPin,
 } from 'lucide-react';
-import { analyzeTriage, API_BASE_URL } from '../services/api';
+import { analyzeTriage } from '../services/api';
+import { supabase } from '../services/supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import PhotoGuidanceModal from './PhotoGuidanceModal';
-import AnalyzingScreen from './AnalyzingScreen';
+import EmergencyMap from './EmergencyMap';
 
 /**
  * Off-thread image compressor helper using Web Worker
@@ -109,7 +105,7 @@ const URGENCY_THEMES = {
     bgBanner: 'bg-orange-50',
     textAccent: 'text-orange-600',
     label: 'NIVEL URGENTE (ALTA PRIORIDAD)',
-    sublabel: 'Atención en menos de 1-2 horas',
+    sublabel: 'Atención médica en menos de 1-2 horas',
     icon: AlertTriangle,
     pulse: false,
   },
@@ -120,7 +116,7 @@ const URGENCY_THEMES = {
     bgBanner: 'bg-orange-50',
     textAccent: 'text-orange-600',
     label: 'NIVEL URGENTE (ALTA PRIORIDAD)',
-    sublabel: 'Atención en menos de 1-2 horas',
+    sublabel: 'Atención médica en menos de 1-2 horas',
     icon: AlertTriangle,
     pulse: false,
   },
@@ -131,7 +127,7 @@ const URGENCY_THEMES = {
     bgBanner: 'bg-amber-50',
     textAccent: 'text-amber-600',
     label: 'NIVEL MODERADO (ATENCIÓN PRIORITARIA)',
-    sublabel: 'Atención en el transcurso del día',
+    sublabel: 'Atención médica en el transcurso del día',
     icon: AlertTriangle,
     pulse: false,
   },
@@ -142,7 +138,7 @@ const URGENCY_THEMES = {
     bgBanner: 'bg-amber-50',
     textAccent: 'text-amber-600',
     label: 'NIVEL MODERADO (ATENCIÓN PRIORITARIA)',
-    sublabel: 'Atención en el transcurso del día',
+    sublabel: 'Atención médica en el transcurso del día',
     icon: AlertTriangle,
     pulse: false,
   },
@@ -153,7 +149,7 @@ const URGENCY_THEMES = {
     bgBanner: 'bg-amber-50',
     textAccent: 'text-amber-600',
     label: 'NIVEL MODERADO (ATENCIÓN PRIORITARIA)',
-    sublabel: 'Atención en el transcurso del día',
+    sublabel: 'Atención médica en el transcurso del día',
     icon: AlertTriangle,
     pulse: false,
   },
@@ -196,13 +192,12 @@ const URGENCY_THEMES = {
  * Fluid Replacement Mini Calculator Component
  */
 function FluidCalculator({ weightKg }) {
-  const [dehydrationLevel, setDehydrationLevel] = useState(7); // default 7% moderate
-  const [maintenanceFactor] = useState(55); // 55 ml/kg/day avg
+  const [dehydrationLevel, setDehydrationLevel] = useState(7);
+  const [maintenanceFactor] = useState(55);
   const [isOpen, setIsOpen] = useState(true);
 
   const weight = parseFloat(weightKg) || 10;
 
-  // Formulas
   const maintenanceVolume = Math.round(weight * maintenanceFactor);
   const deficitVolume = Math.round(weight * dehydrationLevel * 10);
   const totalVolume24h = maintenanceVolume + deficitVolume;
@@ -210,19 +205,19 @@ function FluidCalculator({ weightKg }) {
   const macrodripGttPerMin = Math.round((parseFloat(rateMlPerHour) * 20) / 60);
 
   return (
-    <div className="bg-slate-900 text-white rounded-2xl p-5 border border-slate-800 shadow-lg space-y-4">
+    <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-xl space-y-4">
       <div
         className="flex items-center justify-between cursor-pointer select-none"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
             <Droplets className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-bold text-sm text-slate-100 flex items-center space-x-2">
+            <h4 className="font-bold text-sm sm:text-base text-slate-100 flex items-center space-x-2">
               <span>Mini Calculadora de Reposición de Líquidos</span>
-              <span className="text-[10px] bg-blue-500/30 text-blue-300 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-[10px] bg-blue-500/30 text-blue-300 px-2 py-0.5 rounded-full font-mono">
                 P: {weight} kg
               </span>
             </h4>
@@ -240,8 +235,7 @@ function FluidCalculator({ weightKg }) {
       </div>
 
       {isOpen && (
-        <div className="space-y-4 pt-2 border-t border-slate-800 text-xs">
-          {/* Dehydration Degree Selector */}
+        <div className="space-y-4 pt-3 border-t border-slate-800 text-xs">
           <div>
             <label className="block text-slate-300 font-semibold mb-2">
               Grado Estimado de Deshidratación:
@@ -250,13 +244,13 @@ function FluidCalculator({ weightKg }) {
               {[
                 { percent: 5, label: 'Leve (5%)', desc: 'Mucosas secas' },
                 { percent: 7, label: 'Moderado (7-8%)', desc: 'Pliegue cutáneo 2-3s' },
-                { percent: 10, label: 'Severo (10-12%)', desc: 'Ojos hundidos / Choque' },
+                { percent: 10, label: 'Severo (10-12%)', desc: 'Ojos hundidos / Shock' },
               ].map((opt) => (
                 <button
                   key={opt.percent}
                   type="button"
                   onClick={() => setDehydrationLevel(opt.percent)}
-                  className={`p-2.5 rounded-xl border text-left transition ${
+                  className={`p-2.5 rounded-2xl border text-left transition ${
                     dehydrationLevel === opt.percent
                       ? 'bg-blue-600 border-blue-400 text-white shadow-md shadow-blue-600/30 font-semibold'
                       : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
@@ -269,8 +263,7 @@ function FluidCalculator({ weightKg }) {
             </div>
           </div>
 
-          {/* Detailed Calculations Output */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950/70 p-3.5 rounded-xl border border-slate-800">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950/70 p-4 rounded-2xl border border-slate-800">
             <div className="space-y-1">
               <span className="text-[10px] text-slate-400 uppercase font-medium">Mantenimiento (24h)</span>
               <div className="text-base font-black text-slate-100">{maintenanceVolume} ml</div>
@@ -298,10 +291,10 @@ function FluidCalculator({ weightKg }) {
             </div>
           </div>
 
-          <div className="flex items-start space-x-2 text-[11px] text-slate-400 bg-slate-800/50 p-2.5 rounded-lg border border-slate-800">
+          <div className="flex items-start space-x-2 text-[11px] text-slate-400 bg-slate-800/50 p-3 rounded-xl border border-slate-800">
             <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
             <p className="leading-snug">
-              Cálculo de referencia clínica veterinaria (normogotero de 20 gotas/ml). La administración parenteral de fluidos debe ser monitorizada por un profesional veterinario.
+              Cálculo orientativo según estándares WSAVA/AAHA (normogotero 20 gotas/ml). La administración parenteral de fluidos debe ser ejecutada por personal médico veterinario.
             </p>
           </div>
         </div>
@@ -313,25 +306,24 @@ function FluidCalculator({ weightKg }) {
 export function TriageEvaluator({
   onDiagnosisComplete,
   onOpenChat,
-  onProceedToMap,
-  stage = 'FORM',
-  onStageChange = null,
   userCoordinates = null,
 }) {
-  // Form States
+  const { user } = useAuth();
+
+  // Form inputs
   const [especie, setEspecie] = useState('Perro (Canino)');
   const [pesoKg, setPesoKg] = useState('8.5');
   const [descripcion, setDescripcion] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  // Photo Guidance Accordion & Modal States
+  // Modals & UI helpers
   const [isGuidanceOpen, setIsGuidanceOpen] = useState(false);
   const [isGuidanceModalOpen, setIsGuidanceModalOpen] = useState(false);
 
-  // Status & Response States
+  // Status & State Machine: step = 'form' | 'result'
+  const [step, setStep] = useState('form');
   const [loading, setLoading] = useState(false);
-  const [isCompressing, setIsCompressing] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [networkError, setNetworkError] = useState('');
   const [diagnosisResult, setDiagnosisResult] = useState(null);
@@ -370,11 +362,20 @@ export function TriageEvaluator({
     if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
 
+  /**
+   * Manejo del Evento de Envío del Formulario de Triage
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // a) Valida que exista una imagen seleccionada y la descripción
     if (!selectedFile) {
-      setValidationError('Por favor toma una fotografía o sube una imagen de la lesión o estado del animal.');
+      setValidationError('Por favor selecciona o toma una fotografía de la lesión o estado de la mascota.');
+      return;
+    }
+
+    if (!descripcion.trim()) {
+      setValidationError('Por favor describe los síntomas observados y el tiempo de evolución.');
       return;
     }
 
@@ -384,33 +385,28 @@ export function TriageEvaluator({
       return;
     }
 
-    if (!descripcion.trim()) {
-      setValidationError('Por favor describe los síntomas observados y el tiempo de evolución.');
-      return;
-    }
-
     setValidationError('');
     setNetworkError('');
+
+    // b) Cambia el estado a loading = true con spinner animado
     setLoading(true);
 
-    if (onStageChange) {
-      onStageChange('ANALYZING');
-    }
-
     try {
-      // 1. Process image with worker
-      setIsCompressing(true);
+      // Compresión opcional con Web Worker sin bloquear UI
       const processedBlob = await compressImageWithWorker(selectedFile);
-      setIsCompressing(false);
 
-      // 2. Prepare FormData according to FastAPI /triage/analyze specifications
+      // c) Construye un FormData
       const formData = new FormData();
-      formData.append('image', processedBlob, selectedFile.name || 'triage_patient.jpg');
+      formData.append('image', processedBlob, selectedFile.name || 'triage_evidence.jpg');
+      formData.append('species', especie);
+      formData.append('weight_kg', parsedWeight.toString());
+      formData.append('description', descripcion.trim());
+      if (user?.id) formData.append('user_id', user.id);
+
+      // Sinónimos adicionales para compatibilidad total con endpoints backend
       formData.append('especie', especie);
       formData.append('peso_kg', parsedWeight.toString());
       formData.append('descripcion', descripcion.trim());
-
-      // Compatibility fields for other endpoints
       formData.append('pet_type', especie);
       formData.append('symptoms_description', descripcion.trim());
 
@@ -419,83 +415,104 @@ export function TriageEvaluator({
         formData.append('user_lng', userCoordinates.lng.toString());
       }
 
-      // 3. Post to http://localhost:8000/api/v1/triage/analyze
+      // d) Petición POST a http://localhost:8000/api/v1/triage/analyze
       const result = await analyzeTriage(formData);
 
-      // Normalize fields if backend returns slightly different keys
+      // Normalización de respuesta
       const normalizedResult = {
         ...result,
-        urgency_level: result.urgency_level || result.color_code || 'MODERATE',
+        urgency_level: result.urgency_level || result.color_code || 'MODERADO',
         color_code: result.color_code || result.urgency_level || 'YELLOW',
-        presumptive_analysis:
-          result.presumptive_analysis || result.preliminary_assessment || 'Evaluación médica procesada con IA.',
-        vital_risks: result.vital_risks || (result.risks ? result.risks : []),
+        visual_findings:
+          result.visual_findings ||
+          result.presumptive_analysis ||
+          result.preliminary_assessment ||
+          'Signos y lesiones analizados mediante visión artificial multimodal.',
+        presumptive_diagnosis:
+          result.presumptive_diagnosis ||
+          result.presumptive_analysis ||
+          result.preliminary_assessment ||
+          'Evaluación preliminar emitida por el modelo clínico IA.',
         first_aid_actions:
           result.first_aid_actions ||
           result.immediate_care_tips || [
-            'Mantén al paciente en reposo y en un lugar ventilado.',
-            'Evita medicar sin supervisión veterinaria.',
-            'Acude a valoración presencial.',
+            'Mantén a la mascota en reposo en un ambiente ventilado y templado.',
+            'Evita suministrar medicamentos de uso humano sin prescripción médica.',
+            'Acude a un centro de urgencias para valoración clínica presencial.',
           ],
+        vital_risks: result.vital_risks || [],
         vet_consultation_timeframe:
           result.vet_consultation_timeframe ||
-          (result.urgency_level === 'CRITICO' || result.urgency_level === 'CRITICAL'
+          (['CRITICO', 'CRITICAL', 'RED'].includes(result.urgency_level)
             ? 'Inmediato (menos de 1 hora)'
             : 'En el transcurso del día'),
         requires_immediate_hospitalization:
           result.requires_immediate_hospitalization ??
-          (result.urgency_level === 'CRITICO' || result.urgency_level === 'CRITICAL'),
+          ['CRITICO', 'CRITICAL', 'RED'].includes(result.urgency_level),
       };
 
+      // 2. Persistencia inmediata en Supabase (triage_records)
+      try {
+        const { error: insertError } = await supabase.from('triage_records').insert([
+          {
+            user_id: user?.id || null,
+            species: especie,
+            weight_kg: parsedWeight,
+            description: descripcion.trim(),
+            urgency_level: normalizedResult.urgency_level,
+            color_code: normalizedResult.color_code,
+            visual_findings: normalizedResult.visual_findings,
+            presumptive_diagnosis: normalizedResult.presumptive_diagnosis,
+            first_aid_actions: normalizedResult.first_aid_actions,
+          },
+        ]);
+
+        if (insertError) {
+          console.warn('[Supabase Insert Error in triage_records]:', insertError.message);
+        } else {
+          console.log('[Supabase Insert]: Consulta guardada exitosamente en triage_records');
+        }
+      } catch (dbErr) {
+        console.warn('[Supabase Insert Exception]:', dbErr);
+      }
+
+      // 3. Transición Visual al Resultado y Desbloqueo del Mapa
       setDiagnosisResult(normalizedResult);
+      setStep('result');
 
       if (onDiagnosisComplete) {
         onDiagnosisComplete(normalizedResult, parsedWeight, especie);
       }
-
-      if (onStageChange) {
-        onStageChange('RESULTS');
-      }
     } catch (err) {
+      // e) Si la petición falla, muestra el error detallado en una alerta roja
       console.error('[TriageEvaluator.handleSubmit] Error:', err);
       setNetworkError(
         err.message ||
           'No se pudo conectar con el servidor backend en http://localhost:8000/api/v1/triage/analyze. Verifica que el servidor FastAPI esté encendido.'
       );
-      if (onStageChange) {
-        onStageChange('FORM');
-      }
     } finally {
-      setIsCompressing(false);
       setLoading(false);
     }
   };
 
   const handleReset = () => {
     setDiagnosisResult(null);
+    setStep('form');
     setNetworkError('');
     setValidationError('');
-    if (onStageChange) {
-      onStageChange('FORM');
-    }
   };
 
   // Determine active visual theme
   const activeUrgencyKey =
     diagnosisResult?.urgency_level?.toUpperCase() ||
     diagnosisResult?.color_code?.toUpperCase() ||
-    'MODERATE';
-  const theme = URGENCY_THEMES[activeUrgencyKey] || URGENCY_THEMES.MODERATE;
+    'MODERADO';
+  const theme = URGENCY_THEMES[activeUrgencyKey] || URGENCY_THEMES.MODERADO;
   const UrgencyIcon = theme.icon;
 
-  // Show Animated Analyzing Screen during State 2
-  if (loading || stage === 'ANALYZING') {
-    return <AnalyzingScreen petType={especie} weight={pesoKg} />;
-  }
-
   return (
-    <div className="space-y-6">
-      {!diagnosisResult ? (
+    <div className="space-y-8">
+      {step === 'form' ? (
         /* ESTADO 1: FORMULARIO DE INGRESO DE DATOS Y CARGA DE FOTO */
         <form
           onSubmit={handleSubmit}
@@ -528,18 +545,17 @@ export function TriageEvaluator({
             )}
 
             {networkError && (
-              <div className="flex items-start space-x-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs sm:text-sm">
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start space-x-3 p-4 bg-rose-50 border-2 border-rose-300 rounded-2xl text-rose-900 text-xs sm:text-sm shadow-sm">
+                <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h5 className="font-bold">Aviso de Conexión API</h5>
-                  <p className="text-amber-800 mt-0.5">{networkError}</p>
+                  <h5 className="font-bold text-rose-950">Aviso en la Evaluación</h5>
+                  <p className="text-rose-800 mt-0.5 leading-relaxed">{networkError}</p>
                 </div>
               </div>
             )}
 
             {/* 1. Species & Weight Selector */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Species */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                   1. Especie del Paciente <span className="text-rose-500">*</span>
@@ -573,7 +589,6 @@ export function TriageEvaluator({
                 </div>
               </div>
 
-              {/* Weight in Kg */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                   2. Peso Corporal (kg) <span className="text-rose-500">*</span>
@@ -616,7 +631,6 @@ export function TriageEvaluator({
                   3. Fotografía de la Evidencia Visible <span className="text-rose-500">*</span>
                 </label>
 
-                {/* Modal Trigger for Photo Guidance */}
                 <button
                   type="button"
                   onClick={() => setIsGuidanceModalOpen(true)}
@@ -644,7 +658,6 @@ export function TriageEvaluator({
 
                 {isGuidanceOpen && (
                   <div className="p-4 pt-1 border-t border-amber-200/80 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                    {/* Tip 1: Muestras */}
                     <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
                       <div className="font-bold text-amber-900 flex items-center space-x-1">
                         <span>🧪</span>
@@ -655,7 +668,6 @@ export function TriageEvaluator({
                       </p>
                     </div>
 
-                    {/* Tip 2: Mucosas / Ojos */}
                     <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
                       <div className="font-bold text-amber-900 flex items-center space-x-1">
                         <span>👄</span>
@@ -666,14 +678,13 @@ export function TriageEvaluator({
                       </p>
                     </div>
 
-                    {/* Tip 3: Piel / Heridas */}
                     <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
                       <div className="font-bold text-amber-900 flex items-center space-x-1">
                         <span>🩹</span>
                         <span>Piel / Heridas</span>
                       </div>
                       <p className="text-[11px] text-amber-800 leading-snug">
-                        Estrategia doble: Una toma cercana (macro) enfocada en los bordes y otra toma amplia de ubicación anatómica.
+                        Estrategia doble: Una toma cercana (macro) enfocada en los bordes + toma amplia de contexto anatómico.
                       </p>
                     </div>
                   </div>
@@ -696,7 +707,6 @@ export function TriageEvaluator({
                     </p>
                   </div>
 
-                  {/* Dual Action Buttons: Mobile Camera or Gallery */}
                   <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
                     <button
                       type="button"
@@ -738,7 +748,6 @@ export function TriageEvaluator({
                 </div>
               )}
 
-              {/* Hidden file inputs: one for generic file/gallery and one with capture for camera */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -776,7 +785,7 @@ export function TriageEvaluator({
             </div>
           </div>
 
-          {/* Action Footer */}
+          {/* Action Footer with Primary Evaluation Button */}
           <div className="bg-slate-50 px-6 sm:px-8 py-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2 text-xs text-slate-500">
               <Activity className="w-4 h-4 text-rose-500" />
@@ -788,188 +797,194 @@ export function TriageEvaluator({
               disabled={loading}
               className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-sm shadow-lg shadow-rose-600/30 transition transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2.5 cursor-pointer"
             >
-              <HeartPulse className="w-5 h-5" />
-              <span>Evaluar Triage de Urgencia</span>
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Analizando imagen y síntomas con IA clínica...</span>
+                </>
+              ) : (
+                <>
+                  <HeartPulse className="w-5 h-5" />
+                  <span>Evaluar Triage de Urgencias</span>
+                </>
+              )}
             </button>
           </div>
         </form>
       ) : (
-        /* ESTADO 3: RESULTADOS DE IA DESPLEGADOS */
-        <div
-          className={`bg-white rounded-3xl shadow-md border-2 ${theme.border} overflow-hidden space-y-6 transition-all duration-300 ${
-            theme.pulse ? 'ring-4 ring-rose-500/20' : ''
-          }`}
-          style={{ borderColor: theme.color }}
-        >
-          {/* Urgency Traffic Light Top Card */}
+        /* ESTADO 3: VEREDICTO DE IA DESPLEGADO + DESBLOQUEO INMEDIATO DEL MAPA */
+        <div className="space-y-8 animate-in fade-in duration-300">
+          {/* Card Destacada con Semáforo Clínico */}
           <div
-            className={`p-6 sm:p-8 border-b ${theme.bgBanner} flex flex-col sm:flex-row sm:items-center justify-between gap-4`}
+            className={`bg-white rounded-3xl shadow-md border-2 ${theme.border} overflow-hidden space-y-6 transition-all duration-300 ${
+              theme.pulse ? 'ring-4 ring-rose-500/20' : ''
+            }`}
+            style={{ borderColor: theme.color }}
           >
-            <div className="flex items-center space-x-4">
-              <div
-                className={`w-14 h-14 rounded-2xl text-white shadow-xl flex items-center justify-center flex-shrink-0 ${
-                  theme.pulse ? 'animate-pulse' : ''
-                }`}
-                style={{ backgroundColor: theme.color }}
-              >
-                <UrgencyIcon className="w-8 h-8" />
-              </div>
-
-              <div>
-                <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-wider">
-                  <span style={{ color: theme.color }}>Semáforo de Triage Clínico</span>
-                  <span className="text-slate-400">•</span>
-                  <span className="text-slate-600 font-semibold">{theme.sublabel}</span>
+            {/* Banner superior de severidad con animación de pulso */}
+            <div
+              className={`p-6 sm:p-8 border-b ${theme.bgBanner} flex flex-col sm:flex-row sm:items-center justify-between gap-4`}
+            >
+              <div className="flex items-center space-x-4">
+                <div
+                  className={`w-14 h-14 rounded-2xl text-white shadow-xl flex items-center justify-center flex-shrink-0 ${
+                    theme.pulse ? 'animate-pulse' : ''
+                  }`}
+                  style={{ backgroundColor: theme.color }}
+                >
+                  <UrgencyIcon className="w-8 h-8" />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-0.5">
-                  {theme.label}
-                </h2>
+
+                <div>
+                  <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-wider">
+                    <span style={{ color: theme.color }}>Semáforo de Triage Clínico</span>
+                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-600 font-semibold">{theme.sublabel}</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-0.5">
+                    {theme.label}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-bold px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs flex items-center space-x-1.5">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <span>{diagnosisResult.vet_consultation_timeframe}</span>
+                </span>
               </div>
             </div>
 
-            {/* Timeframe Pill */}
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs flex items-center space-x-1.5">
-                <Clock className="w-4 h-4 text-slate-400" />
-                <span>{diagnosisResult.vet_consultation_timeframe}</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="px-6 sm:px-8 space-y-6">
-            {/* Presumptive Analysis */}
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
-                <HeartPulse className="w-4 h-4 text-rose-500" />
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Análisis Presuntivo de la Lesión
-                </h4>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 text-slate-800 text-sm leading-relaxed">
-                {diagnosisResult.presumptive_analysis}
-              </div>
-            </div>
-
-            {/* Detected Vital Risks */}
-            {diagnosisResult.vital_risks && diagnosisResult.vital_risks.length > 0 && (
+            <div className="px-6 sm:px-8 space-y-6">
+              {/* Hallazgos Visuales & Diagnóstico Presuntivo */}
               <div>
-                <div className="flex items-center space-x-2 mb-2.5">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                <div className="flex items-center space-x-2 mb-2">
+                  <HeartPulse className="w-4 h-4 text-rose-500" />
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Riesgos y Complicaciones Detectadas
+                    Hallazgos Visuales & Diagnóstico Presuntivo
                   </h4>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {diagnosisResult.vital_risks.map((risk, idx) => (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 text-slate-800 text-sm leading-relaxed">
+                  <p className="font-semibold text-slate-900 mb-1">
+                    {diagnosisResult.presumptive_diagnosis}
+                  </p>
+                  <p className="text-slate-600 text-xs">
+                    {diagnosisResult.visual_findings}
+                  </p>
+                </div>
+              </div>
+
+              {/* Riesgos Vitales Detectados */}
+              {diagnosisResult.vital_risks && diagnosisResult.vital_risks.length > 0 && (
+                <div>
+                  <div className="flex items-center space-x-2 mb-2.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Riesgos y Complicaciones Detectadas
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {diagnosisResult.vital_risks.map((risk, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-start space-x-2.5 p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 text-amber-950 text-xs font-medium"
+                      >
+                        <span className="text-amber-600 font-bold">•</span>
+                        <span>{risk}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Primeros Auxilios Inmediatos Sugeridos */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
+                    <span>Primeros Auxilios Inmediatos Sugeridos</span>
+                  </h4>
+                  <span className="text-[11px] font-semibold text-slate-400">
+                    {diagnosisResult.first_aid_actions?.length || 0} pautas
+                  </span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {diagnosisResult.first_aid_actions?.map((action, idx) => (
                     <div
                       key={idx}
-                      className="flex items-start space-x-2.5 p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 text-amber-950 text-xs font-medium"
+                      className="flex items-start space-x-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs sm:text-sm text-slate-800"
                     >
-                      <span className="text-amber-600 font-bold">•</span>
-                      <span>{risk}</span>
+                      <div
+                        className="w-6 h-6 rounded-lg text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs"
+                        style={{ backgroundColor: theme.color }}
+                      >
+                        {idx + 1}
+                      </div>
+                      <span className="leading-relaxed">{action}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
 
-            {/* Immediate First Aid Actions */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
-                  <span>Primeros Auxilios y Cuidados Inmediatos</span>
-                </h4>
-                <span className="text-[11px] font-semibold text-slate-400">
-                  {diagnosisResult.first_aid_actions?.length || 0} pautas
-                </span>
-              </div>
+              {/* Mini Calculadora de Reposición de Líquidos */}
+              <FluidCalculator weightKg={pesoKg} />
 
-              <div className="space-y-2.5">
-                {diagnosisResult.first_aid_actions?.map((action, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start space-x-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs sm:text-sm text-slate-800"
-                  >
-                    <div
-                      className="w-6 h-6 rounded-lg text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs"
-                      style={{ backgroundColor: theme.color }}
-                    >
-                      {idx + 1}
-                    </div>
-                    <span className="leading-relaxed">{action}</span>
+              {/* Chat IA CTA Banner */}
+              <div className="p-5 rounded-3xl bg-gradient-to-r from-rose-600 via-rose-700 to-red-600 text-white shadow-xl shadow-rose-600/20 border border-rose-500 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="space-y-1 text-center sm:text-left">
+                  <div className="flex items-center justify-center sm:justify-start space-x-2 text-rose-200 text-xs font-bold uppercase tracking-wider">
+                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    <span>Seguimiento Interactivo</span>
                   </div>
-                ))}
+                  <h4 className="font-bold text-base text-white">
+                    ¿Dudas sobre cómo aplicar los primeros auxilios?
+                  </h4>
+                  <p className="text-xs text-rose-100">
+                    Conversa con la IA manteniendo el contexto clínico y fotos de este triaje.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onOpenChat && onOpenChat(diagnosisResult)}
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white text-rose-700 hover:bg-rose-50 font-bold text-xs sm:text-sm shadow-md transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 flex-shrink-0 cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4 text-rose-600" />
+                  <span>Consultar dudas con el Asistente IA</span>
+                </button>
               </div>
             </div>
 
-            {/* Fluid Replacement Mini Calculator */}
-            <FluidCalculator weightKg={pesoKg} />
-
-            {/* ESTADO 4 ACTIVATOR: "Veterinarias Disponibles para este Caso" */}
-            <div className="p-6 rounded-3xl bg-slate-900 text-white shadow-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-5">
-              <div className="space-y-1.5 text-center sm:text-left">
-                <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[11px] font-bold uppercase tracking-wider">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>Siguiente Paso Recomendado</span>
-                </div>
-                <h4 className="text-base sm:text-lg font-black text-white">
-                  Veterinarias Disponibles para este Caso
-                </h4>
-                <p className="text-xs text-slate-300 max-w-md">
-                  Activa el mapa interactivo con GPS, centros de urgencia 24H y navegación con giros paso a paso.
-                </p>
-              </div>
-
+            {/* Footer Reset Action */}
+            <div className="bg-slate-50 px-6 sm:px-8 py-4 border-t border-slate-200 flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => onProceedToMap && onProceedToMap()}
-                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-black text-xs sm:text-sm shadow-xl shadow-rose-600/40 transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2.5 flex-shrink-0 cursor-pointer"
+                onClick={handleReset}
+                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition shadow-2xs cursor-pointer"
               >
-                <span>Ver Veterinarias y Trazar Ruta</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowLeft className="w-4 h-4" />
+                <span>Nueva Evaluación de Triage</span>
               </button>
-            </div>
 
-            {/* AI Assistant Chat CTA Banner */}
-            <div className="p-5 rounded-3xl bg-gradient-to-r from-rose-600 via-rose-700 to-red-600 text-white shadow-xl shadow-rose-600/20 border border-rose-500 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="space-y-1 text-center sm:text-left">
-                <div className="flex items-center justify-center sm:justify-start space-x-2 text-rose-200 text-xs font-bold uppercase tracking-wider">
-                  <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>Seguimiento Interactivo</span>
-                </div>
-                <h4 className="font-bold text-base text-white">
-                  ¿Dudas sobre cómo aplicar los primeros auxilios?
-                </h4>
-                <p className="text-xs text-rose-100">
-                  Conversa con la IA manteniendo el contexto clínico y fotos de este triaje.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => onOpenChat && onOpenChat(diagnosisResult)}
-                className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white text-rose-700 hover:bg-rose-50 font-bold text-xs sm:text-sm shadow-md transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 flex-shrink-0 cursor-pointer"
-              >
-                <MessageSquare className="w-4 h-4 text-rose-600" />
-                <span>Consultar dudas con el Asistente IA</span>
-              </button>
+              <span className="text-[11px] text-slate-400">
+                Paciente: {especie} • {pesoKg} kg • Sincronizado en Supabase
+              </span>
             </div>
           </div>
 
-          {/* Footer Reset */}
-          <div className="bg-slate-50 px-6 sm:px-8 py-4 border-t border-slate-200 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="flex items-center space-x-2 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition shadow-2xs cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Nueva Evaluación de Triage</span>
-            </button>
+          {/* SECCIÓN INMEDIATA DEL MAPA (DESBLOQUEADA OBLIGATORIAMENTE JUSTO DEBAJO DEL DICTAMEN) */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center space-x-2 px-1">
+              <MapPin className="w-5 h-5 text-rose-600 animate-bounce" />
+              <h3 className="font-black text-lg sm:text-xl text-slate-900">
+                Centros Veterinarios de Urgencias & Ruta en Tiempo Real
+              </h3>
+            </div>
 
-            <span className="text-[11px] text-slate-400">
-              Paciente: {especie} • {pesoKg} kg
-            </span>
+            <EmergencyMap
+              externalUserLocation={userCoordinates}
+              urgencyLevel={diagnosisResult.urgency_level}
+            />
           </div>
         </div>
       )}

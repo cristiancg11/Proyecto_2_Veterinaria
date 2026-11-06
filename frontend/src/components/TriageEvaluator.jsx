@@ -29,6 +29,7 @@ import {
   FileText,
   Download,
   Phone,
+  Zap,
 } from 'lucide-react';
 import { analyzeTriage } from '../services/api';
 import { supabase } from '../services/supabaseClient';
@@ -36,6 +37,7 @@ import { useAuth } from '../context/AuthContext';
 import PhotoGuidanceModal from './PhotoGuidanceModal';
 import EmergencyMap from './EmergencyMap';
 import generateTriagePDF from '../utils/generateTriagePDF';
+import compressImage from '../utils/imageCompressor';
 
 /**
  * Off-thread image compressor helper using Web Worker
@@ -371,6 +373,8 @@ export function TriageEvaluator({
   const [tutorPhoneInput, setTutorPhoneInput] = useState(tutorPhone || userProfile?.phone || '');
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [isOptimized, setIsOptimized] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   // Sync tutor phone from auth context if updated
   React.useEffect(() => {
@@ -444,7 +448,7 @@ export function TriageEvaluator({
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  const handleFileChange = (file) => {
+  const handleFileChange = async (file) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -459,10 +463,24 @@ export function TriageEvaluator({
 
     setValidationError('');
     setNetworkError('');
-    setSelectedFile(file);
+    setIsCompressing(true);
 
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
+    try {
+      // Compresión inmediata nativa con Canvas (reduce de 5MB+ a ~200-300KB)
+      const optimized = await compressImage(file, 1024, 1024, 0.75);
+      setSelectedFile(optimized);
+      setIsOptimized(true);
+
+      const objectUrl = URL.createObjectURL(optimized);
+      setPreviewUrl(objectUrl);
+    } catch (compressErr) {
+      console.warn('[handleFileChange] Compresión fallback:', compressErr);
+      setSelectedFile(file);
+      setIsOptimized(false);
+      setPreviewUrl(URL.createObjectURL(file));
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const handleRemoveImage = () => {
@@ -471,6 +489,7 @@ export function TriageEvaluator({
     }
     setSelectedFile(null);
     setPreviewUrl(null);
+    setIsOptimized(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
@@ -505,10 +524,10 @@ export function TriageEvaluator({
     setLoading(true);
 
     try {
-      // 1. Subida real de imagen a Supabase Storage (bucket triage-images)
+      // 1. Subida acelerada de imagen ya comprimida a Supabase Storage (bucket triage-images)
       let publicImageUrl = null;
       try {
-        const fileExt = selectedFile.name.split('.').pop() || 'jpg';
+        const fileExt = selectedFile.name?.split('.').pop() || 'jpg';
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
           .from('triage-images')
@@ -522,7 +541,7 @@ export function TriageEvaluator({
             .from('triage-images')
             .getPublicUrl(fileName);
           publicImageUrl = urlData?.publicUrl || null;
-          console.log('[Supabase Storage] Imagen subida exitosamente:', publicImageUrl);
+          console.log('[Supabase Storage] Imagen optimizada subida:', publicImageUrl);
         } else {
           console.warn('[Supabase Storage] Aviso en subida de imagen:', uploadError.message);
         }
@@ -531,12 +550,9 @@ export function TriageEvaluator({
       }
       setUploadedImageUrl(publicImageUrl);
 
-      // Compresión en segundo plano con Web Worker
-      const processedBlob = await compressImageWithWorker(selectedFile);
-
-      // c) Construye un FormData
+      // c) Construye un FormData ligero con la foto optimizada
       const formData = new FormData();
-      formData.append('image', processedBlob, selectedFile.name || 'triage_evidence.jpg');
+      formData.append('image', selectedFile, selectedFile.name || 'triage_evidence.jpg');
       formData.append('species', especie);
       formData.append('weight_kg', parsedWeight.toString());
       formData.append('description', descripcion.trim());
@@ -1048,8 +1064,15 @@ export function TriageEvaluator({
                     alt="Evidencia clínica del paciente"
                     className="max-h-72 w-auto object-contain rounded-lg"
                   />
-                  <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[11px] px-3 py-1 rounded-full font-medium">
-                    {selectedFile?.name || 'Fotografía adjunta'}
+                  <div className="absolute bottom-3 left-3 flex flex-wrap items-center gap-2">
+                    <div className="bg-slate-900/80 backdrop-blur-xs text-white text-[11px] px-3 py-1 rounded-full font-medium">
+                      {selectedFile?.name || 'Fotografía adjunta'}
+                    </div>
+                    {isOptimized && (
+                      <span className="bg-emerald-600/90 text-white text-[11px] px-2.5 py-1 rounded-full font-bold shadow-xs flex items-center space-x-1">
+                        <span>Foto optimizada para envío rápido ⚡</span>
+                      </span>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -1059,6 +1082,23 @@ export function TriageEvaluator({
                   >
                     <X className="w-4 h-4" />
                   </button>
+                </div>
+              )}
+
+              {isCompressing && (
+                <div className="flex items-center space-x-2 text-xs font-semibold text-slate-600 bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                  <span>Optimizando fotografía para transmisión rápida...</span>
+                </div>
+              )}
+
+              {isOptimized && !isCompressing && (
+                <div className="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl">
+                  <Zap className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                  <span>Foto optimizada para envío rápido ⚡</span>
+                  <span className="text-[11px] text-emerald-600 font-normal">
+                    (~{(selectedFile?.size / 1024).toFixed(0)} KB listos para inferencia acelerada)
+                  </span>
                 </div>
               )}
 

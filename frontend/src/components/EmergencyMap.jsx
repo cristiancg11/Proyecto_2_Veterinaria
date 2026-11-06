@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext';
 import {
   getGoogleMapsLocationUrl,
   getGoogleMapsDirectionsUrl,
-  haversineDistance,
 } from '../utils/geoDistance';
 import {
   Phone,
@@ -620,11 +619,23 @@ export function EmergencyMap({
   // URLs for navigation and structured WhatsApp dispatch
   const getWhatsAppLink = useCallback(
     (clinic) => {
-      if (!clinic) return '#';
-      const cleanPhone = (clinic.phone || '').replace(/[^0-9]/g, '');
-      const waPhone = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone.replace(/^0+/, '')}`;
       const message = getWhatsAppMessageText(clinic);
-      return `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
+      const encodedMsg = encodeURIComponent(message);
+
+      // Si no hay clínica o no tiene teléfono registrado en base de datos,
+      // usar el intent genérico nativo de WhatsApp para elegir contacto de la agenda
+      if (!clinic || !clinic.phone) {
+        return `https://api.whatsapp.com/send?text=${encodedMsg}`;
+      }
+
+      const cleanPhone = String(clinic.phone).replace(/[^0-9]/g, '');
+      if (!cleanPhone || cleanPhone.length < 7) {
+        return `https://api.whatsapp.com/send?text=${encodedMsg}`;
+      }
+
+      // Teléfono verificado con prefijo de Colombia (57)
+      const waPhone = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone.replace(/^0+/, '')}`;
+      return `https://wa.me/${waPhone}?text=${encodedMsg}`;
     },
     [getWhatsAppMessageText]
   );

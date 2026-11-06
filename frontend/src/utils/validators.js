@@ -24,22 +24,87 @@ export const ALLOWED_IMAGE_TYPES = [
 ];
 
 /**
- * Sanitiza un número de celular eliminando caracteres no numéricos
- * y removiendo prefijos internacionales como +57 o 057.
+ * Sanitiza un número de celular eliminando caracteres no numéricos,
+ * espacios, guiones, puntos y removiendo prefijos internacionales como +57 o 057.
+ * Transforma entradas como "310 123 4567" o "+57 (312) 345-6789" a "3101234567".
  * 
  * @param {string} phone 
- * @returns {string} Dígitos limpios
+ * @returns {string} Dígitos limpios sin espacios ni caracteres especiales
  */
 export function sanitizePhoneNumber(phone) {
   if (!phone) return '';
-  let cleaned = String(phone).replace(/[^\d+]/g, '');
+  // Limpiar espacios en blanco, guiones, paréntesis y puntos
+  let cleaned = String(phone).replace(/[^\d+]/g, '').trim();
+
   // Quitar +57 al inicio si viene presente
   if (cleaned.startsWith('+57')) {
     cleaned = cleaned.substring(3);
-  } else if (cleaned.startsWith('57') && cleaned.length === 12) {
+  } else if (cleaned.startsWith('57') && cleaned.length >= 12) {
     cleaned = cleaned.substring(2);
+  } else if (cleaned.startsWith('057') && cleaned.length >= 13) {
+    cleaned = cleaned.substring(3);
   }
+
+  // Retornar estrictamente dígitos
   return cleaned.replace(/\D/g, '');
+}
+
+/**
+ * Sanitiza y formatea un número de celular colombiano para enlaces web de emergencia (WhatsApp wa.me)
+ * 
+ * @param {string} rawPhone 
+ * @returns {{ cleanNumber: string, waUrlNumber: string, isValid: boolean, error: string | null }}
+ */
+export function sanitizeColombianMobileForWebLinks(rawPhone) {
+  const cleanNumber = sanitizePhoneNumber(rawPhone);
+  const validation = validateColombianPhone(cleanNumber);
+
+  return {
+    cleanNumber,
+    waUrlNumber: validation.isValid ? `57${cleanNumber}` : '',
+    isValid: validation.isValid,
+    error: validation.error,
+  };
+}
+
+/**
+ * Da formato legible para la interfaz humana (ej: "310 123 4567")
+ * 
+ * @param {string} phone 
+ * @returns {string}
+ */
+export function formatColombianPhoneDisplay(phone) {
+  const clean = sanitizePhoneNumber(phone);
+  if (clean.length === 10) {
+    return `${clean.slice(0, 3)} ${clean.slice(3, 6)} ${clean.slice(6)}`;
+  }
+  return clean;
+}
+
+/**
+ * Suite de validación y pruebas de sanitización para números colombianos y enlaces web de emergencia
+ * @returns {Array<{ input: string, expected: string, actual: string, passed: boolean }>}
+ */
+export function runPhoneSanitizationTests() {
+  const testCases = [
+    { input: '310 123 4567', expected: '3101234567' },
+    { input: '+57 312 345 6789', expected: '3123456789' },
+    { input: '(315) 987-6543', expected: '3159876543' },
+    { input: '318.456.7890', expected: '3184567890' },
+    { input: '+573201112233', expected: '3201112233' },
+    { input: '573145556677', expected: '3145556677' },
+    { input: ' 316-222 3344 ', expected: '3162223344' },
+  ];
+
+  return testCases.map((tc) => {
+    const actual = sanitizePhoneNumber(tc.input);
+    return {
+      input: tc.input,
+      expected: tc.expected,
+      actual,
+      passed: actual === tc.expected,
+    };
+  });
 }
 
 /**
@@ -239,3 +304,4 @@ export function sanitizeClinicalDescription(text) {
     error: null,
   };
 }
+

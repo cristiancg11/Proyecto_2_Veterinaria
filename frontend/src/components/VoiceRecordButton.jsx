@@ -18,6 +18,7 @@ import { sendVoiceTriageAudio } from '../services/voiceTriageService';
  */
 export function VoiceRecordButton({
   onTranscriptionComplete,
+  onLiveTranscriptChange,
   currentSpecies = '',
   userId = null,
   disabled = false,
@@ -26,6 +27,7 @@ export function VoiceRecordButton({
   const {
     isRecording,
     recordingTime,
+    liveTranscript,
     permissionError,
     clearError,
     startRecording,
@@ -35,6 +37,13 @@ export function VoiceRecordButton({
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+
+  // Notify parent component of live transcript stream updates in real-time
+  React.useEffect(() => {
+    if (isRecording && onLiveTranscriptChange) {
+      onLiveTranscriptChange(liveTranscript);
+    }
+  }, [liveTranscript, isRecording, onLiveTranscriptChange]);
 
   // Handle start recording
   const handleStart = async () => {
@@ -50,12 +59,24 @@ export function VoiceRecordButton({
     try {
       const blob = await stopRecording();
       if (!blob || blob.size < 200) {
+        // If there's live transcript captured by Web Speech API, use it even if audio blob is very small
+        if (liveTranscript && liveTranscript.trim()) {
+          if (onTranscriptionComplete) {
+            onTranscriptionComplete({
+              transcription: liveTranscript.trim(),
+              detected_species: currentSpecies || null,
+              extracted_symptoms: liveTranscript.trim(),
+            });
+          }
+          return;
+        }
         setErrorMessage('El audio fue demasiado corto. Por favor graba de nuevo.');
         return;
       }
 
       setIsProcessing(true);
       const result = await sendVoiceTriageAudio(blob, {
+        liveTranscript,
         currentSpecies,
         userId,
       });
@@ -65,7 +86,18 @@ export function VoiceRecordButton({
       }
     } catch (err) {
       console.error('[VoiceRecordButton] Error al procesar audio:', err);
-      setErrorMessage(err.message || 'Error al procesar el audio con la IA.');
+      // Fallback: if we have live transcript, pass it to avoid user losing their speech
+      if (liveTranscript && liveTranscript.trim() && onTranscriptionComplete) {
+        console.info('[VoiceRecordButton] Usando transcripción en vivo tras fallo del backend.');
+        onTranscriptionComplete({
+          transcription: liveTranscript.trim(),
+          detected_species: currentSpecies || null,
+          extracted_symptoms: liveTranscript.trim(),
+          fallback: true,
+        });
+      } else {
+        setErrorMessage(err.message || 'Error al procesar el audio con la IA.');
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -98,70 +130,94 @@ export function VoiceRecordButton({
   if (isRecording) {
     return (
       <div
-        className={`flex flex-wrap items-center gap-2 p-2.5 sm:p-3 rounded-2xl bg-rose-50 border-2 border-rose-300 shadow-md ${className}`}
+        className={`flex flex-col gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-950 border-2 border-emerald-500 shadow-xl w-full max-w-xl transition-all ${className}`}
       >
         {/* ARIA Live Region for screen readers */}
         <div role="status" aria-live="polite" className="sr-only">
-          Grabando audio de urgencia. Tiempo transcurrido: {recordingTime}. Presiona Espacio o Enter en el botón Terminar para finalizar.
+          Grabando audio de urgencia. Tiempo transcurrido: {recordingTime}. Texto reconocido: {liveTranscript || 'Escuchando'}.
         </div>
 
-        {/* Pulsing indicator & timer */}
-        <div
-          role="timer"
-          aria-label={`Tiempo de grabación actual: ${recordingTime}`}
-          className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white border border-rose-200"
-        >
-          <span className="relative flex h-3 w-3" aria-hidden="true">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span>
-          </span>
-          <span className="font-mono font-bold text-xs sm:text-sm text-rose-700">
-            Grabando: {recordingTime}
-          </span>
+        {/* Header: Pulsing indicator, timer & Soundwave bars */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+          <div className="flex items-center space-x-2.5">
+            <div
+              role="timer"
+              aria-label={`Tiempo de grabación actual: ${recordingTime}`}
+              className="flex items-center space-x-2 px-3 py-1 rounded-xl bg-rose-950/80 border border-rose-500/60"
+            >
+              <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+              </span>
+              <span className="font-mono font-bold text-xs text-rose-300">
+                Grabando: {recordingTime}
+              </span>
+            </div>
+
+            {/* Audio soundwave bars */}
+            <div className="flex items-center space-x-1 px-1.5 h-5" aria-hidden="true">
+              <div className="w-1 bg-emerald-400 rounded-full animate-wave-bar-1"></div>
+              <div className="w-1 bg-emerald-400 rounded-full animate-wave-bar-2"></div>
+              <div className="w-1 bg-emerald-300 rounded-full animate-wave-bar-3"></div>
+              <div className="w-1 bg-emerald-400 rounded-full animate-wave-bar-4"></div>
+              <div className="w-1 bg-emerald-500 rounded-full animate-wave-bar-5"></div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleFinish}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleFinish();
+                }
+              }}
+              aria-label="Confirmar y analizar dictado con IA"
+              className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-md transition focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 focus:ring-offset-slate-900"
+            >
+              <span>Confirmar y Analizar ✅</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCancel}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleCancel();
+                }
+              }}
+              aria-label="Cancelar y descartar grabación"
+              className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1 focus:ring-offset-slate-900"
+            >
+              <span>Cancelar ❌</span>
+            </button>
+          </div>
         </div>
 
-        {/* Audio soundwave bars */}
-        <div className="hidden sm:flex items-center space-x-1 px-2 h-6" aria-hidden="true">
-          <div className="w-1 bg-rose-500 rounded-full animate-wave-bar-1"></div>
-          <div className="w-1 bg-rose-500 rounded-full animate-wave-bar-2"></div>
-          <div className="w-1 bg-rose-600 rounded-full animate-wave-bar-3"></div>
-          <div className="w-1 bg-rose-500 rounded-full animate-wave-bar-4"></div>
-          <div className="w-1 bg-rose-500 rounded-full animate-wave-bar-5"></div>
+        {/* Live speech-to-text dictation box */}
+        <div className="p-3 rounded-xl bg-slate-900/90 border border-emerald-500/50 shadow-inner min-h-[64px] flex flex-col justify-center">
+          <div className="flex items-center space-x-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-1">
+            <Mic className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+            <span>🎙️ Escuchando:</span>
+          </div>
+          <p className="text-xs sm:text-sm text-emerald-100 font-medium leading-relaxed italic break-words">
+            {liveTranscript ? (
+              <>
+                &ldquo;{liveTranscript}&rdquo;
+                <span className="inline-block w-2 h-3.5 ml-1 bg-emerald-400 animate-pulse align-middle" />
+              </>
+            ) : (
+              <span className="text-slate-400 not-italic">
+                Describe los síntomas de tu animal en voz alta (ej: &ldquo;Mi ternero tiene fiebre y no se levanta...&rdquo;)
+                <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-400 animate-pulse align-middle" />
+              </span>
+            )}
+          </p>
         </div>
-
-        {/* Finish button */}
-        <button
-          type="button"
-          onClick={handleFinish}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleFinish();
-            }
-          }}
-          aria-label="Detener grabación de audio y enviar a evaluación con IA"
-          className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs sm:text-sm shadow transition focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
-        >
-          <Square className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
-          <span>Terminar y Analizar ⏹️</span>
-        </button>
-
-        {/* Cancel button */}
-        <button
-          type="button"
-          onClick={handleCancel}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleCancel();
-            }
-          }}
-          aria-label="Cancelar y descartar grabación de voz actual"
-          className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium text-xs transition focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
-        >
-          <X className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>Cancelar</span>
-        </button>
       </div>
     );
   }

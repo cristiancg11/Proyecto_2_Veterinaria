@@ -88,11 +88,11 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
   return (
     <>
       <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex justify-end transition-opacity">
-        <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-xl min-h-screen shadow-2xl shadow-emerald-950/40 border-l border-white/10 flex flex-col animate-in slide-in-from-right duration-300">
+        <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-xl min-h-screen shadow-2xl shadow-indigo-950/40 border-l border-white/10 flex flex-col animate-in slide-in-from-right duration-300">
           {/* Modal Header */}
           <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
             <div className="flex items-center space-x-2.5">
-              <div className="p-2.5 bg-emerald-500/15 text-emerald-300 rounded-xl shadow-lg shadow-emerald-950/20 border border-emerald-500/30">
+              <div className="p-2.5 bg-indigo-500/15 text-indigo-300 rounded-xl shadow-lg shadow-indigo-950/20 border border-indigo-500/30">
                 <Database className="w-5 h-5" />
               </div>
               <div>
@@ -111,7 +111,7 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                 title="Actualizar historial"
                 className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
               >
-                <RefreshCw className={`w-4 h-4 transition-all duration-200 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
+                <RefreshCw className={`w-4 h-4 transition-all duration-200 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
               </button>
               <button
                 type="button"
@@ -137,7 +137,7 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                 {[0, 1, 2].map((item) => (
                   <div key={item} className="animate-pulse rounded-2xl border border-slate-700/50 bg-slate-900/60 p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="h-3 w-28 rounded-full bg-emerald-500/30" />
+                      <div className="h-3 w-28 rounded-full bg-indigo-500/30" />
                       <div className="h-3 w-16 rounded-full bg-slate-700" />
                     </div>
                     <div className="h-3 w-full rounded-full bg-slate-800" />
@@ -168,9 +168,9 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                   MODERADO: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
                   MODERATE: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
                   YELLOW: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
-                  LEVE: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
-                  MILD: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
-                  GREEN: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+                  LEVE: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40',
+                  MILD: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40',
+                  GREEN: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40',
                 }[urgency] || 'bg-slate-500/15 text-slate-300 border-slate-500/40';
 
                 const formattedDate = record.created_at
@@ -195,7 +195,7 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                 return (
                   <div
                     key={record.id || index}
-                    className="p-4 rounded-2xl border border-slate-700/50 bg-slate-950/40 hover:border-emerald-500/30 transition shadow-lg shadow-emerald-950/10 space-y-3"
+                    className="p-4 rounded-2xl border border-slate-700/50 bg-slate-950/40 hover:border-indigo-500/30 transition shadow-lg shadow-indigo-950/10 space-y-3"
                   >
                     <div className="flex items-center justify-between">
                       <span
@@ -245,7 +245,7 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                     </div>
 
                     <div className="text-xs text-slate-200 bg-slate-900/60 p-3 rounded-xl border border-slate-700/50 leading-relaxed line-clamp-2">
-                      <span className="font-bold text-emerald-300">Diagnóstico: </span>
+                      <span className="font-bold text-indigo-300">Diagnóstico: </span>
                       {assessmentText}
                     </div>
 
@@ -275,10 +275,10 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                             created_at: record.created_at,
                           });
                         }}
-                        className="px-3 py-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-200 text-xs font-bold shadow-lg shadow-emerald-950/10 flex items-center space-x-1.5 transition cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl border border-indigo-500/40 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-200 text-xs font-bold shadow-lg shadow-indigo-950/10 flex items-center space-x-1.5 transition cursor-pointer"
                         title="Re-descargar Ficha Clínica en PDF"
                       >
-                        <Download className="w-3.5 h-3.5 text-emerald-400" />
+                        <Download className="w-3.5 h-3.5 text-indigo-400" />
                         <span>Descargar PDF</span>
                       </button>
 
@@ -305,7 +305,7 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-emerald-600/20 transition cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/20 transition cursor-pointer"
             >
               Cerrar
             </button>

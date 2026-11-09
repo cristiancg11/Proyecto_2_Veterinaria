@@ -92,11 +92,11 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="backdrop-blur-md bg-slate-900/70 rounded-2xl shadow-xl shadow-emerald-950/10 border border-slate-700/50 overflow-hidden"
+      className="backdrop-blur-md bg-slate-900/70 rounded-2xl shadow-xl shadow-indigo-950/10 border border-slate-700/50 overflow-hidden"
     >
       <div className="p-6 sm:p-8 space-y-6">
         <div>
-          <div className="flex items-center space-x-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">
+          <div className="flex items-center space-x-2 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4 text-cyan-400" />
             <span>Triaje Inteligente Multimodal</span>
           </div>
@@ -124,7 +124,7 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
             value={petType}
             onChange={(e) => setPetType(e.target.value)}
             disabled={loading}
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
           >
             {PET_SPECIES_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -148,11 +148,11 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center ${
                 isDragging
-                  ? 'border-emerald-400 bg-emerald-500/10'
+                  ? 'border-indigo-400 bg-indigo-500/10'
                   : 'border-slate-700 hover:border-cyan-400/50 bg-slate-950/40'
               }`}
             >
-              <div className="w-12 h-12 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300 mb-3 shadow-sm">
+              <div className="w-12 h-12 rounded-full bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300 mb-3 shadow-sm">
                 <UploadCloud className="w-6 h-6" />
               </div>
               <p className="text-sm font-medium text-slate-100">
@@ -205,7 +205,7 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
             onChange={(e) => setSymptomsDescription(e.target.value)}
             disabled={loading}
             placeholder="Describe qué ocurrió, hace cuánto tiempo comenzaron los síntomas, cambios de respiración, vómitos, postura de dolor o sangrado..."
-            className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition"
+            className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
           />
         </div>
       </div>
@@ -220,7 +220,7 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full sm:w-auto px-7 bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 shadow-lg shadow-emerald-600/20 text-white font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          className="w-full sm:w-auto px-7 bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 shadow-lg shadow-indigo-600/20 text-white font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
           {loading ? (
             <>

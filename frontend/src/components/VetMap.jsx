@@ -22,7 +22,7 @@ function createUserIcon() {
 }
 
 function createClinicIcon(isEmergency) {
-  const bgColor = isEmergency ? '#ef4444' : '#10b981';
+  const bgColor = isEmergency ? '#ef4444' : '#06b6d4';
   return L.divIcon({
     className: 'custom-clinic-marker',
     html: `
@@ -96,7 +96,7 @@ export function VetMap({ userLocation, clinics = [], urgencyLevel = 'MODERATE' }
             <span className="text-slate-600">24H Emergency</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 border border-white shadow-sm inline-block" />
+            <span className="w-3 h-3 rounded-full bg-indigo-500 border border-white shadow-sm inline-block" />
             <span className="text-slate-600">General Practice</span>
           </div>
         </div>
@@ -150,7 +150,7 @@ export function VetMap({ userLocation, clinics = [], urgencyLevel = 'MODERATE' }
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             clinic.is_emergency_facility
                               ? 'bg-rose-100 text-rose-700'
-                              : 'bg-emerald-100 text-emerald-700'
+                              : 'bg-indigo-100 text-indigo-700'
                           }`}
                         >
                           {clinic.is_emergency_facility ? '24H EMERGENCY' : 'GENERAL CLINIC'}

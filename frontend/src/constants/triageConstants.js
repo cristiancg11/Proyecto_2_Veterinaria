@@ -15,9 +15,9 @@ export const URGENCY_HEX_COLORS = {
   MODERADO: '#CA8A04', // Ámbar/Amarillo prioritario (#ca8a04 / #f59e0b)
   MODERATE: '#CA8A04',
   YELLOW: '#CA8A04',
-  LEVE: '#16A34A', // Verde ambulatorio (#16a34a / #10b981)
-  MILD: '#16A34A',
-  GREEN: '#16A34A',
+  LEVE: '#06B6D4', // Cian ambulatorio (#06b6d4 / #22d3ee)
+  MILD: '#06B6D4',
+  GREEN: '#06B6D4',
 };
 
 /**
@@ -68,10 +68,10 @@ export const URGENCY_LEVELS = {
     label: 'NIVEL LEVE (MANEJO AMBULATORIO)',
     sublabel: 'Sin riesgo vital aparente - Manejo en 24-48 horas',
     hex: URGENCY_HEX_COLORS.LEVE,
-    bgBadge: 'bg-emerald-500',
-    border: 'border-emerald-500',
-    bgBanner: 'bg-emerald-50',
-    textAccent: 'text-emerald-600',
+    bgBadge: 'bg-indigo-500',
+    border: 'border-indigo-500',
+    bgBanner: 'bg-indigo-50',
+    textAccent: 'text-indigo-600',
     priorityIndex: 4,
     timeWindow: '24 - 48 horas',
     pulse: false,

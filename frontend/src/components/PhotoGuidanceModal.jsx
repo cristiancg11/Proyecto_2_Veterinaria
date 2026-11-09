@@ -80,13 +80,13 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="backdrop-blur-xl bg-slate-900/95 rounded-3xl max-w-2xl w-full shadow-2xl shadow-emerald-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+        className="backdrop-blur-xl bg-slate-900/95 rounded-3xl max-w-2xl w-full shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="relative p-6 bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/60 text-white flex items-start justify-between border-b border-white/10">
+        <div className="relative p-6 bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/60 text-white flex items-start justify-between border-b border-white/10">
           <div className="space-y-1">
-            <div className="flex items-center space-x-2 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+            <div className="flex items-center space-x-2 text-indigo-300 text-xs font-bold uppercase tracking-wider">
               <Camera className="w-4 h-4" />
               <span>Guía para el Tutor</span>
             </div>
@@ -113,7 +113,7 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
           {GUIDANCE_TOPICS.map((topic) => (
             <div
               key={topic.id}
-              className="bg-slate-950/40 border border-slate-700/50 rounded-2xl p-5 space-y-3 hover:border-emerald-500/30 transition"
+              className="bg-slate-950/40 border border-slate-700/50 rounded-2xl p-5 space-y-3 hover:border-indigo-500/30 transition"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -134,15 +134,15 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
               <ul className="space-y-2 text-xs text-slate-300">
                 {topic.tips.map((tip, idx) => (
                   <li key={idx} className="flex items-start space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
                     <span>{tip}</span>
                   </li>
                 ))}
               </ul>
 
               {/* Highlight Note */}
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-[11px] text-emerald-100 flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-3 text-[11px] text-indigo-100 flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                 <span>
                   <strong>Tip Pro:</strong> {topic.exampleDesc}
                 </span>
@@ -167,7 +167,7 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition cursor-pointer"
+            className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition cursor-pointer"
           >
             Entendido, volver a la consulta
           </button>

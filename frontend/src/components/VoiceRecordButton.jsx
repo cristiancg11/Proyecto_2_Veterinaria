@@ -114,11 +114,11 @@ export function VoiceRecordButton({
       <div
         role="status"
         aria-live="polite"
-        className={`inline-flex items-center space-x-2.5 px-4 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-400/40 text-emerald-100 text-xs sm:text-sm font-semibold shadow-lg shadow-emerald-950/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all duration-200 ${className}`}
+        className={`inline-flex items-center space-x-2.5 px-4 py-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-400/40 text-indigo-100 text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-950/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200 ${className}`}
       >
         <span className="relative flex h-3.5 w-3.5" aria-hidden="true">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70" />
-          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-400" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-70" />
+          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-indigo-400" />
         </span>
         <span className="flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-cyan-300 animate-pulse" aria-hidden="true" />
@@ -132,7 +132,7 @@ export function VoiceRecordButton({
   if (isRecording) {
     return (
       <div
-        className={`flex flex-col gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-950 border-2 border-emerald-500 shadow-xl w-full max-w-xl transition-all ${className}`}
+        className={`flex flex-col gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-950 border-2 border-indigo-500 shadow-xl w-full max-w-xl transition-all ${className}`}
       >
         {/* ARIA Live Region for screen readers */}
         <div role="status" aria-live="polite" className="sr-only">
@@ -158,11 +158,11 @@ export function VoiceRecordButton({
 
             {/* Audio soundwave bars */}
             <div className="flex items-center space-x-1 px-1.5 h-5" aria-hidden="true">
-              <div className="w-1 bg-emerald-400 rounded-full animate-wave-bar-1"></div>
-              <div className="w-1 bg-emerald-400 rounded-full animate-wave-bar-2"></div>
-              <div className="w-1 bg-emerald-300 rounded-full animate-wave-bar-3"></div>
-              <div className="w-1 bg-emerald-400 rounded-full animate-wave-bar-4"></div>
-              <div className="w-1 bg-emerald-500 rounded-full animate-wave-bar-5"></div>
+              <div className="w-1 bg-indigo-400 rounded-full animate-wave-bar-1"></div>
+              <div className="w-1 bg-indigo-400 rounded-full animate-wave-bar-2"></div>
+              <div className="w-1 bg-indigo-300 rounded-full animate-wave-bar-3"></div>
+              <div className="w-1 bg-indigo-400 rounded-full animate-wave-bar-4"></div>
+              <div className="w-1 bg-indigo-500 rounded-full animate-wave-bar-5"></div>
             </div>
           </div>
 
@@ -178,7 +178,7 @@ export function VoiceRecordButton({
                 }
               }}
               aria-label="Confirmar y analizar dictado con IA"
-              className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-md transition focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 focus:ring-offset-slate-900"
+              className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs shadow-md transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 focus:ring-offset-slate-900"
             >
               <span>Confirmar y Analizar ✅</span>
             </button>
@@ -201,21 +201,21 @@ export function VoiceRecordButton({
         </div>
 
         {/* Live speech-to-text dictation box */}
-        <div className="p-3 rounded-xl bg-slate-900/90 border border-emerald-500/50 shadow-inner min-h-[64px] flex flex-col justify-center">
-          <div className="flex items-center space-x-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-1">
-            <Mic className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+        <div className="p-3 rounded-xl bg-slate-900/90 border border-indigo-500/50 shadow-inner min-h-[64px] flex flex-col justify-center">
+          <div className="flex items-center space-x-1.5 text-[11px] font-bold text-indigo-400 uppercase tracking-wider mb-1">
+            <Mic className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
             <span>🎙️ Escuchando:</span>
           </div>
-          <p className="text-xs sm:text-sm text-emerald-100 font-medium leading-relaxed italic break-words">
+          <p className="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed italic break-words">
             {liveTranscript ? (
               <>
                 &ldquo;{liveTranscript}&rdquo;
-                <span className="inline-block w-2 h-3.5 ml-1 bg-emerald-400 animate-pulse align-middle" />
+                <span className="inline-block w-2 h-3.5 ml-1 bg-indigo-400 animate-pulse align-middle" />
               </>
             ) : (
               <span className="text-slate-400 not-italic">
                 Describe los síntomas de tu animal en voz alta (ej: &ldquo;Mi ternero tiene fiebre y no se levanta...&rdquo;)
-                <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-400 animate-pulse align-middle" />
+                <span className="inline-block w-1.5 h-3.5 ml-1 bg-indigo-400 animate-pulse align-middle" />
               </span>
             )}
           </p>
@@ -243,7 +243,7 @@ export function VoiceRecordButton({
         }}
         disabled={disabled}
         aria-label="Iniciar grabación de voz para describir urgencia veterinaria"
-        className="group inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+        className="group inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-600 hover:from-indigo-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
       >
         <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
           <Mic className="w-3.5 h-3.5 text-white" aria-hidden="true" />

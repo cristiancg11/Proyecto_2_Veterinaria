@@ -191,19 +191,19 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
   };
 
   return (
-    <div className="backdrop-blur-md bg-slate-900/70 rounded-2xl shadow-xl shadow-emerald-950/20 border border-slate-700/50 overflow-hidden flex flex-col h-full min-h-[460px] max-h-[600px]">
+    <div className="backdrop-blur-md bg-slate-900/70 rounded-2xl shadow-xl shadow-indigo-950/20 border border-slate-700/50 overflow-hidden flex flex-col h-full min-h-[460px] max-h-[600px]">
       {/* Real-time Connection Status Pill & Cancellation Header */}
       <div className="px-4 py-2.5 bg-slate-950/50 border-b border-slate-700/50 flex items-center justify-between text-xs select-none">
         <div className="flex items-center space-x-2">
           <span className="flex h-2 w-2 relative">
             <span
               className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                isTyping ? 'bg-amber-400' : 'bg-emerald-400'
+                isTyping ? 'bg-amber-400' : 'bg-indigo-400'
               }`}
             />
             <span
               className={`relative inline-flex rounded-full h-2 w-2 ${
-                isTyping ? 'bg-amber-500' : 'bg-emerald-500'
+                isTyping ? 'bg-amber-500' : 'bg-indigo-500'
               }`}
             />
           </span>
@@ -242,7 +242,7 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
               }`}
             >
               {isAi && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-emerald-600/20">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-indigo-600/20">
                   <Bot className="w-4 h-4" />
                 </div>
               )}
@@ -251,7 +251,7 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
                 className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-lg ${
                   isAi
                     ? 'bg-slate-900/80 text-slate-100 border border-slate-700/50'
-                    : 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-medium'
+                    : 'bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium'
                 }`}
               >
                 {msg.content}
@@ -268,11 +268,11 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
 
         {loading && (
           <div className="flex items-start space-x-2.5 justify-start">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5 animate-pulse shadow-lg shadow-emerald-600/20">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5 animate-pulse shadow-lg shadow-indigo-600/20">
               <Bot className="w-4 h-4" />
             </div>
             <div className="bg-slate-900/80 text-slate-300 rounded-2xl px-4 py-3 text-xs border border-slate-700/50 flex items-center space-x-2 shadow-lg">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
               <span>El Asistente VetIA está razonando sobre el caso clínico...</span>
             </div>
           </div>
@@ -296,7 +296,7 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
             type="button"
             disabled={loading}
             onClick={() => handleSendMessage(prompt)}
-            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-900/70 hover:bg-emerald-500/15 hover:text-emerald-200 text-slate-300 transition border border-slate-700/60 font-medium cursor-pointer"
+            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-900/70 hover:bg-indigo-500/15 hover:text-indigo-200 text-slate-300 transition border border-slate-700/60 font-medium cursor-pointer"
           >
             {prompt}
           </button>
@@ -312,14 +312,14 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
           onKeyDown={handleKeyDown}
           disabled={loading}
           placeholder="Escribe tu consulta adicional sobre primeros auxilios o síntomas..."
-          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 placeholder:text-slate-500 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none resize-none"
+          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 placeholder:text-slate-500 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none resize-none"
         />
 
         <button
           type="button"
           onClick={() => handleSendMessage()}
           disabled={loading || !inputText.trim()}
-          className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition disabled:opacity-40 flex items-center space-x-1.5 cursor-pointer"
+          className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-indigo-600/20 transition disabled:opacity-40 flex items-center space-x-1.5 cursor-pointer"
         >
           <Send className="w-4 h-4" />
           <span className="hidden sm:inline">Enviar</span>

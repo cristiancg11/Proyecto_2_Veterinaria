@@ -23,16 +23,16 @@ export function FarmOverviewBanner({
       {/* Main Grid: Alerta Sanitaria Estacional + Panel de Métricas Zootécnicas */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Banner de Alerta Sanitaria Estacional (Col 8) */}
-        <div className="lg:col-span-8 bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 rounded-3xl p-6 sm:p-7 text-white shadow-md border border-emerald-500/30 relative overflow-hidden flex flex-col justify-between space-y-5">
+        <div className="lg:col-span-8 bg-gradient-to-br from-indigo-950 via-slate-900 to-teal-950 rounded-3xl p-6 sm:p-7 text-white shadow-md border border-indigo-500/30 relative overflow-hidden flex flex-col justify-between space-y-5">
           {/* Background Decorative Accents */}
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full bg-teal-500/10 blur-2xl pointer-events-none" />
 
           {/* Top Row: Badge & Header */}
           <div className="relative space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-black uppercase tracking-wider">
-                <CloudRain className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-black uppercase tracking-wider">
+                <CloudRain className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
                 <span>Alerta Sanitaria Estacional: Temporada Húmeda y Lluvias</span>
               </span>
               <span className="text-[11px] text-slate-400 font-medium">
@@ -52,8 +52,8 @@ export function FarmOverviewBanner({
           {/* Key Quick Tips */}
           <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1 backdrop-blur-xs">
-              <div className="flex items-center space-x-2 text-xs font-bold text-emerald-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <div className="flex items-center space-x-2 text-xs font-bold text-indigo-300">
+                <span className="w-2 h-2 rounded-full bg-indigo-400" />
                 <span>Manejo de Cascos y Pezuñas</span>
               </div>
               <p className="text-[11px] text-slate-300 leading-snug">
@@ -75,14 +75,14 @@ export function FarmOverviewBanner({
           {/* Action Button: Guía de Primeros Auxilios de Campo */}
           <div className="relative pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-white/10">
             <div className="text-xs text-slate-400 flex items-center space-x-1.5">
-              <Info className="w-3.5 h-3.5 text-emerald-400" />
+              <Info className="w-3.5 h-3.5 text-indigo-400" />
               <span>Consulta pautas de soporte antes del arribo veterinario</span>
             </div>
 
             <button
               type="button"
               onClick={onOpenFieldFirstAid}
-              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-950/50 flex items-center justify-center space-x-2 transition transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-slate-950 font-black text-xs shadow-lg shadow-indigo-950/50 flex items-center justify-center space-x-2 transition transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               <BookOpen className="w-4 h-4" />
               <span>Abrir Guía de Primeros Auxilios de Campo</span>
@@ -92,13 +92,13 @@ export function FarmOverviewBanner({
         </div>
 
         {/* Panel Lateral: Contador de Expedientes Evaluados & Estado (Col 4) */}
-        <div className="lg:col-span-4 backdrop-blur-md bg-slate-900/70 rounded-3xl p-6 sm:p-7 border border-slate-700/50 shadow-xl shadow-emerald-950/10 flex flex-col justify-between space-y-5">
+        <div className="lg:col-span-4 backdrop-blur-md bg-slate-900/70 rounded-3xl p-6 sm:p-7 border border-slate-700/50 shadow-xl shadow-indigo-950/10 flex flex-col justify-between space-y-5">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
                 Panel del Productor / Finca
               </span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
             </div>
 
             {/* Contador de Expedientes Evaluados */}
@@ -113,7 +113,7 @@ export function FarmOverviewBanner({
                 </div>
               </div>
 
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center justify-center shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 flex items-center justify-center shadow-xs">
                 <ClipboardList className="w-6 h-6" />
               </div>
             </div>
@@ -126,7 +126,7 @@ export function FarmOverviewBanner({
               </div>
               <div className="flex items-center justify-between py-1.5 border-b border-slate-700/60">
                 <span className="text-slate-400 font-medium">Inferencia Diagnóstica:</span>
-                <span className="font-bold text-emerald-300 flex items-center space-x-1">
+                <span className="font-bold text-indigo-300 flex items-center space-x-1">
                   <Sparkles className="w-3 h-3" />
                   <span>Gemini 2.5 Multimodal</span>
                 </span>
@@ -142,7 +142,7 @@ export function FarmOverviewBanner({
           <button
             type="button"
             onClick={onOpenHistory}
-            className="w-full py-2.5 px-4 rounded-xl border border-slate-700/70 hover:bg-emerald-500/10 hover:border-emerald-500/40 text-slate-200 font-bold text-xs flex items-center justify-center space-x-1.5 transition-all duration-200 cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-xl border border-slate-700/70 hover:bg-indigo-500/10 hover:border-indigo-500/40 text-slate-200 font-bold text-xs flex items-center justify-center space-x-1.5 transition-all duration-200 cursor-pointer"
           >
             <ClipboardList className="w-4 h-4 text-cyan-300" />
             <span>Ver Historial de Triajes Registrados</span>

@@ -32,8 +32,8 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
       icon: AlertTriangle,
     },
     MILD: {
-      hex: '#10B981',
-      bg: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+      hex: '#06b6d4',
+      bg: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40',
       label: 'Nivel Leve',
       icon: CheckCircle2,
     },
@@ -64,13 +64,13 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
       onClick={onClose}
     >
       <div
-        className="relative backdrop-blur-xl bg-slate-900/95 w-full max-w-3xl rounded-3xl shadow-2xl shadow-emerald-950/40 border border-white/10 overflow-hidden flex flex-col h-[85vh] max-h-[700px] animate-in zoom-in-95 duration-200"
+        className="relative backdrop-blur-xl bg-slate-900/95 w-full max-w-3xl rounded-3xl shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden flex flex-col h-[85vh] max-h-[700px] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className="relative p-4 sm:p-5 border-b border-white/10 bg-white/[0.03] flex items-center justify-between gap-3">
           <div className="flex items-center space-x-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 text-white flex items-center justify-center shadow-lg shadow-emerald-600/25 flex-shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/25 flex-shrink-0">
               <Bot className="w-5 h-5" />
             </div>
             <div className="min-w-0">

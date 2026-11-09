@@ -83,7 +83,7 @@ function createUserPulseIcon(gpsActive = false) {
           border: 3px solid #ffffff;
           box-shadow: 0 2px 8px rgba(37, 99, 235, 0.6), 0 0 14px rgba(37, 99, 235, 0.4);
         ">
-          ${gpsActive ? '<span style="position: absolute; top: -3px; right: -3px; width: 7px; height: 7px; border-radius: 50%; background: #10b981; border: 1.5px solid #fff;"></span>' : ''}
+          ${gpsActive ? '<span style="position: absolute; top: -3px; right: -3px; width: 7px; height: 7px; border-radius: 50%; background: #06b6d4; border: 1.5px solid #fff;"></span>' : ''}
         </div>
       </div>
     `,
@@ -97,7 +97,7 @@ function createUserPulseIcon(gpsActive = false) {
  * Custom SVG DivIcon for emergency & general veterinary clinics & agricultural supply stores
  */
 function createClinicIcon(isEmergency, isSelected = false, isStore = false) {
-  const bgColor = isStore ? '#059669' : isEmergency ? '#ef4444' : '#2563eb';
+  const bgColor = isStore ? '#06b6d4' : isEmergency ? '#ef4444' : '#2563eb';
   const badgeBorder = isSelected ? '3px solid #f59e0b' : '2px solid #ffffff';
   const shadow = isSelected
     ? '0 0 14px rgba(245, 158, 11, 0.85), 0 3px 8px rgba(0,0,0,0.4)'
@@ -666,9 +666,9 @@ export function EmergencyMap({
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="backdrop-blur-md bg-slate-900/70 rounded-3xl p-6 border border-slate-700/50 shadow-xl shadow-emerald-950/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="backdrop-blur-md bg-slate-900/70 rounded-3xl p-6 border border-slate-700/50 shadow-xl shadow-indigo-950/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+          <div className="flex items-center space-x-2 text-indigo-300 text-xs font-bold uppercase tracking-wider">
             <Compass className="w-4 h-4 animate-spin-slow" />
             <span>Navegación Guiada de Emergencia</span>
           </div>
@@ -696,7 +696,7 @@ export function EmergencyMap({
             type="button"
             onClick={handleGpsSync}
             disabled={geoLoading}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 flex items-center space-x-2 transition cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white text-xs font-semibold shadow-lg shadow-indigo-600/20 flex items-center space-x-2 transition cursor-pointer"
             title="Activar mi GPS en vivo"
           >
             <Crosshair className={`w-4 h-4 text-white ${geoLoading ? 'animate-spin' : ''}`} />
@@ -727,7 +727,7 @@ export function EmergencyMap({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Leaflet Map Container */}
         <div
-          className="lg:col-span-7 backdrop-blur-md bg-slate-900/70 rounded-3xl shadow-xl shadow-emerald-950/10 border border-slate-700/50 overflow-hidden touch-none flex flex-col h-[520px] relative"
+          className="lg:col-span-7 backdrop-blur-md bg-slate-900/70 rounded-3xl shadow-xl shadow-indigo-950/10 border border-slate-700/50 overflow-hidden touch-none flex flex-col h-[520px] relative"
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
         >
@@ -736,19 +736,19 @@ export function EmergencyMap({
             type="button"
             onClick={handleGpsSync}
             disabled={geoLoading}
-            className="absolute top-4 right-4 z-[1000] backdrop-blur-md bg-slate-900/90 hover:bg-slate-800 text-slate-100 hover:text-emerald-300 px-3.5 py-2.5 rounded-2xl shadow-xl border border-slate-700/70 text-xs font-bold flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 cursor-pointer group"
+            className="absolute top-4 right-4 z-[1000] backdrop-blur-md bg-slate-900/90 hover:bg-slate-800 text-slate-100 hover:text-indigo-300 px-3.5 py-2.5 rounded-2xl shadow-xl border border-slate-700/70 text-xs font-bold flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 cursor-pointer group"
             title="Activar mi GPS en vivo"
           >
-            <div className="w-6 h-6 rounded-lg bg-emerald-500/15 group-hover:bg-emerald-500/25 flex items-center justify-center text-emerald-300 transition border border-emerald-500/30">
-              <Crosshair className={`w-4 h-4 text-emerald-300 ${geoLoading ? 'animate-spin' : ''}`} />
+            <div className="w-6 h-6 rounded-lg bg-indigo-500/15 group-hover:bg-indigo-500/25 flex items-center justify-center text-indigo-300 transition border border-indigo-500/30">
+              <Crosshair className={`w-4 h-4 text-indigo-300 ${geoLoading ? 'animate-spin' : ''}`} />
             </div>
-            <span className="hidden sm:inline font-extrabold text-slate-100 group-hover:text-emerald-300">
+            <span className="hidden sm:inline font-extrabold text-slate-100 group-hover:text-indigo-300">
               {geoLoading ? 'Conectando GPS...' : gpsActive ? 'GPS en vivo activo' : 'Activar mi GPS en vivo'}
             </span>
             {gpsActive && (
               <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
               </span>
             )}
           </button>
@@ -775,7 +775,7 @@ export function EmergencyMap({
               <Popup>
                 <div className="p-1 space-y-1 text-xs">
                   <div className="flex items-center space-x-1.5">
-                    <span className={`w-2 h-2 rounded-full ${gpsActive ? 'bg-emerald-500 animate-pulse' : 'bg-blue-600'}`}></span>
+                    <span className={`w-2 h-2 rounded-full ${gpsActive ? 'bg-indigo-500 animate-pulse' : 'bg-blue-600'}`}></span>
                     <span className="font-bold text-blue-600 block">
                       {gpsActive ? 'Tu ubicación GPS en vivo' : 'Tu ubicación aproximada'}
                     </span>
@@ -783,7 +783,7 @@ export function EmergencyMap({
                   <span className="text-slate-500 font-mono text-[11px] block">
                     {userLat.toFixed(5)}, {userLng.toFixed(5)}
                   </span>
-                  <span className="text-[10px] text-emerald-600 font-semibold block">
+                  <span className="text-[10px] text-indigo-600 font-semibold block">
                     {gpsActive ? '● Transmitiendo en tiempo real' : '○ GPS en espera'}
                   </span>
                 </div>
@@ -823,7 +823,7 @@ export function EmergencyMap({
                         <span
                           className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
                             clinic.isStore
-                              ? 'bg-emerald-100 text-emerald-800'
+                              ? 'bg-indigo-100 text-indigo-800'
                               : clinic.isEmergency
                               ? 'bg-rose-100 text-rose-700'
                               : 'bg-blue-100 text-blue-700'
@@ -876,7 +876,7 @@ export function EmergencyMap({
         {/* Right Column: Turn-by-Turn Routing Panel */}
         <div className="lg:col-span-5 space-y-4">
           {/* Active Navigation Card */}
-          <div className="backdrop-blur-md bg-slate-900/70 rounded-3xl p-6 border border-slate-700/50 shadow-xl shadow-emerald-950/10 space-y-5">
+          <div className="backdrop-blur-md bg-slate-900/70 rounded-3xl p-6 border border-slate-700/50 shadow-xl shadow-indigo-950/10 space-y-5">
             <div className="flex items-start justify-between">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/40 inline-block mb-1">
@@ -928,7 +928,7 @@ export function EmergencyMap({
                   href={activeWhatsAppUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-950/30 transition cursor-pointer"
+                  className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-950/30 transition cursor-pointer"
                 >
                   <span className="text-sm">💬</span>
                   <span>Avisar por WhatsApp</span>
@@ -940,16 +940,16 @@ export function EmergencyMap({
                 <button
                   type="button"
                   onClick={() => setShowWaPreview(!showWaPreview)}
-                  className="w-full flex items-center justify-between py-1.5 px-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-[11px] font-bold text-emerald-200 transition cursor-pointer"
+                  className="w-full flex items-center justify-between py-1.5 px-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-xl text-[11px] font-bold text-indigo-200 transition cursor-pointer"
                 >
                   <div className="flex items-center space-x-1.5">
                     <span>💬</span>
                     <span>Vista previa del mensaje con GPS incluido</span>
                   </div>
                   {showWaPreview ? (
-                    <ChevronUp className="w-3.5 h-3.5 text-emerald-300 flex-shrink-0" />
+                    <ChevronUp className="w-3.5 h-3.5 text-indigo-300 flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="w-3.5 h-3.5 text-emerald-300 flex-shrink-0" />
+                    <ChevronDown className="w-3.5 h-3.5 text-indigo-300 flex-shrink-0" />
                   )}
                 </button>
 
@@ -990,7 +990,7 @@ export function EmergencyMap({
             <div className="space-y-3 pt-2 border-t border-white/10">
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center space-x-1.5">
-                  <Navigation className="w-3.5 h-3.5 text-emerald-400" />
+                  <Navigation className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Instrucciones de Giro Paso a Paso</span>
                 </h4>
                 <span className="text-[10px] text-slate-400">
@@ -1007,7 +1007,7 @@ export function EmergencyMap({
                     <div className="w-6 h-6 rounded-lg bg-white/[0.06] border border-white/10 text-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg">
                       {step.icon === 'left' && <CornerUpLeft className="w-3.5 h-3.5 text-cyan-300" />}
                       {step.icon === 'right' && <CornerUpRight className="w-3.5 h-3.5 text-cyan-300" />}
-                      {step.icon === 'straight' && <MoveUp className="w-3.5 h-3.5 text-emerald-400" />}
+                      {step.icon === 'straight' && <MoveUp className="w-3.5 h-3.5 text-indigo-400" />}
                       {step.icon === 'depart' && <Navigation className="w-3.5 h-3.5 text-rose-400" />}
                       {step.icon === 'arrive' && <Flag className="w-3.5 h-3.5 text-red-400" />}
                     </div>
@@ -1050,7 +1050,7 @@ export function EmergencyMap({
                 className={`p-5 rounded-3xl border transition cursor-pointer flex flex-col justify-between space-y-4 ${
                   isSelected
                     ? 'backdrop-blur-md bg-rose-500/10 border-rose-500/70 ring-2 ring-rose-500/20 shadow-lg shadow-rose-950/30'
-                    : 'backdrop-blur-md bg-slate-900/70 border-slate-700/50 hover:border-emerald-500/40 shadow-xl shadow-emerald-950/10'
+                    : 'backdrop-blur-md bg-slate-900/70 border-slate-700/50 hover:border-indigo-500/40 shadow-xl shadow-indigo-950/10'
                 }`}
               >
                 <div className="space-y-2">
@@ -1058,7 +1058,7 @@ export function EmergencyMap({
                     <span
                       className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
                         clinic.isStore
-                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+                          ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40'
                           : clinic.isEmergency
                           ? 'bg-rose-500/15 text-rose-300 border-rose-500/40'
                           : 'bg-blue-500/15 text-blue-300 border-blue-500/40'
@@ -1114,7 +1114,7 @@ export function EmergencyMap({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition flex-shrink-0 shadow-lg shadow-emerald-950/30"
+                    className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition flex-shrink-0 shadow-lg shadow-indigo-950/30"
                     title="Avisar por WhatsApp"
                   >
                     <span className="text-xs">💬</span>

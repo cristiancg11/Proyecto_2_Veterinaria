@@ -26,21 +26,21 @@ export function AnalyzingScreen({ petType = 'Mascota', weight = '8' }) {
   }, []);
 
   return (
-    <div className="backdrop-blur-md bg-slate-900/70 rounded-3xl shadow-xl shadow-emerald-950/20 border border-emerald-500/20 overflow-hidden p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-8 min-h-[500px]">
+    <div className="backdrop-blur-md bg-slate-900/70 rounded-3xl shadow-xl shadow-indigo-950/20 border border-indigo-500/20 overflow-hidden p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-8 min-h-[500px]">
       {/* Central Pulsing Biometric Radar */}
       <div className="relative flex items-center justify-center">
-        <div className="absolute w-44 h-44 rounded-full bg-emerald-500/10 animate-ping" />
+        <div className="absolute w-44 h-44 rounded-full bg-indigo-500/10 animate-ping" />
         <div className="absolute w-36 h-36 rounded-full bg-cyan-500/15 animate-pulse" />
-        <div className="absolute w-28 h-28 rounded-full bg-emerald-500/25 animate-pulse" />
+        <div className="absolute w-28 h-28 rounded-full bg-indigo-500/25 animate-pulse" />
 
-        <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-white shadow-2xl shadow-emerald-600/40 border border-emerald-300/40">
+        <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center text-white shadow-2xl shadow-indigo-600/40 border border-indigo-300/40">
           <HeartPulse className="w-12 h-12 animate-pulse text-white" />
         </div>
       </div>
 
       {/* Title & Tagline */}
       <div className="space-y-2 max-w-md">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/30 text-emerald-200 text-xs font-bold uppercase tracking-wider">
+        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-400/30 text-indigo-200 text-xs font-bold uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5 text-cyan-300 animate-pulse" />
           <span>Inferencia Clínica Activa</span>
         </div>
@@ -56,8 +56,8 @@ export function AnalyzingScreen({ petType = 'Mascota', weight = '8' }) {
       <div className="w-full max-w-sm bg-slate-950/50 border border-slate-700/60 rounded-2xl p-4 space-y-3">
         <div className="flex items-center space-x-3 text-xs text-slate-200 font-semibold">
           <span className="relative flex h-3 w-3 flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-70" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-400" />
           </span>
           <span className="truncate">{ANALYSIS_STEPS[currentStepIndex]}</span>
         </div>
@@ -65,7 +65,7 @@ export function AnalyzingScreen({ petType = 'Mascota', weight = '8' }) {
         <div className="space-y-2 animate-pulse">
           <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full transition-all duration-700 ease-out"
+              className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full transition-all duration-700 ease-out"
               style={{ width: `${((currentStepIndex + 1) / ANALYSIS_STEPS.length) * 100}%` }}
             />
           </div>
@@ -86,7 +86,7 @@ export function AnalyzingScreen({ petType = 'Mascota', weight = '8' }) {
         </span>
         <span>•</span>
         <span className="flex items-center space-x-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
           <span>Clasificación WSAVA</span>
         </span>
       </div>

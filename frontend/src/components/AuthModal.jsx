@@ -51,8 +51,8 @@ export function AuthModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative backdrop-blur-xl bg-slate-900/95 w-full max-w-md rounded-2xl shadow-2xl shadow-emerald-950/40 border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-emerald-500/15 blur-[100px]" />
+      <div className="relative backdrop-blur-xl bg-slate-900/95 w-full max-w-md rounded-2xl shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-indigo-500/15 blur-[100px]" />
         {/* Header */}
         <div className="relative p-5 border-b border-white/10 bg-white/[0.03] flex items-center justify-between">
           <div>
@@ -81,7 +81,7 @@ export function AuthModal({ isOpen, onClose }) {
               setError(null);
             }}
             className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${!isRegister
-              ? 'border-emerald-500 text-emerald-300 bg-emerald-500/10'
+              ? 'border-indigo-500 text-indigo-300 bg-indigo-500/10'
               : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
           >
@@ -95,7 +95,7 @@ export function AuthModal({ isOpen, onClose }) {
               setError(null);
             }}
             className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${isRegister
-              ? 'border-emerald-500 text-emerald-300 bg-emerald-500/10'
+              ? 'border-indigo-500 text-indigo-300 bg-indigo-500/10'
               : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
           >
@@ -117,8 +117,8 @@ export function AuthModal({ isOpen, onClose }) {
           )}
 
           {successMessage && (
-            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+            <div className="p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-xs text-indigo-200 flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-indigo-400" />
               <span>{successMessage}</span>
             </div>
           )}
@@ -136,7 +136,7 @@ export function AuthModal({ isOpen, onClose }) {
                   placeholder="Ej. Dra. Mariana Torres o Carlos Ramírez"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
                 />
               </div>
             </div>
@@ -154,7 +154,7 @@ export function AuthModal({ isOpen, onClose }) {
                 placeholder="tutor@ejemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
               />
             </div>
           </div>
@@ -172,7 +172,7 @@ export function AuthModal({ isOpen, onClose }) {
                 placeholder="Mínimo 6 caracteres"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
               />
             </div>
           </div>
@@ -180,7 +180,7 @@ export function AuthModal({ isOpen, onClose }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white font-semibold text-sm shadow-lg shadow-emerald-600/20 transition disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+            className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white font-semibold text-sm shadow-lg shadow-indigo-600/20 transition disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
           >
             {loading ? (
               <>

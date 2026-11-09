@@ -48,13 +48,13 @@ export function generateTriagePDF(data = {}) {
   const caseFolio = data.folio_code || data.case_id || `VET-NAR-${timestampStr}-${randomSuffix}`;
 
   // =========================================================================
-  // 1. Encabezado institucional: Barra superior esmeralda oscuro (#064e3b)
+  // 1. Encabezado institucional: Barra superior índigo oscuro (#312e81)
   // =========================================================================
-  doc.setFillColor(6, 78, 59); // #064e3b
+  doc.setFillColor(49, 46, 129); // #312e81
   doc.rect(0, 0, pageWidth, 26, 'F');
 
-  // Línea de acento esmeralda claro (#10b981)
-  doc.setFillColor(16, 185, 129);
+  // Línea de acento cian claro (#06b6d4)
+  doc.setFillColor(6, 182, 212);
   doc.rect(0, 24.5, pageWidth, 1.5, 'F');
 
   doc.setFont('helvetica', 'bold');
@@ -65,7 +65,7 @@ export function generateTriagePDF(data = {}) {
   // Folio en esquina superior derecha del encabezado
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(167, 243, 208); // emerald-200
+  doc.setTextColor(167, 243, 208); // indigo-200
   doc.text(`FOLIO: ${caseFolio}`, pageWidth - margin, 12, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
@@ -133,8 +133,8 @@ export function generateTriagePDF(data = {}) {
   } else if (['LEVE', 'MILD', 'GREEN'].includes(rawUrgency)) {
     urgencyTitle = 'NIVEL LEVE (MANEJO AMBULATORIO)';
     urgencySub = 'Sin riesgo vital aparente detectado - Seguimiento clínico en 24 a 48 horas';
-    urgencyColor = [22, 163, 74]; // Verde (#16a34a)
-    urgencyBg = [220, 252, 231];
+    urgencyColor = [6, 182, 212]; // Cian (#06b6d4)
+    urgencyBg = [207, 250, 254];
   }
 
   doc.setFillColor(...urgencyBg);

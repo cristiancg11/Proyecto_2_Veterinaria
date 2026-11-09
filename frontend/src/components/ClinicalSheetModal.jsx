@@ -21,8 +21,8 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
       label: 'URGENCIA MODERADA / PRIORITARIA',
     },
     MILD: {
-      border: 'border-emerald-600',
-      badge: 'bg-emerald-600 text-white',
+      border: 'border-indigo-600',
+      badge: 'bg-indigo-600 text-white',
       label: 'ATENCIÓN GENERAL / LEVE',
     },
   }[diagnosis.urgency_level] || {
@@ -33,7 +33,7 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-3xl rounded-3xl shadow-2xl shadow-emerald-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-3xl rounded-3xl shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Controls (Hidden in Print) */}
         <div className="p-4 px-6 border-b border-white/10 bg-white/[0.03] flex items-center justify-between print:hidden">
           <div className="flex items-center space-x-2">
@@ -54,7 +54,7 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
                   first_aid_actions: diagnosis.immediate_care_tips,
                 })
               }
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-bold shadow-lg shadow-emerald-950/40 transition cursor-pointer"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:from-indigo-500 hover:to-teal-400 text-white text-xs font-bold shadow-lg shadow-indigo-950/40 transition cursor-pointer"
               title="Descargar Ficha en PDF"
             >
               <Download className="w-4 h-4" />

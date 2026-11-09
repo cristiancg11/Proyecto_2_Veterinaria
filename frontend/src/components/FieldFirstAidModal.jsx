@@ -149,7 +149,7 @@ const FIRST_AID_GUIDELINES = [
     title: 'Gabarro / Pododermatitis Infecciosa de Temporada Húmeda',
     species: 'Bovinos, Ovinos y Caprinos',
     badge: 'Enfermedad Estacional del Terreno',
-    badgeColor: 'bg-emerald-600 text-white',
+    badgeColor: 'bg-indigo-600 text-white',
     icon: Activity,
     symptoms:
       'Claudicación severa, apoyo en pinza, piel interdigital roja, agrietada, exudativa y con olor fétido característico por reblandecimiento del casco.',
@@ -220,16 +220,16 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-      <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-4xl rounded-3xl shadow-2xl shadow-emerald-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-4xl rounded-3xl shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/70 p-6 text-white flex items-center justify-between gap-4 border-b border-white/10">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/70 p-6 text-white flex items-center justify-between gap-4 border-b border-white/10">
           <div className="flex items-center space-x-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center flex-shrink-0 shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center flex-shrink-0 shadow-inner">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 px-2.5 py-0.5 rounded-full">
                   Protocolo Veterinario Rural
                 </span>
                 <span className="text-xs text-slate-400">• Zootecnia y Campo</span>
@@ -270,14 +270,14 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                   onClick={() => setSelectedId(item.id)}
                   className={`w-full text-left p-3 rounded-2xl transition flex items-start space-x-3 cursor-pointer ${
                     isSelected
-                      ? 'bg-emerald-500/10 shadow-sm border border-emerald-500/40 ring-2 ring-emerald-500/20'
+                      ? 'bg-indigo-500/10 shadow-sm border border-indigo-500/40 ring-2 ring-indigo-500/20'
                       : 'hover:bg-white/5 border border-transparent text-slate-400'
                   }`}
                 >
                   <div
                     className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
                       isSelected
-                        ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-950/40'
+                        ? 'bg-gradient-to-tr from-indigo-600 to-teal-500 text-white shadow-lg shadow-indigo-950/40'
                         : 'bg-slate-800 text-slate-400'
                     }`}
                   >
@@ -295,7 +295,7 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                       {item.species}
                     </span>
                   </div>
-                  {isSelected && <ChevronRight className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-1" />}
+                  {isSelected && <ChevronRight className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-1" />}
                 </button>
               );
             })}
@@ -332,9 +332,9 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                 {currentGuide.steps.map((s) => (
                   <div
                     key={s.step}
-                    className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex items-start space-x-4 hover:border-emerald-500/30 transition"
+                    className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex items-start space-x-4 hover:border-indigo-500/30 transition"
                   >
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-950/40">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-teal-500 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-950/40">
                       {s.step}
                     </div>
                     <div className="space-y-1">
@@ -364,7 +364,7 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 transition cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:from-indigo-500 hover:to-teal-400 text-white font-bold text-xs shadow-lg shadow-indigo-950/40 transition cursor-pointer"
           >
             Entendido / Cerrar Guía
           </button>

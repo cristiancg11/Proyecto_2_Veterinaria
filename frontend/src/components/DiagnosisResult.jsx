@@ -36,13 +36,13 @@ const SEVERITY_THEMES = {
     icon: AlertTriangle,
   },
   MILD: {
-    hex: '#10B981',
+    hex: '#06b6d4',
     title: 'NIVEL LEVE (MANEJO RUTINARIO)',
     sublabel: 'Baja Urgencia / Ambulatorio',
-    badgeBg: 'bg-emerald-500',
-    border: 'border-emerald-400/60',
+    badgeBg: 'bg-indigo-500',
+    border: 'border-indigo-400/60',
     bannerBg: 'bg-urgency-preventive',
-    accentText: 'text-emerald-100',
+    accentText: 'text-indigo-100',
     icon: CheckCircle2,
   },
 };
@@ -65,7 +65,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
   return (
     <>
       <div
-        className={`backdrop-blur-md bg-slate-900/75 rounded-2xl shadow-xl shadow-emerald-950/20 border ${currentTheme.border} overflow-hidden space-y-6 transition-all duration-300`}
+        className={`backdrop-blur-md bg-slate-900/75 rounded-2xl shadow-xl shadow-indigo-950/20 border ${currentTheme.border} overflow-hidden space-y-6 transition-all duration-300`}
         style={{ borderColor: currentTheme.hex }}
       >
         {/* Dynamic Urgency Level Top Banner */}
@@ -114,7 +114,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           {/* Preliminary Clinical Assessment */}
           <div>
             <div className="flex items-center space-x-2 mb-2">
-              <HeartPulse className="w-4 h-4 text-emerald-300" />
+              <HeartPulse className="w-4 h-4 text-indigo-300" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Síntomas identificados
               </h3>
@@ -127,7 +127,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           {/* Immediate First-Aid & Care Tips */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-200">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-200">
                 Tratamiento sugerido / Manejo
               </h3>
               <span className="text-[11px] font-semibold text-slate-400">
@@ -139,7 +139,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
               {diagnosis.immediate_care_tips?.map((tip, index) => (
                 <li
                   key={index}
-                  className="flex items-start space-x-3 p-3.5 rounded-xl bg-slate-950/40 border border-slate-700/60 text-sm text-slate-100 hover:border-emerald-500/30 transition"
+                  className="flex items-start space-x-3 p-3.5 rounded-xl bg-slate-950/40 border border-slate-700/60 text-sm text-slate-100 hover:border-indigo-500/30 transition"
                 >
                   <div
                     className="w-6 h-6 rounded-lg text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5 shadow-sm"
@@ -154,11 +154,11 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           </div>
 
           {/* Featured AI Assistant CTA Button */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white shadow-lg shadow-emerald-950/30 border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-lg shadow-indigo-950/30 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="space-y-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start space-x-2">
                 <Sparkles className="w-4 h-4 text-amber-300" />
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-200">
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-200">
                   Recomendación de visita médica
                 </span>
               </div>
@@ -173,7 +173,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
             <button
               type="button"
               onClick={handleConsultAssistant}
-              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white font-semibold text-sm shadow-lg shadow-emerald-600/20 transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2 flex-shrink-0 cursor-pointer"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white font-semibold text-sm shadow-lg shadow-indigo-600/20 transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2 flex-shrink-0 cursor-pointer"
             >
               <MessageSquare className="w-4 h-4 text-white" />
               <span>Consultar dudas con el Asistente IA sobre este caso</span>
@@ -234,7 +234,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           <button
             type="button"
             onClick={onReset}
-            className="flex items-center space-x-2 px-5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/70 text-slate-200 hover:border-emerald-500/40 hover:text-emerald-200 text-sm font-semibold transition-all duration-200"
+            className="flex items-center space-x-2 px-5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/70 text-slate-200 hover:border-indigo-500/40 hover:text-indigo-200 text-sm font-semibold transition-all duration-200"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Nueva Consulta de Triaje</span>

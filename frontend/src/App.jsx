@@ -40,13 +40,13 @@ function MainApp() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-clinical-canvas text-slate-100">
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-rose-600 flex items-center justify-center animate-pulse shadow-xl shadow-rose-500/40">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center animate-pulse shadow-xl shadow-emerald-600/30">
             <HeartPulse className="w-8 h-8 text-white" />
           </div>
           <div className="text-sm font-medium text-slate-300 flex items-center space-x-2">
-            <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+            <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
             <span>Verificando sesión en VetIA...</span>
           </div>
         </div>
@@ -73,7 +73,7 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100/70 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-clinical-canvas text-slate-100">
       {/* Top Navigation Bar with Historial de Consultas */}
       <Header
         onOpenHistory={() => setIsHistoryOpen(true)}
@@ -84,18 +84,18 @@ function MainApp() {
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Subheader status banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-          <div className="flex items-center space-x-2 text-xs text-slate-600">
-            <MapPin className="w-4 h-4 text-rose-500 flex-shrink-0" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 backdrop-blur-md bg-slate-900/70 p-4 rounded-2xl border border-slate-700/50 shadow-xl shadow-emerald-950/10">
+          <div className="flex items-center space-x-2 text-xs text-slate-300">
+            <MapPin className="w-4 h-4 text-cyan-400 flex-shrink-0" />
             <span>
               Geolocalizado en: <strong>{coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}</strong>
               {geoError && ' (Modo fallback activo)'}
             </span>
           </div>
 
-          <div className="flex items-center space-x-3 text-xs text-slate-500">
+          <div className="flex items-center space-x-3 text-xs text-slate-400">
             {isAuthenticated ? (
-              <span className="flex items-center space-x-1.5 text-rose-600 font-semibold bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">
+              <span className="flex items-center space-x-1.5 text-emerald-200 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30">
                 <UserCheck className="w-3.5 h-3.5" />
                 <span>Sesión Activa: {user.email}</span>
               </span>
@@ -103,7 +103,7 @@ function MainApp() {
               <button
                 type="button"
                 onClick={() => setIsAuthOpen(true)}
-                className="text-xs text-rose-600 font-semibold hover:underline"
+                className="text-xs text-cyan-300 font-semibold hover:text-cyan-200 hover:underline"
               >
                 Inicia sesión para vincular tus consultas
               </button>
@@ -118,11 +118,11 @@ function MainApp() {
 
         {/* Global Error Banner */}
         {error && (
-          <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start space-x-3 text-rose-800 text-sm shadow-sm">
-            <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+          <div className="p-4 bg-rose-950/50 border border-rose-500/40 rounded-2xl flex items-start space-x-3 text-rose-100 text-sm shadow-lg shadow-rose-950/20">
+            <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
             <div>
               <h4 className="font-bold">Aviso en la Evaluación</h4>
-              <p className="mt-0.5 text-rose-700">{error}</p>
+              <p className="mt-0.5 text-rose-200/90">{error}</p>
             </div>
           </div>
         )}
@@ -174,14 +174,14 @@ function MainApp() {
       />
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
+      <footer className="mt-12 py-6 text-center text-xs text-slate-400">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>VetIA / PetEmergency © 2026 - Triage Multimodal & Seguimiento Contextual</span>
-          <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-600">
-            <span className="px-2 py-0.5 bg-slate-100 rounded">Supabase Auth</span>
-            <span className="px-2 py-0.5 bg-slate-100 rounded">React 18</span>
-            <span className="px-2 py-0.5 bg-slate-100 rounded">OSRM Routing</span>
-            <span className="px-2 py-0.5 bg-slate-100 rounded">Gemini 2.5 Flash</span>
+          <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-300">
+            <span className="px-2 py-0.5 rounded-lg bg-slate-900/70 border border-slate-700/50">Supabase Auth</span>
+            <span className="px-2 py-0.5 rounded-lg bg-slate-900/70 border border-slate-700/50">React 18</span>
+            <span className="px-2 py-0.5 rounded-lg bg-slate-900/70 border border-slate-700/50">OSRM Routing</span>
+            <span className="px-2 py-0.5 rounded-lg bg-slate-900/70 border border-slate-700/50">Gemini 2.5 Flash</span>
           </div>
         </div>
       </footer>

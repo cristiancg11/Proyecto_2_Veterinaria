@@ -27,23 +27,23 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Owner';
 
   return (
-    <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-3 z-30 px-3 sm:px-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between rounded-2xl backdrop-blur-md bg-slate-900/70 border border-slate-700/50 shadow-xl shadow-emerald-950/10">
         {/* Brand identity */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-500 to-red-600 flex items-center justify-center text-white shadow-md shadow-rose-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-emerald-600/30">
             <HeartPulse className="w-6 h-6 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                Vet<span className="text-rose-600">IA</span>
+              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                VetIA
               </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-semibold border border-rose-200">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-semibold border border-emerald-500/30">
                 PetEmergency
               </span>
             </div>
-            <p className="text-xs text-slate-500 hidden sm:block">
+            <p className="text-xs text-slate-400 hidden sm:block">
               Multimodal AI Veterinary Triage & Clinical Orientation
             </p>
           </div>
@@ -53,13 +53,13 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
         <div className="flex items-center space-x-2 sm:space-x-3">
           <button
             onClick={onOpenHistory}
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition shadow-xs cursor-pointer"
+            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-slate-700/60 bg-slate-950/40 text-slate-200 hover:bg-emerald-500/10 hover:border-emerald-500/40 hover:text-emerald-200 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer"
             title="Ver Historial de Consultas en Supabase"
           >
-            <History className="w-4 h-4 text-rose-600" />
+            <History className="w-4 h-4 text-emerald-400" />
             <span className="hidden sm:inline">Historial de Consultas</span>
             {historyCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold">
+              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-400/30 text-xs font-bold">
                 {historyCount}
               </span>
             )}
@@ -67,11 +67,11 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
 
           {/* Authentication Status & Tutor Phone Badge */}
           {isAuthenticated ? (
-            <div className="flex items-center space-x-2 pl-1 sm:pl-2 border-l border-slate-200">
+            <div className="flex items-center space-x-2 pl-1 sm:pl-2 border-l border-slate-700/70">
               {/* Tutor Phone badge / inline editor */}
               <div className="relative">
                 {isEditingPhone ? (
-                  <form onSubmit={handleSavePhone} className="flex items-center space-x-1 bg-white border-2 border-emerald-500 rounded-xl px-2 py-0.5 shadow-md z-50">
+                  <form onSubmit={handleSavePhone} className="flex items-center space-x-1 bg-slate-950/80 border-2 border-emerald-500/70 rounded-lg px-2 py-0.5 shadow-md z-50">
                     <Phone className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                     <input
                       type="tel"
@@ -79,7 +79,7 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
                       value={tempPhone}
                       onChange={(e) => setTempPhone(e.target.value.replace(/\D/g, ''))}
                       placeholder="Celular 10 dígitos"
-                      className="w-28 text-xs font-bold outline-none text-slate-800 bg-transparent"
+                      className="w-28 text-xs font-bold outline-none text-slate-100 bg-transparent placeholder:text-slate-500"
                       autoFocus
                     />
                     <button
@@ -106,10 +106,10 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
                   <button
                     type="button"
                     onClick={() => setIsEditingPhone(true)}
-                    className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                    className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all duration-200 cursor-pointer ${
                       tutorPhone
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 shadow-2xs'
-                        : 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 shadow-xs'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200 hover:bg-emerald-500/20'
+                        : 'bg-amber-500/10 border-amber-400/40 text-amber-200 hover:bg-amber-500/20'
                     }`}
                     title="Clic para editar tu celular o WhatsApp de contacto"
                   >
@@ -124,8 +124,8 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
                 )}
               </div>
 
-              <div className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-xs font-semibold">
-                <div className="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs font-bold">
+              <div className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-slate-950/50 border border-slate-700/50 text-slate-200 text-xs font-semibold">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 text-white flex items-center justify-center text-xs font-bold">
                   {userInitial.toUpperCase()}
                 </div>
                 <span className="max-w-[100px] truncate hidden md:inline">{userName}</span>
@@ -134,23 +134,23 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
                 type="button"
                 onClick={signOut}
                 title="Cerrar Sesión en Supabase"
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs sm:text-sm font-bold transition shadow-2xs cursor-pointer"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-700/60 bg-slate-950/40 hover:bg-rose-500/15 hover:border-rose-400/40 text-slate-200 hover:text-rose-200 text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer"
               >
-                <LogOut className="w-4 h-4 text-rose-600" />
+                <LogOut className="w-4 h-4 text-rose-300" />
                 <span>Cerrar Sesión</span>
               </button>
             </div>
           ) : (
             <button
               onClick={onOpenAuth}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-semibold transition shadow-sm"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white text-xs sm:text-sm font-semibold transition-all duration-200 shadow-lg shadow-emerald-600/20"
             >
               <LogIn className="w-4 h-4" />
               <span>Sign In</span>
             </button>
           )}
 
-          <div className="hidden lg:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
+          <div className="hidden lg:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             <span>AI Active</span>
           </div>

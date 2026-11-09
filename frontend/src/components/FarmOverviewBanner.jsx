@@ -92,7 +92,7 @@ export function FarmOverviewBanner({
         </div>
 
         {/* Panel Lateral: Contador de Expedientes Evaluados & Estado (Col 4) */}
-        <div className="lg:col-span-4 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm flex flex-col justify-between space-y-5">
+        <div className="lg:col-span-4 backdrop-blur-md bg-slate-900/70 rounded-3xl p-6 sm:p-7 border border-slate-700/50 shadow-xl shadow-emerald-950/10 flex flex-col justify-between space-y-5">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
@@ -102,38 +102,38 @@ export function FarmOverviewBanner({
             </div>
 
             {/* Contador de Expedientes Evaluados */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+            <div className="p-4 rounded-2xl bg-slate-950/50 border border-slate-700/60 flex items-center justify-between">
               <div className="space-y-0.5">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide block">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide block">
                   Expedientes Evaluados
                 </span>
-                <div className="text-3xl font-black text-slate-900 tracking-tight flex items-baseline space-x-1.5">
+                <div className="text-3xl font-black text-slate-50 tracking-tight flex items-baseline space-x-1.5">
                   <span>{historyCount}</span>
                   <span className="text-xs font-semibold text-slate-400">casos clínicos</span>
                 </div>
               </div>
 
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center justify-center shadow-xs">
                 <ClipboardList className="w-6 h-6" />
               </div>
             </div>
 
             {/* Metadatos Rápidos */}
             <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Especies Habilitadas:</span>
-                <span className="font-bold text-slate-800">8 Especies Rurales</span>
+              <div className="flex items-center justify-between py-1.5 border-b border-slate-700/60">
+                <span className="text-slate-400 font-medium">Especies Habilitadas:</span>
+                <span className="font-bold text-slate-100">8 Especies Rurales</span>
               </div>
-              <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Inferencia Diagnóstica:</span>
-                <span className="font-bold text-emerald-600 flex items-center space-x-1">
+              <div className="flex items-center justify-between py-1.5 border-b border-slate-700/60">
+                <span className="text-slate-400 font-medium">Inferencia Diagnóstica:</span>
+                <span className="font-bold text-emerald-300 flex items-center space-x-1">
                   <Sparkles className="w-3 h-3" />
                   <span>Gemini 2.5 Multimodal</span>
                 </span>
               </div>
               <div className="flex items-center justify-between py-1.5">
-                <span className="text-slate-500 font-medium">Red de Atención:</span>
-                <span className="font-bold text-slate-800">Clínicas & Almacenes Agro</span>
+                <span className="text-slate-400 font-medium">Red de Atención:</span>
+                <span className="font-bold text-slate-100">Clínicas & Almacenes Agro</span>
               </div>
             </div>
           </div>
@@ -142,9 +142,9 @@ export function FarmOverviewBanner({
           <button
             type="button"
             onClick={onOpenHistory}
-            className="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-xl border border-slate-700/70 hover:bg-emerald-500/10 hover:border-emerald-500/40 text-slate-200 font-bold text-xs flex items-center justify-center space-x-1.5 transition-all duration-200 cursor-pointer"
           >
-            <ClipboardList className="w-4 h-4 text-slate-500" />
+            <ClipboardList className="w-4 h-4 text-cyan-300" />
             <span>Ver Historial de Triajes Registrados</span>
           </button>
         </div>

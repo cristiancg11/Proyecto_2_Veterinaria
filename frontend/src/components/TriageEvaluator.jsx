@@ -845,18 +845,18 @@ export function TriageEvaluator({
           onSubmit={handleSubmit}
           role="region"
           aria-label="Formulario de Evaluación de Triage Clínico Veterinario"
-          className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"
+          className="backdrop-blur-md bg-slate-900/70 rounded-3xl shadow-xl shadow-emerald-950/10 border border-slate-700/50 overflow-hidden"
         >
           {/* Header */}
-          <div className="p-6 sm:p-8 bg-gradient-to-br from-white via-slate-50/50 to-rose-50/30 border-b border-slate-100 space-y-2">
-            <div className="flex items-center space-x-2 text-rose-600 text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-4 h-4 text-rose-500 animate-pulse" />
+          <div className="p-6 sm:p-8 bg-gradient-to-br from-slate-900/80 via-slate-900/40 to-emerald-950/30 border-b border-slate-700/50 space-y-2">
+            <div className="flex items-center space-x-2 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
               <span>Diagnóstico Multimodal Asistido por IA</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-50 tracking-tight">
               Evaluación de Triage en Vivo
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-400">
               Ingresa los datos del paciente y captura una fotografía de la lesión o estado clínico para clasificar la severidad en tiempo real.
             </p>
           </div>
@@ -867,12 +867,12 @@ export function TriageEvaluator({
               <div
                 role="alert"
                 aria-live="polite"
-                className="flex items-start space-x-3 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs sm:text-sm"
+                className="flex items-start space-x-3 p-4 bg-rose-950/40 border border-rose-500/30 rounded-2xl text-rose-100 text-xs sm:text-sm"
               >
-                <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-rose-300 flex-shrink-0 mt-0.5" />
                 <div>
                   <h5 className="font-bold">Datos Incompletos</h5>
-                  <p className="text-rose-700 mt-0.5">{validationError}</p>
+                  <p className="text-rose-200/90 mt-0.5">{validationError}</p>
                 </div>
               </div>
             )}
@@ -881,12 +881,12 @@ export function TriageEvaluator({
               <div
                 role="alert"
                 aria-live="polite"
-                className="flex items-start space-x-3 p-4 bg-rose-50 border-2 border-rose-300 rounded-2xl text-rose-900 text-xs sm:text-sm shadow-sm"
+                className="flex items-start space-x-3 p-4 bg-rose-950/50 border border-rose-400/40 rounded-2xl text-rose-50 text-xs sm:text-sm shadow-sm"
               >
-                <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-rose-300 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h5 className="font-bold text-rose-950">Aviso en la Evaluación</h5>
-                  <p className="text-rose-800 mt-0.5 leading-relaxed">{networkError}</p>
+                  <h5 className="font-bold text-rose-100">Aviso en la Evaluación</h5>
+                  <p className="text-rose-200/90 mt-0.5 leading-relaxed">{networkError}</p>
                 </div>
               </div>
             )}
@@ -894,10 +894,10 @@ export function TriageEvaluator({
             {/* 1. Selector Visual de Especies Rurales (Grid de 8 Tarjetas Interactivas) */}
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                <label id="species-grid-label" className="block text-xs font-black text-slate-800 uppercase tracking-wider">
-                  1. Especie Zootécnica / Animal Rural <span className="text-rose-500">*</span>
+                <label id="species-grid-label" className="block text-xs font-black text-slate-100 uppercase tracking-wider">
+                  1. Especie Zootécnica / Animal Rural <span className="text-amber-400">*</span>
                 </label>
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 self-start sm:self-auto">
+                <span className="text-[11px] font-semibold text-emerald-200 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30 self-start sm:self-auto">
                   Seleccionado: <strong>{selectedSpeciesObj.emoji} {selectedSpeciesObj.name}</strong> • Ref: {selectedSpeciesObj.defaultWeight} kg
                 </span>
               </div>
@@ -928,10 +928,10 @@ export function TriageEvaluator({
                           handleSelectSpecies(sp);
                         }
                       }}
-                      className={`p-3.5 rounded-2xl border text-left transition relative flex flex-col justify-between space-y-2 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                      className={`p-3.5 rounded-xl border text-left transition-all duration-200 relative flex flex-col justify-between space-y-2 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500/50 ${
                         isSelected
-                          ? 'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/25 shadow-sm'
-                          : 'bg-white border-slate-200/90 hover:bg-slate-50/80 hover:border-slate-300'
+                          ? 'bg-emerald-500/15 border-emerald-400/80 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-950/30'
+                          : 'bg-slate-950/40 border-slate-700/60 hover:bg-slate-800/60 hover:border-cyan-400/40'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -939,8 +939,8 @@ export function TriageEvaluator({
                         <span
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
                             isSelected
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-slate-100 text-slate-500'
+                              ? 'bg-emerald-500 text-slate-950'
+                              : 'bg-slate-800 text-slate-400'
                           }`}
                         >
                           {sp.category}
@@ -948,17 +948,17 @@ export function TriageEvaluator({
                       </div>
 
                       <div className="space-y-0.5">
-                        <div className="font-extrabold text-xs sm:text-sm text-slate-900 leading-tight">
+                        <div className="font-extrabold text-xs sm:text-sm text-slate-100 leading-tight">
                           {sp.name}
                         </div>
-                        <div className="text-[10px] text-slate-500 truncate leading-tight">
+                        <div className="text-[10px] text-slate-400 truncate leading-tight">
                           {sp.sublabel}
                         </div>
                       </div>
 
-                      <div className="pt-1 border-t border-slate-100 flex items-center justify-between text-[10px]">
-                        <span className="text-slate-400">Peso Ref:</span>
-                        <span className="font-black text-slate-700">~{sp.defaultWeight} kg</span>
+                      <div className="pt-1 border-t border-slate-700/60 flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500">Peso Ref:</span>
+                        <span className="font-black text-cyan-300">~{sp.defaultWeight} kg</span>
                       </div>
                     </button>
                   );
@@ -966,9 +966,9 @@ export function TriageEvaluator({
               </div>
 
               {/* Orientación de Síntomas Frecuentes en la Especie Seleccionada */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+              <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-700/50 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-700">
+                  <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-200">
                     <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Síntomas Frecuentes en {selectedSpeciesObj.name} (Toca para agregar al reporte):</span>
                   </div>
@@ -981,7 +981,7 @@ export function TriageEvaluator({
                       key={idx}
                       type="button"
                       onClick={() => handleAddSymptom(symptom)}
-                      className="text-[11px] font-medium px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/50 hover:text-emerald-800 text-slate-700 transition flex items-center space-x-1 shadow-2xs cursor-pointer text-left"
+                      className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-slate-900/70 border border-slate-700/70 hover:border-emerald-400/70 hover:bg-emerald-500/15 hover:text-emerald-200 text-slate-300 transition-all duration-200 flex items-center space-x-1 cursor-pointer text-left"
                       title="Haz clic para añadir a la descripción clínica"
                     >
                       <Plus className="w-3 h-3 text-emerald-600 flex-shrink-0" />
@@ -995,8 +995,8 @@ export function TriageEvaluator({
             {/* 2. Peso Corporal Estimado (kg) */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  2. Peso Corporal Estimado (kg) <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider">
+                  2. Peso Corporal Estimado (kg) <span className="text-amber-400">*</span>
                 </label>
                 <span className="text-[11px] text-slate-400">
                   Rango referencial: {selectedSpeciesObj.weightRange}
@@ -1015,9 +1015,9 @@ export function TriageEvaluator({
                     placeholder="Ej: 450"
                     disabled={loading}
                     aria-label="Peso corporal estimado en kilogramos"
-                    className="w-full pl-4 pr-14 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                    className="w-full pl-4 pr-14 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm font-semibold placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-md">
                     KG
                   </div>
                 </div>
@@ -1029,10 +1029,10 @@ export function TriageEvaluator({
                       key={w}
                       type="button"
                       onClick={() => setPesoKg(w)}
-                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${
+                      className={`text-xs font-bold px-3 py-2 rounded-full border transition-all duration-200 cursor-pointer ${
                         pesoKg === w
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white border-transparent shadow-lg shadow-emerald-600/20'
+                          : 'bg-slate-950/40 border-slate-700 text-slate-300 hover:border-cyan-400/50 hover:text-cyan-200'
                       }`}
                     >
                       {w} kg
@@ -1045,14 +1045,14 @@ export function TriageEvaluator({
             {/* 3. Photo Upload & Preview with Photo Tips Accordion */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  3. Fotografía de la Evidencia Visible <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider">
+                  3. Fotografía de la Evidencia Visible <span className="text-amber-400">*</span>
                 </label>
 
                 <button
                   type="button"
                   onClick={() => setIsGuidanceModalOpen(true)}
-                  className="text-xs text-rose-600 font-bold hover:text-rose-700 flex items-center space-x-1.5 transition cursor-pointer"
+                  className="text-xs text-cyan-300 font-bold hover:text-cyan-200 flex items-center space-x-1.5 transition cursor-pointer"
                 >
                   <Camera className="w-3.5 h-3.5" />
                   <span>Guía Completa de Fotos</span>
@@ -1060,48 +1060,48 @@ export function TriageEvaluator({
               </div>
 
               {/* Accordion: Consejos para una foto diagnóstica precisa */}
-              <div className="bg-amber-50/70 border border-amber-200 rounded-2xl overflow-hidden transition">
+              <div className="bg-amber-500/10 border border-amber-400/30 rounded-2xl overflow-hidden transition">
                 <div
                   onClick={() => setIsGuidanceOpen(!isGuidanceOpen)}
-                  className="p-3.5 flex items-center justify-between cursor-pointer select-none bg-amber-50/90"
+                  className="p-3.5 flex items-center justify-between cursor-pointer select-none bg-amber-500/10"
                 >
-                  <div className="flex items-center space-x-2 text-xs font-bold text-amber-950">
-                    <Info className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <div className="flex items-center space-x-2 text-xs font-bold text-amber-100">
+                    <Info className="w-4 h-4 text-amber-400 flex-shrink-0" />
                     <span>Consejos para una foto diagnóstica precisa (Campo, Mucosas, Pezuñas y Heridas)</span>
                   </div>
-                  <button type="button" className="text-amber-800 p-1">
+                  <button type="button" className="text-amber-300 p-1">
                     {isGuidanceOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                 </div>
 
                 {isGuidanceOpen && (
-                  <div className="p-4 pt-1 border-t border-amber-200/80 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                    <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
-                      <div className="font-bold text-amber-900 flex items-center space-x-1">
+                  <div className="p-4 pt-1 border-t border-amber-400/20 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div className="p-3 bg-slate-950/40 rounded-xl border border-amber-400/20 space-y-1">
+                      <div className="font-bold text-amber-100 flex items-center space-x-1">
                         <span>🧪</span>
                         <span>Muestras de Campo (Diarreas / Salivación)</span>
                       </div>
-                      <p className="text-[11px] text-amber-800 leading-snug">
+                      <p className="text-[11px] text-amber-200/80 leading-snug">
                         Foto cenital a 90° con luz natural de día en corral o cama. Evita reflejo de flash sobre fluidos.
                       </p>
                     </div>
 
-                    <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
-                      <div className="font-bold text-amber-900 flex items-center space-x-1">
+                    <div className="p-3 bg-slate-950/40 rounded-xl border border-amber-400/20 space-y-1">
+                      <div className="font-bold text-amber-100 flex items-center space-x-1">
                         <span>👁️</span>
                         <span>Mucosas Oculares / Belfo (FAMACHA)</span>
                       </div>
-                      <p className="text-[11px] text-amber-800 leading-snug">
+                      <p className="text-[11px] text-amber-200/80 leading-snug">
                         Foto nítida a 20 cm retrayendo suavemente párpado inferior o belfo para ver si hay palidez por anemia.
                       </p>
                     </div>
 
-                    <div className="p-3 bg-white/80 rounded-xl border border-amber-200/60 space-y-1">
-                      <div className="font-bold text-amber-900 flex items-center space-x-1">
+                    <div className="p-3 bg-slate-950/40 rounded-xl border border-amber-400/20 space-y-1">
+                      <div className="font-bold text-amber-100 flex items-center space-x-1">
                         <span>🦶</span>
                         <span>Pezuñas / Aplomos / Heridas</span>
                       </div>
-                      <p className="text-[11px] text-amber-800 leading-snug">
+                      <p className="text-[11px] text-amber-200/80 leading-snug">
                         Toma macro del casco libre de barro o corte por alambre de púa, más toma amplia de postura del animal.
                       </p>
                     </div>
@@ -1111,13 +1111,13 @@ export function TriageEvaluator({
 
               {/* Upload Dropzone or Image Preview */}
               {!previewUrl ? (
-                <div className="border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-2xl p-6 bg-slate-50/60 text-center transition flex flex-col items-center justify-center space-y-4">
-                  <div className="w-14 h-14 rounded-2xl bg-rose-100/70 text-rose-600 flex items-center justify-center shadow-xs">
+                <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500/50 rounded-2xl p-6 bg-slate-950/40 text-center transition flex flex-col items-center justify-center space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center justify-center shadow-lg shadow-emerald-950/20">
                     <UploadCloud className="w-7 h-7" />
                   </div>
 
                   <div className="space-y-1 max-w-sm">
-                    <p className="text-xs sm:text-sm font-semibold text-slate-800">
+                    <p className="text-xs sm:text-sm font-semibold text-slate-100">
                       Carga la evidencia fotográfica del caso
                     </p>
                     <p className="text-[11px] text-slate-400">
@@ -1129,24 +1129,24 @@ export function TriageEvaluator({
                     <button
                       type="button"
                       onClick={() => cameraInputRef.current?.click()}
-                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-xs flex items-center space-x-2 transition cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white font-semibold text-xs shadow-lg shadow-emerald-600/20 flex items-center space-x-2 transition-all duration-200 cursor-pointer"
                     >
-                      <Camera className="w-4 h-4 text-rose-400" />
+                      <Camera className="w-4 h-4 text-white" />
                       <span>Tomar Foto con Cámara</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold text-xs shadow-2xs flex items-center space-x-2 transition cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl bg-slate-950/50 border border-slate-700 hover:border-cyan-400/50 hover:bg-slate-800/70 text-slate-200 font-semibold text-xs flex items-center space-x-2 transition-all duration-200 cursor-pointer"
                     >
-                      <ImageIcon className="w-4 h-4 text-slate-500" />
+                      <ImageIcon className="w-4 h-4 text-cyan-300" />
                       <span>Subir desde Galería</span>
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center max-h-80 shadow-inner">
+                <div className="relative rounded-2xl overflow-hidden border border-emerald-500/20 bg-slate-950 flex items-center justify-center max-h-80 shadow-inner">
                   <img
                     src={previewUrl}
                     alt="Evidencia clínica del paciente"
@@ -1174,17 +1174,17 @@ export function TriageEvaluator({
               )}
 
               {isCompressing && (
-                <div className="flex items-center space-x-2 text-xs font-semibold text-slate-600 bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                <div className="flex items-center space-x-2 text-xs font-semibold text-slate-200 bg-slate-950/50 p-2.5 rounded-xl border border-slate-700/60">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
                   <span>Optimizando fotografía para transmisión rápida...</span>
                 </div>
               )}
 
               {isOptimized && !isCompressing && (
-                <div className="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl">
-                  <Zap className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                <div className="flex items-center space-x-2 text-xs font-bold text-emerald-200 bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-2 rounded-xl">
+                  <Zap className="w-3.5 h-3.5 text-emerald-300 animate-pulse" />
                   <span>Foto optimizada para envío rápido ⚡</span>
-                  <span className="text-[11px] text-emerald-600 font-normal">
+                  <span className="text-[11px] text-emerald-300/80 font-normal">
                     (~{(selectedFile?.size / 1024).toFixed(0)} KB listos para inferencia acelerada)
                   </span>
                 </div>
@@ -1214,8 +1214,8 @@ export function TriageEvaluator({
             {/* 4. Symptoms Description */}
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  4. Síntomas y Comportamiento Clínico <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider">
+                  4. Síntomas y Comportamiento Clínico <span className="text-amber-400">*</span>
                 </label>
                 <VoiceRecordButton
                   onTranscriptionComplete={handleVoiceTranscription}
@@ -1227,15 +1227,15 @@ export function TriageEvaluator({
               </div>
 
               {voiceSuccessMessage && (
-                <div className="mb-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center justify-between shadow-sm animate-fadeIn">
+                <div className="mb-2.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-400/40 text-emerald-100 text-xs font-bold flex items-center justify-between shadow-sm animate-fadeIn">
                   <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-300 flex-shrink-0" />
                     <span>{voiceSuccessMessage}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setVoiceSuccessMessage('')}
-                    className="text-emerald-700 hover:text-emerald-900 text-xs font-bold px-1"
+                    className="text-emerald-300 hover:text-emerald-100 text-xs font-bold px-1"
                     aria-label="Cerrar notificación"
                   >
                     ✕
@@ -1261,18 +1261,18 @@ export function TriageEvaluator({
                 disabled={loading}
                 aria-label="Descripción de síntomas y comportamiento clínico del paciente"
                 placeholder="Describe qué sucedió, tiempo desde el inicio, postura de dolor, vómito, color de encías, sangrado o dificultad respiratoria..."
-                className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
+                className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-xs sm:text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition"
               />
             </div>
 
             {/* 5. Celular / WhatsApp para contacto de urgencia */}
-            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/90 space-y-2">
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 space-y-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <label className="block text-xs font-black text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
-                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                <label className="block text-xs font-black text-slate-100 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Phone className="w-3.5 h-3.5 text-emerald-300" />
                   <span>Celular / WhatsApp para contacto de urgencia:</span>
                 </label>
-                <span className="text-[10px] text-emerald-700 font-semibold">
+                <span className="text-[10px] text-emerald-300 font-semibold">
                   Se incluirá automáticamente en la derivación SOS de WhatsApp
                 </span>
               </div>
@@ -1296,31 +1296,31 @@ export function TriageEvaluator({
                   disabled={loading}
                   aria-label="Celular / WhatsApp para contacto de urgencia"
                   placeholder="Ej: 3123456789"
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-emerald-300 bg-white text-slate-900 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500 outline-none transition"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-xs sm:text-sm font-semibold placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition"
                 />
-                <Phone className="w-4 h-4 text-emerald-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Phone className="w-4 h-4 text-emerald-300 absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
             </div>
           </div>
 
           {/* Action Footer */}
-          <div className="bg-slate-50 px-6 sm:px-8 py-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-2 text-xs text-slate-500">
-              <Activity className="w-4 h-4 text-rose-500" />
+          <div className="bg-slate-950/40 px-6 sm:px-8 py-5 border-t border-slate-700/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-2 text-xs text-slate-400">
+              <Activity className="w-4 h-4 text-cyan-400" />
               <span>Inferencia Multimodal con Google Gemini 2.5 Flash</span>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-sm shadow-lg shadow-rose-600/30 transition transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2.5 cursor-pointer"
+              className="w-full sm:w-auto px-8 bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 shadow-lg shadow-emerald-600/20 text-white font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2.5 cursor-pointer"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin text-white" />
                   <div className="flex items-center space-x-1.5 text-left">
                     <span>{getLoadingMessage()}</span>
-                    <span className="text-rose-200 text-xs font-mono">({loadingSeconds}s)</span>
+                    <span className="text-emerald-100/80 text-xs font-mono">({loadingSeconds}s)</span>
                   </div>
                 </>
               ) : (
@@ -1338,16 +1338,16 @@ export function TriageEvaluator({
       {/* PASO 2: TEST CLÍNICO RÁPIDO DE CONFIRMACIÓN (3 PREGUNTAS SÍ/NO) */}
       {/* ============================================================ */}
       {step === 'confirm_test' && preliminaryResult && (
-        <div className="bg-white rounded-3xl shadow-xl border-2 border-rose-200 p-6 sm:p-8 space-y-6 animate-in zoom-in-95 duration-200">
-          <div className="space-y-2 border-b border-slate-100 pb-5">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold uppercase tracking-wider">
-              <Stethoscope className="w-3.5 h-3.5 text-rose-500" />
+        <div className="backdrop-blur-md bg-slate-900/70 rounded-3xl shadow-xl shadow-emerald-950/10 border border-emerald-500/20 p-6 sm:p-8 space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="space-y-2 border-b border-slate-700/50 pb-5">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-200 text-xs font-bold uppercase tracking-wider">
+              <Stethoscope className="w-3.5 h-3.5 text-cyan-300" />
               <span>Paso de Validación Médica</span>
             </div>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h3 className="text-xl sm:text-2xl font-black text-slate-50 tracking-tight">
               Test Clínico Rápido de Confirmación (3 preguntas)
             </h3>
-            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
               La IA ha evaluado la muestra como <strong>{preliminaryResult.urgency_level}</strong>. Responde estas 3 preguntas rápidas de inspección física para confirmar con máxima precisión el semáforo final y desbloquear el protocolo de urgencias.
             </p>
           </div>
@@ -1357,13 +1357,13 @@ export function TriageEvaluator({
             {testQuestions.map((item, idx) => (
               <div
                 key={item.id}
-                className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-3 transition hover:border-slate-300"
+                className="p-5 rounded-2xl border border-slate-700/60 bg-slate-950/40 space-y-3 transition hover:border-emerald-500/30"
               >
                 <div className="flex items-start space-x-3">
-                  <div className="w-7 h-7 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
                     {idx + 1}
                   </div>
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-800 leading-snug">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-100 leading-snug">
                     {item.question}
                   </h4>
                 </div>
@@ -1375,7 +1375,7 @@ export function TriageEvaluator({
                     className={`py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition cursor-pointer ${
                       testAnswers[item.id] === true
                         ? 'bg-red-600 text-white border-red-600 shadow-md shadow-red-600/30'
-                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        : 'bg-slate-950/40 text-slate-300 border-slate-700 hover:border-rose-400/40 hover:text-rose-200'
                     }`}
                   >
                     <Check className="w-4 h-4" />
@@ -1387,8 +1387,8 @@ export function TriageEvaluator({
                     onClick={() => setTestAnswers((prev) => ({ ...prev, [item.id]: false }))}
                     className={`py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition cursor-pointer ${
                       testAnswers[item.id] === false
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-md'
-                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white border-transparent shadow-md shadow-emerald-600/20'
+                        : 'bg-slate-950/40 text-slate-300 border-slate-700 hover:border-cyan-400/40 hover:text-cyan-200'
                     }`}
                   >
                     <X className="w-4 h-4" />
@@ -1400,8 +1400,8 @@ export function TriageEvaluator({
           </div>
 
           {/* Action Button */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
-            <span className="text-xs text-slate-500">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-700/50">
+            <span className="text-xs text-slate-400">
               {Object.values(testAnswers).filter((v) => v !== null).length} de 3 respondidas
             </span>
 
@@ -1409,7 +1409,7 @@ export function TriageEvaluator({
               type="button"
               onClick={handleConfirmPronostico}
               disabled={loading}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-black text-sm shadow-xl shadow-rose-600/30 transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto px-8 bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 shadow-lg shadow-emerald-600/20 text-white font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <>

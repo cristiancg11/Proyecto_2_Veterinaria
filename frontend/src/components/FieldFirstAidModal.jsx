@@ -220,9 +220,9 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-4xl rounded-3xl shadow-2xl shadow-emerald-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-6 text-white flex items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/70 p-6 text-white flex items-center justify-between gap-4 border-b border-white/10">
           <div className="flex items-center space-x-3.5">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center flex-shrink-0 shadow-inner">
               <BookOpen className="w-6 h-6" />
@@ -254,10 +254,10 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
         </div>
 
         {/* Content Layout: Left Nav + Right Details */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-slate-200 bg-slate-50/50">
+        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-white/10 bg-slate-950/40">
           {/* Left Index */}
-          <div className="md:col-span-4 p-4 space-y-2 bg-slate-100/60 overflow-y-auto max-h-72 md:max-h-none">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 block px-2 mb-1">
+          <div className="md:col-span-4 p-4 space-y-2 bg-white/[0.02] overflow-y-auto max-h-72 md:max-h-none">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 block px-2 mb-1">
               Emergencias Frecuentes en Finca
             </span>
             {FIRST_AID_GUIDELINES.map((item) => {
@@ -270,15 +270,15 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                   onClick={() => setSelectedId(item.id)}
                   className={`w-full text-left p-3 rounded-2xl transition flex items-start space-x-3 cursor-pointer ${
                     isSelected
-                      ? 'bg-white shadow-sm border border-emerald-500/40 ring-2 ring-emerald-500/20'
-                      : 'hover:bg-white/70 border border-transparent text-slate-600'
+                      ? 'bg-emerald-500/10 shadow-sm border border-emerald-500/40 ring-2 ring-emerald-500/20'
+                      : 'hover:bg-white/5 border border-transparent text-slate-400'
                   }`}
                 >
                   <div
                     className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
                       isSelected
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-slate-200 text-slate-600'
+                        ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-950/40'
+                        : 'bg-slate-800 text-slate-400'
                     }`}
                   >
                     <ItemIcon className="w-4 h-4" />
@@ -286,45 +286,45 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                   <div className="flex-1 min-w-0">
                     <h5
                       className={`text-xs font-bold truncate leading-tight ${
-                        isSelected ? 'text-slate-900' : 'text-slate-700'
+                        isSelected ? 'text-white' : 'text-slate-300'
                       }`}
                     >
                       {item.title}
                     </h5>
-                    <span className="text-[11px] text-slate-400 block truncate">
+                    <span className="text-[11px] text-slate-500 block truncate">
                       {item.species}
                     </span>
                   </div>
-                  {isSelected && <ChevronRight className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-1" />}
+                  {isSelected && <ChevronRight className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-1" />}
                 </button>
               );
             })}
           </div>
 
           {/* Right Detailed Procedure */}
-          <div className="md:col-span-8 p-6 sm:p-8 space-y-6 bg-white overflow-y-auto">
+          <div className="md:col-span-8 p-6 sm:p-8 space-y-6 bg-slate-950/30 overflow-y-auto">
             {/* Header of selected guide */}
-            <div className="space-y-2 border-b border-slate-100 pb-5">
+            <div className="space-y-2 border-b border-white/10 pb-5">
               <div className="flex flex-wrap items-center gap-2">
                 <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${currentGuide.badgeColor}`}>
                   {currentGuide.badge}
                 </span>
-                <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                <span className="text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
                   Especie: {currentGuide.species}
                 </span>
               </div>
-              <h4 className="text-xl sm:text-2xl font-black text-slate-900">
+              <h4 className="text-xl sm:text-2xl font-black text-white">
                 {currentGuide.title}
               </h4>
-              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-950 text-xs sm:text-sm leading-relaxed">
-                <strong className="block font-bold text-amber-900 mb-0.5">Signos Clave de Identificación en Terreno:</strong>
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-400/30 text-amber-100 text-xs sm:text-sm leading-relaxed">
+                <strong className="block font-bold text-amber-300 mb-0.5">Signos Clave de Identificación en Terreno:</strong>
                 {currentGuide.symptoms}
               </div>
             </div>
 
             {/* Protocol Steps */}
             <div className="space-y-4">
-              <h5 className="text-xs font-black uppercase tracking-wider text-slate-500">
+              <h5 className="text-xs font-black uppercase tracking-wider text-slate-400">
                 Secuencia Inmediata de Acción en Campo:
               </h5>
 
@@ -332,14 +332,14 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                 {currentGuide.steps.map((s) => (
                   <div
                     key={s.step}
-                    className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start space-x-4 shadow-2xs hover:border-slate-300 transition"
+                    className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex items-start space-x-4 hover:border-emerald-500/30 transition"
                   >
-                    <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-950/40">
                       {s.step}
                     </div>
                     <div className="space-y-1">
-                      <h6 className="font-extrabold text-sm text-slate-900">{s.title}</h6>
-                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{s.desc}</p>
+                      <h6 className="font-extrabold text-sm text-white">{s.title}</h6>
+                      <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{s.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -347,9 +347,9 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
             </div>
 
             {/* Warning Note */}
-            <div className="p-4 rounded-2xl bg-slate-900 text-white flex items-start space-x-3 text-xs">
+            <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 flex items-start space-x-3 text-xs">
               <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <p className="leading-relaxed text-slate-300">
+              <p className="leading-relaxed text-slate-400">
                 <strong className="text-white">Aviso Clínico Importante:</strong> Estas pautas constituyen maniobras de estabilización de soporte en faena. Todo cuadro crítico debe ser valorado presencialmente por un médico veterinario zootécnico colegiado.
               </p>
             </div>
@@ -357,14 +357,14 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:px-8 border-t border-slate-200 bg-white flex items-center justify-between">
+        <div className="p-4 sm:px-8 border-t border-white/10 bg-white/[0.03] flex items-center justify-between">
           <span className="text-xs text-slate-500">
             Manual de Urgencias Pecuarias VetIA • Soporte Asistido
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 transition cursor-pointer"
           >
             Entendido / Cerrar Guía
           </button>

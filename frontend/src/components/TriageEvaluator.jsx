@@ -1174,9 +1174,12 @@ export function TriageEvaluator({
               )}
 
               {isCompressing && (
-                <div className="flex items-center space-x-2 text-xs font-semibold text-slate-200 bg-slate-950/50 p-2.5 rounded-xl border border-slate-700/60">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
-                  <span>Optimizando fotografía para transmisión rápida...</span>
+                <div className="flex items-center space-x-2 text-xs font-semibold text-slate-200 bg-slate-950/50 p-2.5 rounded-xl border border-emerald-500/30">
+                  <span className="relative flex h-3 w-3 flex-shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
+                  </span>
+                  <span className="animate-pulse">Optimizando fotografía para transmisión rápida...</span>
                 </div>
               )}
 

@@ -87,17 +87,17 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
 
   return (
     <>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex justify-end transition-opacity">
-        <div className="bg-white w-full max-w-xl min-h-screen shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex justify-end transition-opacity">
+        <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-xl min-h-screen shadow-2xl shadow-emerald-950/40 border-l border-white/10 flex flex-col animate-in slide-in-from-right duration-300">
           {/* Modal Header */}
-          <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
             <div className="flex items-center space-x-2.5">
-              <div className="p-2.5 bg-rose-100 text-rose-600 rounded-xl shadow-xs">
+              <div className="p-2.5 bg-emerald-500/15 text-emerald-300 rounded-xl shadow-lg shadow-emerald-950/20 border border-emerald-500/30">
                 <Database className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 text-lg">Historial de Consultas de Triage</h3>
-                <p className="text-xs text-slate-500">
+                <h3 className="font-bold text-white text-lg">Historial de Consultas de Triage</h3>
+                <p className="text-xs text-slate-400">
                   Base de datos en tiempo real Supabase (`triage_records`)
                 </p>
               </div>
@@ -109,14 +109,14 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                 onClick={fetchSupabaseHistory}
                 disabled={loading}
                 title="Actualizar historial"
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition cursor-pointer"
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-rose-600' : ''}`} />
+                <RefreshCw className={`w-4 h-4 transition-all duration-200 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition cursor-pointer"
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -126,23 +126,32 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
           {/* Modal Body */}
           <div className="flex-1 p-6 overflow-y-auto space-y-4">
             {queryError && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <div className="p-3 bg-amber-500/10 border border-amber-400/30 rounded-xl text-amber-100 text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
                 <span>Aviso de sincronización Supabase: {queryError}</span>
               </div>
             )}
 
             {loading && combinedRecords.length === 0 ? (
-              <div className="text-center py-16 px-4">
-                <RefreshCw className="w-8 h-8 text-rose-500 animate-spin mx-auto mb-3" />
-                <p className="text-xs text-slate-500">Cargando consultas anteriores desde Supabase...</p>
+              <div className="space-y-3 py-6" aria-busy="true">
+                {[0, 1, 2].map((item) => (
+                  <div key={item} className="animate-pulse rounded-2xl border border-slate-700/50 bg-slate-900/60 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 w-28 rounded-full bg-emerald-500/30" />
+                      <div className="h-3 w-16 rounded-full bg-slate-700" />
+                    </div>
+                    <div className="h-3 w-full rounded-full bg-slate-800" />
+                    <div className="h-3 w-2/3 rounded-full bg-slate-800" />
+                  </div>
+                ))}
+                <p className="text-xs text-slate-400 text-center">Cargando consultas anteriores desde Supabase...</p>
               </div>
             ) : combinedRecords.length === 0 ? (
               <div className="text-center py-16 px-4">
-                <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                <div className="w-12 h-12 rounded-full bg-white/[0.04] text-slate-400 flex items-center justify-center mx-auto mb-3 border border-white/10">
                   <AlertCircle className="w-6 h-6" />
                 </div>
-                <h4 className="font-semibold text-slate-700 text-sm">No hay consultas registradas</h4>
+                <h4 className="font-semibold text-slate-200 text-sm">No hay consultas registradas</h4>
                 <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
                   Las evaluaciones de triaje analizadas por la IA se guardarán automáticamente en tu expediente con su evidencia gráfica.
                 </p>
@@ -151,18 +160,18 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
               combinedRecords.map((record, index) => {
                 const urgency = (record.urgency_level || 'MODERADO').toUpperCase();
                 const badgeStyle = {
-                  CRITICO: 'bg-red-100 text-red-700 border-red-200',
-                  CRITICAL: 'bg-red-100 text-red-700 border-red-200',
-                  RED: 'bg-red-100 text-red-700 border-red-200',
-                  URGENTE: 'bg-orange-100 text-orange-700 border-orange-200',
-                  ORANGE: 'bg-orange-100 text-orange-700 border-orange-200',
-                  MODERADO: 'bg-amber-100 text-amber-800 border-amber-200',
-                  MODERATE: 'bg-amber-100 text-amber-800 border-amber-200',
-                  YELLOW: 'bg-amber-100 text-amber-800 border-amber-200',
-                  LEVE: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                  MILD: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                  GREEN: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                }[urgency] || 'bg-slate-100 text-slate-700 border-slate-200';
+                  CRITICO: 'bg-red-500/15 text-red-300 border-red-500/40',
+                  CRITICAL: 'bg-red-500/15 text-red-300 border-red-500/40',
+                  RED: 'bg-red-500/15 text-red-300 border-red-500/40',
+                  URGENTE: 'bg-orange-500/15 text-orange-300 border-orange-500/40',
+                  ORANGE: 'bg-orange-500/15 text-orange-300 border-orange-500/40',
+                  MODERADO: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+                  MODERATE: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+                  YELLOW: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+                  LEVE: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+                  MILD: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+                  GREEN: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+                }[urgency] || 'bg-slate-500/15 text-slate-300 border-slate-500/40';
 
                 const formattedDate = record.created_at
                   ? new Date(record.created_at).toLocaleDateString('es-CO', {
@@ -186,7 +195,7 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                 return (
                   <div
                     key={record.id || index}
-                    className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition shadow-2xs space-y-3"
+                    className="p-4 rounded-2xl border border-slate-700/50 bg-slate-950/40 hover:border-emerald-500/30 transition shadow-lg shadow-emerald-950/10 space-y-3"
                   >
                     <div className="flex items-center justify-between">
                       <span
@@ -205,38 +214,38 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                         <img
                           src={record.image_url}
                           alt="Evidencia clínica"
-                          className="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0 bg-slate-100 shadow-2xs"
+                          className="w-16 h-16 rounded-xl object-cover border border-slate-700/60 flex-shrink-0 bg-slate-900 shadow-lg"
                           onError={(e) => {
                             e.target.style.display = 'none';
                           }}
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-xl bg-slate-100 text-slate-400 flex flex-col items-center justify-center text-[10px] font-semibold flex-shrink-0 border border-slate-200">
-                          <ImageIcon className="w-5 h-5 text-slate-400 mb-0.5" />
+                        <div className="w-16 h-16 rounded-xl bg-slate-900 text-slate-500 flex flex-col items-center justify-center text-[10px] font-semibold flex-shrink-0 border border-slate-700/60">
+                          <ImageIcon className="w-5 h-5 text-slate-500 mb-0.5" />
                           <span>Sin foto</span>
                         </div>
                       )}
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h5 className="font-bold text-slate-900 text-sm truncate">
+                          <h5 className="font-bold text-white text-sm truncate">
                             {speciesName}
                           </h5>
                           {record.weight_kg && (
-                            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center space-x-1">
-                              <Scale className="w-3 h-3 text-slate-400" />
+                            <span className="text-[11px] font-semibold text-slate-300 bg-white/[0.04] border border-white/10 px-2 py-0.5 rounded-md flex items-center space-x-1">
+                              <Scale className="w-3 h-3 text-cyan-300" />
                               <span>{record.weight_kg} kg</span>
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-600 line-clamp-2 mt-1">
+                        <p className="text-xs text-slate-300 line-clamp-2 mt-1">
                           {descriptionText}
                         </p>
                       </div>
                     </div>
 
-                    <div className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed line-clamp-2">
-                      <span className="font-bold text-slate-900">Diagnóstico: </span>
+                    <div className="text-xs text-slate-200 bg-slate-900/60 p-3 rounded-xl border border-slate-700/50 leading-relaxed line-clamp-2">
+                      <span className="font-bold text-emerald-300">Diagnóstico: </span>
                       {assessmentText}
                     </div>
 
@@ -266,19 +275,19 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                             created_at: record.created_at,
                           });
                         }}
-                        className="px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-200 text-xs font-bold shadow-lg shadow-emerald-950/10 flex items-center space-x-1.5 transition cursor-pointer"
                         title="Re-descargar Ficha Clínica en PDF"
                       >
-                        <Download className="w-3.5 h-3.5 text-emerald-600" />
+                        <Download className="w-3.5 h-3.5 text-emerald-400" />
                         <span>Descargar PDF</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setSelectedRecordForSheet(record)}
-                        className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-slate-950/60 border border-white/10 hover:border-cyan-400/50 text-slate-100 text-xs font-semibold shadow-lg flex items-center space-x-1.5 transition cursor-pointer"
                       >
-                        <FileText className="w-3.5 h-3.5 text-rose-400" />
+                        <FileText className="w-3.5 h-3.5 text-cyan-300" />
                         <span>Ver Ficha Completa</span>
                       </button>
                     </div>
@@ -289,14 +298,14 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
           </div>
 
           {/* Modal Footer */}
-          <div className="p-4 px-6 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+          <div className="p-4 px-6 border-t border-white/10 bg-white/[0.03] flex items-center justify-between">
             <span className="text-xs text-slate-400">
               {combinedRecords.length} registros en Supabase
             </span>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold transition cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-emerald-600/20 transition cursor-pointer"
             >
               Cerrar
             </button>

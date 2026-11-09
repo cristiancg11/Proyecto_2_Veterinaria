@@ -191,9 +191,9 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[460px] max-h-[600px]">
+    <div className="backdrop-blur-md bg-slate-900/70 rounded-2xl shadow-xl shadow-emerald-950/20 border border-slate-700/50 overflow-hidden flex flex-col h-full min-h-[460px] max-h-[600px]">
       {/* Real-time Connection Status Pill & Cancellation Header */}
-      <div className="px-4 py-2.5 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between text-xs select-none">
+      <div className="px-4 py-2.5 bg-slate-950/50 border-b border-slate-700/50 flex items-center justify-between text-xs select-none">
         <div className="flex items-center space-x-2">
           <span className="flex h-2 w-2 relative">
             <span
@@ -207,7 +207,7 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
               }`}
             />
           </span>
-          <span className="font-bold text-slate-700">
+          <span className="font-bold text-slate-100">
             {isTyping ? 'Consultando al Asistente VetIA...' : 'Conectado con Asistente VetIA'}
           </span>
           <span className="text-[11px] text-slate-400 hidden sm:inline">• Paciente: {petType}</span>
@@ -217,17 +217,17 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
           <button
             type="button"
             onClick={handleCancelQuery}
-            className="text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-lg flex items-center space-x-1 cursor-pointer transition shadow-2xs"
+            className="text-[11px] font-bold text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/40 px-2.5 py-1 rounded-lg flex items-center space-x-1 cursor-pointer transition shadow-lg shadow-rose-950/20"
             title="Cancelar consulta en curso si no deseas esperar"
           >
-            <X className="w-3 h-3 text-rose-600" />
+            <X className="w-3 h-3 text-rose-400" />
             <span>Cancelar consulta</span>
           </button>
         )}
       </div>
 
       {/* Messages container */}
-      <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-950/30">
         {messages.map((msg, index) => {
           const isAi =
             msg.role === 'assistant' ||
@@ -242,23 +242,23 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
               }`}
             >
               {isAi && (
-                <div className="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-emerald-600/20">
                   <Bot className="w-4 h-4" />
                 </div>
               )}
 
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-sm ${
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-lg ${
                   isAi
-                    ? 'bg-white text-slate-800 border border-slate-200/80'
-                    : 'bg-gradient-to-r from-rose-600 to-red-600 text-white font-medium'
+                    ? 'bg-slate-900/80 text-slate-100 border border-slate-700/50'
+                    : 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-medium'
                 }`}
               >
                 {msg.content}
               </div>
 
               {!isAi && (
-                <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-full bg-white/[0.06] text-slate-300 flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10">
                   <User className="w-4 h-4" />
                 </div>
               )}
@@ -268,19 +268,19 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
 
         {loading && (
           <div className="flex items-start space-x-2.5 justify-start">
-            <div className="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5 animate-pulse shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5 animate-pulse shadow-lg shadow-emerald-600/20">
               <Bot className="w-4 h-4" />
             </div>
-            <div className="bg-white text-slate-600 rounded-2xl px-4 py-3 text-xs border border-slate-200 flex items-center space-x-2 shadow-sm">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-500" />
+            <div className="bg-slate-900/80 text-slate-300 rounded-2xl px-4 py-3 text-xs border border-slate-700/50 flex items-center space-x-2 shadow-lg">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
               <span>El Asistente VetIA está razonando sobre el caso clínico...</span>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+          <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-100 flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -289,14 +289,14 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
       </div>
 
       {/* Suggested Quick Prompts */}
-      <div className="p-2.5 px-4 bg-white border-t border-slate-200/80 overflow-x-auto flex space-x-2 no-scrollbar">
+      <div className="p-2.5 px-4 bg-slate-950/40 border-t border-slate-700/50 overflow-x-auto flex space-x-2 no-scrollbar">
         {QUICK_PROMPTS.map((prompt, idx) => (
           <button
             key={idx}
             type="button"
             disabled={loading}
             onClick={() => handleSendMessage(prompt)}
-            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 transition border border-slate-200/70 font-medium cursor-pointer"
+            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-900/70 hover:bg-emerald-500/15 hover:text-emerald-200 text-slate-300 transition border border-slate-700/60 font-medium cursor-pointer"
           >
             {prompt}
           </button>
@@ -304,7 +304,7 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
       </div>
 
       {/* Input controls */}
-      <div className="p-3 sm:p-4 bg-white border-t border-slate-200 flex items-center space-x-2">
+      <div className="p-3 sm:p-4 bg-slate-950/40 border-t border-slate-700/50 flex items-center space-x-2">
         <textarea
           rows={1}
           value={inputText}
@@ -312,14 +312,14 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
           onKeyDown={handleKeyDown}
           disabled={loading}
           placeholder="Escribe tu consulta adicional sobre primeros auxilios o síntomas..."
-          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none"
+          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 placeholder:text-slate-500 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none resize-none"
         />
 
         <button
           type="button"
           onClick={() => handleSendMessage()}
           disabled={loading || !inputText.trim()}
-          className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition disabled:opacity-40 flex items-center space-x-1.5 cursor-pointer"
+          className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition disabled:opacity-40 flex items-center space-x-1.5 cursor-pointer"
         >
           <Send className="w-4 h-4" />
           <span className="hidden sm:inline">Enviar</span>

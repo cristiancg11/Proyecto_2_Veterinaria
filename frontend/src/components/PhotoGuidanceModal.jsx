@@ -80,13 +80,13 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+        className="backdrop-blur-xl bg-slate-900/95 rounded-3xl max-w-2xl w-full shadow-2xl shadow-emerald-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-rose-950 text-white flex items-start justify-between">
+        <div className="relative p-6 bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/60 text-white flex items-start justify-between border-b border-white/10">
           <div className="space-y-1">
-            <div className="flex items-center space-x-2 text-rose-400 text-xs font-bold uppercase tracking-wider">
+            <div className="flex items-center space-x-2 text-emerald-300 text-xs font-bold uppercase tracking-wider">
               <Camera className="w-4 h-4" />
               <span>Guía para el Tutor</span>
             </div>
@@ -113,36 +113,36 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
           {GUIDANCE_TOPICS.map((topic) => (
             <div
               key={topic.id}
-              className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 hover:border-slate-300 transition"
+              className="bg-slate-950/40 border border-slate-700/50 rounded-2xl p-5 space-y-3 hover:border-emerald-500/30 transition"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl">{topic.icon}</span>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+                    <h4 className="font-bold text-white text-sm sm:text-base">
                       {topic.title}
                     </h4>
-                    <p className="text-xs text-slate-500">{topic.subtitle}</p>
+                    <p className="text-xs text-slate-400">{topic.subtitle}</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-full shadow-2xs">
+                <span className="text-[10px] font-bold px-2.5 py-1 bg-white/[0.04] border border-white/10 text-slate-300 rounded-full shadow-lg">
                   {topic.badge}
                 </span>
               </div>
 
               {/* Tips List */}
-              <ul className="space-y-2 text-xs text-slate-700">
+              <ul className="space-y-2 text-xs text-slate-300">
                 {topic.tips.map((tip, idx) => (
                   <li key={idx} className="flex items-start space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                     <span>{tip}</span>
                   </li>
                 ))}
               </ul>
 
               {/* Highlight Note */}
-              <div className="bg-rose-50/80 border border-rose-100 rounded-xl p-3 text-[11px] text-rose-900 flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-rose-500 flex-shrink-0" />
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-[11px] text-emerald-100 flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                 <span>
                   <strong>Tip Pro:</strong> {topic.exampleDesc}
                 </span>
@@ -151,11 +151,11 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
           ))}
 
           {/* Quick Warning */}
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 flex items-start space-x-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="p-4 bg-amber-500/10 border border-amber-400/30 rounded-2xl text-xs text-amber-100 flex items-start space-x-3">
+            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h5 className="font-bold">Prioridad Vital de Seguridad</h5>
-              <p className="mt-0.5 text-amber-800 leading-relaxed">
+              <h5 className="font-bold text-amber-200">Prioridad Vital de Seguridad</h5>
+              <p className="mt-0.5 text-amber-100/90 leading-relaxed">
                 Si tu mascota está sufriendo dolor extremo o se muestra agresiva por el estrés de la herida, no fuerces la toma fotográfica; tu seguridad y la del animal son prioritarias.
               </p>
             </div>
@@ -163,11 +163,11 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <div className="p-4 bg-white/[0.03] border-t border-white/10 flex justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer"
+            className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition cursor-pointer"
           >
             Entendido, volver a la consulta
           </button>

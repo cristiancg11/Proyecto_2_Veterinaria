@@ -32,12 +32,12 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-3xl rounded-3xl shadow-2xl shadow-emerald-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Controls (Hidden in Print) */}
-        <div className="p-4 px-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between print:hidden">
+        <div className="p-4 px-6 border-b border-white/10 bg-white/[0.03] flex items-center justify-between print:hidden">
           <div className="flex items-center space-x-2">
-            <span className="font-bold text-slate-800 text-sm">
+            <span className="font-bold text-white text-sm">
               Clinical Triage Referral Sheet (Vista de Impresión / Descarga)
             </span>
           </div>
@@ -54,7 +54,7 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
                   first_aid_actions: diagnosis.immediate_care_tips,
                 })
               }
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition cursor-pointer"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-bold shadow-lg shadow-emerald-950/40 transition cursor-pointer"
               title="Descargar Ficha en PDF"
             >
               <Download className="w-4 h-4" />
@@ -62,14 +62,14 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-slate-100 text-xs font-semibold transition"
             >
               <Printer className="w-4 h-4" />
               <span>Imprimir</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
             >
               <X className="w-5 h-5" />
             </button>

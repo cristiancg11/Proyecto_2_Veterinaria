@@ -21,25 +21,25 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
   const urgencyTheme = {
     CRITICAL: {
       hex: '#EF4444',
-      bg: 'bg-red-50 text-red-700 border-red-200',
+      bg: 'bg-red-500/15 text-red-300 border-red-500/40',
       label: 'Nivel Crítico',
       icon: AlertTriangle,
     },
     MODERATE: {
       hex: '#F59E0B',
-      bg: 'bg-amber-50 text-amber-700 border-amber-200',
+      bg: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
       label: 'Nivel Moderado',
       icon: AlertTriangle,
     },
     MILD: {
       hex: '#10B981',
-      bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      bg: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
       label: 'Nivel Leve',
       icon: CheckCircle2,
     },
   }[urgencyLevel] || {
     hex: '#F59E0B',
-    bg: 'bg-amber-50 text-amber-700 border-amber-200',
+    bg: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
     label: urgencyLevel,
     icon: AlertTriangle,
   };
@@ -60,22 +60,22 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[85vh] max-h-[700px] animate-in zoom-in-95 duration-200"
+        className="relative backdrop-blur-xl bg-slate-900/95 w-full max-w-3xl rounded-3xl shadow-2xl shadow-emerald-950/40 border border-white/10 overflow-hidden flex flex-col h-[85vh] max-h-[700px] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/80 flex items-center justify-between gap-3">
+        <div className="relative p-4 sm:p-5 border-b border-white/10 bg-white/[0.03] flex items-center justify-between gap-3">
           <div className="flex items-center space-x-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-600 to-red-500 text-white flex items-center justify-center shadow-md shadow-rose-500/20 flex-shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 text-white flex items-center justify-center shadow-lg shadow-emerald-600/25 flex-shrink-0">
               <Bot className="w-5 h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center space-x-2">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 truncate">
+                <h3 className="text-base sm:text-lg font-bold text-white truncate">
                   Asistente IA: Consulta de Triaje
                 </h3>
                 <span
@@ -85,7 +85,7 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
                   <span>{urgencyTheme.label}</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-500 truncate">
+              <p className="text-xs text-slate-400 truncate">
                 Contexto activo: {petType} • Caso #{diagnosis?.record_id ? diagnosis.record_id.slice(0, 8) : 'En vivo'}
               </p>
             </div>
@@ -94,7 +94,7 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition flex-shrink-0"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition flex-shrink-0"
             title="Cerrar modal"
           >
             <X className="w-5 h-5" />

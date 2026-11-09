@@ -19,30 +19,30 @@ const SEVERITY_THEMES = {
     hex: '#EF4444',
     title: 'NIVEL CRÍTICO (EMERGENCIA INMEDIATA)',
     sublabel: 'Riesgo Vital Inminente',
-    badgeBg: 'bg-[#EF4444]',
-    border: 'border-[#EF4444]',
-    bannerBg: 'bg-red-50/90',
-    accentText: 'text-[#EF4444]',
+    badgeBg: 'bg-red-600',
+    border: 'border-red-500/70',
+    bannerBg: 'bg-urgency-critical',
+    accentText: 'text-red-200',
     icon: AlertTriangle,
   },
   MODERATE: {
     hex: '#F59E0B',
     title: 'NIVEL MODERADO (ATENCIÓN PRIORITARIA)',
     sublabel: 'Urgencia Intermedia',
-    badgeBg: 'bg-[#F59E0B]',
-    border: 'border-[#F59E0B]',
-    bannerBg: 'bg-amber-50/90',
-    accentText: 'text-[#F59E0B]',
+    badgeBg: 'bg-amber-500',
+    border: 'border-amber-400/70',
+    bannerBg: 'bg-urgency-watch',
+    accentText: 'text-amber-100',
     icon: AlertTriangle,
   },
   MILD: {
     hex: '#10B981',
     title: 'NIVEL LEVE (MANEJO RUTINARIO)',
     sublabel: 'Baja Urgencia / Ambulatorio',
-    badgeBg: 'bg-[#10B981]',
-    border: 'border-[#10B981]',
-    bannerBg: 'bg-emerald-50/90',
-    accentText: 'text-[#10B981]',
+    badgeBg: 'bg-emerald-500',
+    border: 'border-emerald-400/60',
+    bannerBg: 'bg-urgency-preventive',
+    accentText: 'text-emerald-100',
     icon: CheckCircle2,
   },
 };
@@ -65,7 +65,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
   return (
     <>
       <div
-        className={`bg-white rounded-2xl shadow-sm border-2 ${currentTheme.border} overflow-hidden space-y-6 transition-all duration-300`}
+        className={`backdrop-blur-md bg-slate-900/75 rounded-2xl shadow-xl shadow-emerald-950/20 border ${currentTheme.border} overflow-hidden space-y-6 transition-all duration-300`}
         style={{ borderColor: currentTheme.hex }}
       >
         {/* Dynamic Urgency Level Top Banner */}
@@ -91,19 +91,19 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
                   Triaje Multimodal IA
                 </span>
                 <span className="text-xs text-slate-400">•</span>
-                <span className="text-xs font-medium text-slate-600">
+                <span className="text-xs font-medium text-slate-100">
                   {currentTheme.sublabel}
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 mt-0.5">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white mt-0.5 leading-snug">
                 {currentTheme.title}
               </h2>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white/90 border border-slate-300 text-slate-700 shadow-sm flex items-center space-x-1.5">
-              <Building2 className="w-4 h-4 text-slate-500" />
+            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-950/60 border border-white/20 text-white shadow-sm flex items-center space-x-1.5">
+              <Building2 className="w-4 h-4 text-cyan-300" />
               <span>{diagnosis.recommended_facility_type || 'Clínica Veterinaria'}</span>
             </span>
           </div>
@@ -114,12 +114,12 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           {/* Preliminary Clinical Assessment */}
           <div>
             <div className="flex items-center space-x-2 mb-2">
-              <HeartPulse className="w-4 h-4 text-slate-400" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Evaluación Clínica Preliminar
+              <HeartPulse className="w-4 h-4 text-emerald-300" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Síntomas identificados
               </h3>
             </div>
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 leading-relaxed text-sm">
+            <div className="p-4 rounded-xl bg-slate-950/45 border border-slate-700/60 text-slate-100 leading-relaxed text-sm">
               {diagnosis.preliminary_assessment}
             </div>
           </div>
@@ -127,8 +127,8 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           {/* Immediate First-Aid & Care Tips */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Primeros Auxilios y Recomendaciones Inmediatas
+              <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-200">
+                Tratamiento sugerido / Manejo
               </h3>
               <span className="text-[11px] font-semibold text-slate-400">
                 {diagnosis.immediate_care_tips?.length || 0} pautas prioritarias
@@ -139,7 +139,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
               {diagnosis.immediate_care_tips?.map((tip, index) => (
                 <li
                   key={index}
-                  className="flex items-start space-x-3 p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/80 text-sm text-slate-800 shadow-2xs hover:bg-slate-50 transition"
+                  className="flex items-start space-x-3 p-3.5 rounded-xl bg-slate-950/40 border border-slate-700/60 text-sm text-slate-100 hover:border-emerald-500/30 transition"
                 >
                   <div
                     className="w-6 h-6 rounded-lg text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5 shadow-sm"
@@ -154,18 +154,18 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           </div>
 
           {/* Featured AI Assistant CTA Button */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-rose-600 via-rose-700 to-red-600 text-white shadow-lg shadow-rose-600/20 border border-rose-500 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white shadow-lg shadow-emerald-950/30 border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="space-y-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start space-x-2">
                 <Sparkles className="w-4 h-4 text-amber-300" />
-                <span className="text-xs font-bold uppercase tracking-wider text-rose-100">
-                  Seguimiento Contextual en Vivo
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-200">
+                  Recomendación de visita médica
                 </span>
               </div>
               <h4 className="font-bold text-base text-white">
                 ¿Tienes dudas sobre los cuidados de tu mascota?
               </h4>
-              <p className="text-xs text-rose-100/90">
+              <p className="text-xs text-slate-300 leading-relaxed">
                 Pregunta al asistente IA con todo el contexto clínico de esta evaluación.
               </p>
             </div>
@@ -173,16 +173,16 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
             <button
               type="button"
               onClick={handleConsultAssistant}
-              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white text-rose-700 hover:bg-rose-50 font-bold text-sm shadow-md transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center space-x-2 flex-shrink-0 cursor-pointer"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-110 text-white font-semibold text-sm shadow-lg shadow-emerald-600/20 transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2 flex-shrink-0 cursor-pointer"
             >
-              <MessageSquare className="w-4 h-4 text-rose-600" />
+              <MessageSquare className="w-4 h-4 text-white" />
               <span>Consultar dudas con el Asistente IA sobre este caso</span>
             </button>
           </div>
 
           {/* Cloud Stored Image Reference if available */}
           {diagnosis.image_url && (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs text-slate-600">
+            <div className="p-3 bg-slate-950/40 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs text-slate-300">
               <span className="truncate max-w-xs sm:max-w-md">
                 Evidencia gráfica resguardada en el registro médico
               </span>
@@ -190,7 +190,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
                 href={diagnosis.image_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-rose-600 font-semibold hover:underline flex items-center space-x-1 flex-shrink-0"
+                className="text-cyan-300 font-semibold hover:underline flex items-center space-x-1 flex-shrink-0"
               >
                 <span>Ver Fotografía Analizada</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -217,9 +217,9 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           </div>
 
           {/* Medical & Legal Disclaimer */}
-          <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 space-y-1">
-            <div className="flex items-center space-x-2 font-bold text-amber-800">
-              <ShieldAlert className="w-4 h-4 text-amber-600" />
+          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-400/30 text-xs text-amber-50 space-y-1">
+            <div className="flex items-center space-x-2 font-bold text-amber-200">
+              <ShieldAlert className="w-4 h-4 text-amber-300" />
               <span>Aviso Médico y Responsabilidad</span>
             </div>
             <p className="leading-relaxed opacity-90">
@@ -230,11 +230,11 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
         </div>
 
         {/* Footer Navigation */}
-        <div className="bg-slate-50 px-6 sm:px-8 py-4 border-t border-slate-200 flex items-center justify-between">
+        <div className="bg-slate-950/40 px-6 sm:px-8 py-4 border-t border-slate-700/50 flex items-center justify-between">
           <button
             type="button"
             onClick={onReset}
-            className="flex items-center space-x-2 px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-sm font-semibold transition shadow-sm"
+            className="flex items-center space-x-2 px-5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/70 text-slate-200 hover:border-emerald-500/40 hover:text-emerald-200 text-sm font-semibold transition-all duration-200"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Nueva Consulta de Triaje</span>

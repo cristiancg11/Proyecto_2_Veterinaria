@@ -1047,7 +1047,7 @@ export function EmergencyMap({
               <div
                 key={clinic.id}
                 onClick={() => setSelectedClinicId(clinic.id)}
-                className={`p-5 rounded-2xl border transition cursor-pointer flex flex-col justify-between space-y-4 ${
+                className={`p-5 rounded-2xl border transition cursor-pointer flex flex-col justify-between space-y-4 render-pipeline-contain gpu-composite ${
                   isSelected
                     ? 'bg-[#EAF3F0]/60 dark:bg-[#176B55]/20 border-2 border-[#176B55] shadow-xs'
                     : 'bg-white dark:bg-[#162420] border-[#DCE6E0] dark:border-[#233630] hover:border-[#176B55]/50 shadow-xs'

@@ -87,17 +87,17 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
 
   return (
     <>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex justify-end transition-opacity">
-        <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-xl min-h-screen shadow-2xl shadow-indigo-950/40 border-l border-white/10 flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex justify-end transition-opacity">
+        <div className="bg-white dark:bg-[#162420] w-full max-w-xl min-h-screen shadow-2xl border-l border-[#DCE6E0] dark:border-[#233630] flex flex-col animate-in slide-in-from-right duration-300 gpu-composite">
           {/* Modal Header */}
-          <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
+          <div className="p-6 border-b border-[#DCE6E0] dark:border-[#233630] flex items-center justify-between bg-[#F4F7F5] dark:bg-[#162420]">
             <div className="flex items-center space-x-2.5">
-              <div className="p-2.5 bg-indigo-500/15 text-indigo-300 rounded-xl shadow-lg shadow-indigo-950/20 border border-indigo-500/30">
+              <div className="p-2.5 bg-[#EAF3F0] text-[#176B55] rounded-xl shadow-xs border border-[#DCE6E0]">
                 <Database className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-lg">Historial de Consultas de Triage</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="font-bold text-[#123B32] dark:text-white text-lg">Historial de Consultas de Triage</h3>
+                <p className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
                   Base de datos en tiempo real Supabase (`triage_records`)
                 </p>
               </div>
@@ -109,14 +109,14 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                 onClick={fetchSupabaseHistory}
                 disabled={loading}
                 title="Actualizar historial"
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                className="p-2 rounded-xl text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white hover:bg-white dark:hover:bg-[#1F2D29] transition cursor-pointer"
               >
-                <RefreshCw className={`w-4 h-4 transition-all duration-200 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
+                <RefreshCw className={`w-4 h-4 transition-all duration-200 ${loading ? 'animate-spin text-[#176B55]' : ''}`} />
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                className="p-2 rounded-xl text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white hover:bg-white dark:hover:bg-[#1F2D29] transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -126,8 +126,8 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
           {/* Modal Body */}
           <div className="flex-1 p-6 overflow-y-auto space-y-4">
             {queryError && (
-              <div className="p-3 bg-amber-500/10 border border-amber-400/30 rounded-xl text-amber-100 text-xs flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <div className="p-3 bg-[#FFF9F2] dark:bg-[#2A2114] border border-[#D77926]/30 rounded-xl text-[#D77926] text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-[#D77926] flex-shrink-0" />
                 <span>Aviso de sincronización Supabase: {queryError}</span>
               </div>
             )}
@@ -135,24 +135,24 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
             {loading && combinedRecords.length === 0 ? (
               <div className="space-y-3 py-6" aria-busy="true">
                 {[0, 1, 2].map((item) => (
-                  <div key={item} className="animate-pulse rounded-2xl border border-slate-700/50 bg-slate-900/60 p-4 space-y-3">
+                  <div key={item} className="animate-pulse rounded-2xl border border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#0F1A17] p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="h-3 w-28 rounded-full bg-indigo-500/30" />
-                      <div className="h-3 w-16 rounded-full bg-slate-700" />
+                      <div className="h-3 w-28 rounded-full bg-[#176B55]/20" />
+                      <div className="h-3 w-16 rounded-full bg-slate-200 dark:bg-slate-700" />
                     </div>
-                    <div className="h-3 w-full rounded-full bg-slate-800" />
-                    <div className="h-3 w-2/3 rounded-full bg-slate-800" />
+                    <div className="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-3 w-2/3 rounded-full bg-slate-200 dark:bg-slate-700" />
                   </div>
                 ))}
-                <p className="text-xs text-slate-400 text-center">Cargando consultas anteriores desde Supabase...</p>
+                <p className="text-xs text-[#66756F] dark:text-[#A3B8B0] text-center">Cargando consultas anteriores desde Supabase...</p>
               </div>
             ) : combinedRecords.length === 0 ? (
               <div className="text-center py-16 px-4">
-                <div className="w-12 h-12 rounded-full bg-white/[0.04] text-slate-400 flex items-center justify-center mx-auto mb-3 border border-white/10">
+                <div className="w-12 h-12 rounded-full bg-[#F4F7F5] dark:bg-[#0F1A17] text-[#66756F] flex items-center justify-center mx-auto mb-3 border border-[#DCE6E0] dark:border-[#233630]">
                   <AlertCircle className="w-6 h-6" />
                 </div>
-                <h4 className="font-semibold text-slate-200 text-sm">No hay consultas registradas</h4>
-                <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
+                <h4 className="font-semibold text-[#123B32] dark:text-white text-sm">No hay consultas registradas</h4>
+                <p className="text-xs text-[#66756F] dark:text-[#A3B8B0] mt-1 max-w-xs mx-auto">
                   Las evaluaciones de triaje analizadas por la IA se guardarán automáticamente en tu expediente con su evidencia gráfica.
                 </p>
               </div>
@@ -160,18 +160,18 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
               combinedRecords.map((record, index) => {
                 const urgency = (record.urgency_level || 'MODERADO').toUpperCase();
                 const badgeStyle = {
-                  CRITICO: 'bg-red-500/15 text-red-300 border-red-500/40',
-                  CRITICAL: 'bg-red-500/15 text-red-300 border-red-500/40',
-                  RED: 'bg-red-500/15 text-red-300 border-red-500/40',
-                  URGENTE: 'bg-orange-500/15 text-orange-300 border-orange-500/40',
-                  ORANGE: 'bg-orange-500/15 text-orange-300 border-orange-500/40',
-                  MODERADO: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
-                  MODERATE: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
-                  YELLOW: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
-                  LEVE: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40',
-                  MILD: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40',
-                  GREEN: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40',
-                }[urgency] || 'bg-slate-500/15 text-slate-300 border-slate-500/40';
+                  CRITICO: 'bg-[#FDECEE] text-[#C83D4D] border-[#C83D4D]/30',
+                  CRITICAL: 'bg-[#FDECEE] text-[#C83D4D] border-[#C83D4D]/30',
+                  RED: 'bg-[#FDECEE] text-[#C83D4D] border-[#C83D4D]/30',
+                  URGENTE: 'bg-[#FFF4EB] text-[#D77926] border-[#D77926]/30',
+                  ORANGE: 'bg-[#FFF4EB] text-[#D77926] border-[#D77926]/30',
+                  MODERADO: 'bg-[#FFF9F2] text-[#A97812] border-[#A97812]/30',
+                  MODERATE: 'bg-[#FFF9F2] text-[#A97812] border-[#A97812]/30',
+                  YELLOW: 'bg-[#FFF9F2] text-[#A97812] border-[#A97812]/30',
+                  LEVE: 'bg-[#EAF3F0] text-[#27825D] border-[#27825D]/30',
+                  MILD: 'bg-[#EAF3F0] text-[#27825D] border-[#27825D]/30',
+                  GREEN: 'bg-[#EAF3F0] text-[#27825D] border-[#27825D]/30',
+                }[urgency] || 'bg-[#F4F7F5] text-[#66756F] border-[#DCE6E0]';
 
                 const formattedDate = record.created_at
                   ? new Date(record.created_at).toLocaleDateString('es-CO', {
@@ -195,7 +195,7 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                 return (
                   <div
                     key={record.id || index}
-                    className="p-4 rounded-2xl border border-slate-700/50 bg-slate-950/40 hover:border-indigo-500/30 transition shadow-lg shadow-indigo-950/10 space-y-3"
+                    className="p-4 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#1F2D29]/40 hover:border-[#176B55]/50 transition shadow-xs space-y-3 render-pipeline-contain gpu-composite"
                   >
                     <div className="flex items-center justify-between">
                       <span
@@ -203,7 +203,7 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                       >
                         {urgency}
                       </span>
-                      <div className="flex items-center space-x-1.5 text-xs text-slate-400">
+                      <div className="flex items-center space-x-1.5 text-xs text-[#66756F] dark:text-[#A3B8B0]">
                         <Calendar className="w-3.5 h-3.5" />
                         <span>{formattedDate}</span>
                       </div>
@@ -214,38 +214,38 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                         <img
                           src={record.image_url}
                           alt="Evidencia clínica"
-                          className="w-16 h-16 rounded-xl object-cover border border-slate-700/60 flex-shrink-0 bg-slate-900 shadow-lg"
+                          className="w-16 h-16 rounded-xl object-cover border border-[#DCE6E0] dark:border-[#233630] flex-shrink-0 bg-[#F4F7F5] dark:bg-[#0F1A17] shadow-xs"
                           onError={(e) => {
                             e.target.style.display = 'none';
                           }}
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-xl bg-slate-900 text-slate-500 flex flex-col items-center justify-center text-[10px] font-semibold flex-shrink-0 border border-slate-700/60">
-                          <ImageIcon className="w-5 h-5 text-slate-500 mb-0.5" />
+                        <div className="w-16 h-16 rounded-xl bg-[#F4F7F5] dark:bg-[#0F1A17] text-[#66756F] flex flex-col items-center justify-center text-[10px] font-semibold flex-shrink-0 border border-[#DCE6E0] dark:border-[#233630]">
+                          <ImageIcon className="w-5 h-5 text-[#66756F] mb-0.5" />
                           <span>Sin foto</span>
                         </div>
                       )}
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h5 className="font-bold text-white text-sm truncate">
+                          <h5 className="font-bold text-[#123B32] dark:text-white text-sm truncate">
                             {speciesName}
                           </h5>
                           {record.weight_kg && (
-                            <span className="text-[11px] font-semibold text-slate-300 bg-white/[0.04] border border-white/10 px-2 py-0.5 rounded-md flex items-center space-x-1">
-                              <Scale className="w-3 h-3 text-cyan-300" />
+                            <span className="text-[11px] font-semibold text-[#176B55] bg-[#EAF3F0] border border-[#DCE6E0] dark:border-[#233630] px-2 py-0.5 rounded-md flex items-center space-x-1">
+                              <Scale className="w-3 h-3 text-[#176B55]" />
                               <span>{record.weight_kg} kg</span>
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-300 line-clamp-2 mt-1">
+                        <p className="text-xs text-[#66756F] dark:text-[#A3B8B0] line-clamp-2 mt-1">
                           {descriptionText}
                         </p>
                       </div>
                     </div>
 
-                    <div className="text-xs text-slate-200 bg-slate-900/60 p-3 rounded-xl border border-slate-700/50 leading-relaxed line-clamp-2">
-                      <span className="font-bold text-indigo-300">Diagnóstico: </span>
+                    <div className="text-xs text-[#1F2D29] dark:text-slate-200 bg-[#F4F7F5] dark:bg-[#0F1A17] p-3 rounded-xl border border-[#DCE6E0] dark:border-[#233630] leading-relaxed line-clamp-2">
+                      <span className="font-bold text-[#176B55]">Diagnóstico: </span>
                       {assessmentText}
                     </div>
 
@@ -275,19 +275,19 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
                             created_at: record.created_at,
                           });
                         }}
-                        className="px-3 py-1.5 rounded-xl border border-indigo-500/40 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-200 text-xs font-bold shadow-lg shadow-indigo-950/10 flex items-center space-x-1.5 transition cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl border border-[#176B55] bg-[#EAF3F0] hover:bg-[#D5E8E1] text-[#176B55] text-xs font-bold shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
                         title="Re-descargar Ficha Clínica en PDF"
                       >
-                        <Download className="w-3.5 h-3.5 text-indigo-400" />
+                        <Download className="w-3.5 h-3.5 text-[#176B55]" />
                         <span>Descargar PDF</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setSelectedRecordForSheet(record)}
-                        className="px-3.5 py-1.5 rounded-xl bg-slate-950/60 border border-white/10 hover:border-cyan-400/50 text-slate-100 text-xs font-semibold shadow-lg flex items-center space-x-1.5 transition cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] hover:bg-[#F4F7F5] text-[#1F2D29] dark:text-white text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
                       >
-                        <FileText className="w-3.5 h-3.5 text-cyan-300" />
+                        <FileText className="w-3.5 h-3.5 text-[#176B55]" />
                         <span>Ver Ficha Completa</span>
                       </button>
                     </div>
@@ -298,14 +298,14 @@ export function HistoryModal({ isOpen, onClose, history = [], onRefresh = null }
           </div>
 
           {/* Modal Footer */}
-          <div className="p-4 px-6 border-t border-white/10 bg-white/[0.03] flex items-center justify-between">
-            <span className="text-xs text-slate-400">
+          <div className="p-4 px-6 border-t border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#162420] flex items-center justify-between">
+            <span className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
               {combinedRecords.length} registros en Supabase
             </span>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/20 transition cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white text-xs sm:text-sm font-semibold shadow-xs transition cursor-pointer"
             >
               Cerrar
             </button>

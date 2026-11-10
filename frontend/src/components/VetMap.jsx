@@ -11,8 +11,8 @@ function createUserIcon() {
     className: 'custom-user-marker',
     html: `
       <div style="position: relative; width: 24px; height: 24px;">
-        <div style="position: absolute; width: 24px; height: 24px; border-radius: 50%; background: rgba(59, 130, 246, 0.3); animation: pulse-ring 2s infinite ease-in-out;"></div>
-        <div style="position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: #2563eb; border: 3px solid #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>
+        <div style="position: absolute; width: 24px; height: 24px; border-radius: 50%; background: rgba(23, 107, 85, 0.3); animation: pulse-ring 2s infinite ease-in-out;"></div>
+        <div style="position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: #176B55; border: 3px solid #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>
       </div>
     `,
     iconSize: [24, 24],
@@ -22,7 +22,7 @@ function createUserIcon() {
 }
 
 function createClinicIcon(isEmergency) {
-  const bgColor = isEmergency ? '#ef4444' : '#06b6d4';
+  const bgColor = isEmergency ? '#C83D4D' : '#176B55';
   return L.divIcon({
     className: 'custom-clinic-marker',
     html: `
@@ -70,34 +70,34 @@ export function VetMap({ userLocation, clinics = [], urgencyLevel = 'MODERATE' }
   const userIcon = createUserIcon();
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[520px]">
+    <div className="bg-white dark:bg-[#162420] rounded-2xl shadow-xs border border-[#DCE6E0] dark:border-[#233630] overflow-hidden flex flex-col h-[520px]">
       {/* Map Header */}
-      <div className="p-4 px-6 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 bg-slate-50/70">
+      <div className="p-4 px-6 border-b border-[#DCE6E0] dark:border-[#233630] flex flex-wrap items-center justify-between gap-2 bg-[#F4F7F5] dark:bg-[#162420]">
         <div>
-          <h3 className="font-bold text-slate-900 text-sm flex items-center space-x-2">
-            <span>Nearby Veterinary Facilities</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-medium">
-              {clinics.length} Available
+          <h3 className="font-bold text-[#123B32] dark:text-white text-sm flex items-center space-x-2">
+            <span>Centros Veterinarios Cercanos</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[#EAF3F0] text-[#176B55] font-medium">
+              {clinics.length} Disponibles
             </span>
           </h3>
-          <p className="text-xs text-slate-500">
-            Real-time geolocated routing matched to evaluated patient urgency.
+          <p className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
+            Enrutamiento geolocalizado en tiempo real según nivel de severidad.
           </p>
         </div>
 
         {/* Legend */}
         <div className="flex items-center space-x-4 text-xs font-medium">
           <div className="flex items-center space-x-1.5">
-            <span className="w-3 h-3 rounded-full bg-blue-600 border border-white shadow-sm inline-block" />
-            <span className="text-slate-600">You</span>
+            <span className="w-3 h-3 rounded-full bg-[#176B55] border border-white shadow-xs inline-block" />
+            <span className="text-[#1F2D29] dark:text-white">Tú</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="w-3 h-3 rounded-full bg-rose-500 border border-white shadow-sm inline-block" />
-            <span className="text-slate-600">24H Emergency</span>
+            <span className="w-3 h-3 rounded-full bg-[#C83D4D] border border-white shadow-xs inline-block" />
+            <span className="text-[#1F2D29] dark:text-white">24H Urgencias</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="w-3 h-3 rounded-full bg-indigo-500 border border-white shadow-sm inline-block" />
-            <span className="text-slate-600">General Practice</span>
+            <span className="w-3 h-3 rounded-full bg-[#176B55] border border-white shadow-xs inline-block" />
+            <span className="text-[#1F2D29] dark:text-white">Consulta General</span>
           </div>
         </div>
       </div>

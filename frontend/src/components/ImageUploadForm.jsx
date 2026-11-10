@@ -92,39 +92,39 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="backdrop-blur-md bg-slate-900/70 rounded-2xl shadow-xl shadow-indigo-950/10 border border-slate-700/50 overflow-hidden"
+      className="bg-white dark:bg-[#162420] rounded-2xl shadow-xs border border-[#DCE6E0] dark:border-[#233630] overflow-hidden"
     >
       <div className="p-6 sm:p-8 space-y-6">
         <div>
-          <div className="flex items-center space-x-2 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-1">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
+          <div className="flex items-center space-x-2 text-[#176B55] dark:text-[#45A987] text-xs font-bold uppercase tracking-wider mb-1">
+            <Sparkles className="w-4 h-4 text-[#176B55]" />
             <span>Triaje Inteligente Multimodal</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-50 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#123B32] dark:text-white tracking-tight">
             Consulta de Triaje de Emergencia
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-[#66756F] dark:text-[#A3B8B0] mt-1">
             Sube una fotografía de la lesión o síntoma visible y describe el estado actual de tu mascota para una evaluación con IA en tiempo real.
           </p>
         </div>
 
         {validationError && (
-          <div className="flex items-center space-x-2 p-3.5 bg-rose-950/40 border border-rose-500/30 rounded-xl text-rose-100 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-300" />
+          <div className="flex items-center space-x-2 p-3.5 bg-[#FDECEE] border border-[#C83D4D]/30 rounded-xl text-[#C83D4D] text-sm">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-[#C83D4D]" />
             <span>{validationError}</span>
           </div>
         )}
 
         {/* 1. Pet Species Selection */}
         <div>
-          <label className="block text-sm font-semibold text-slate-200 mb-2">
-            1. Tipo de Mascota / Especie <span className="text-amber-400">*</span>
+          <label className="block text-sm font-semibold text-[#1F2D29] dark:text-slate-200 mb-2">
+            1. Tipo de Mascota / Especie <span className="text-[#C83D4D]">*</span>
           </label>
           <select
             value={petType}
             onChange={(e) => setPetType(e.target.value)}
             disabled={loading}
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
+            className="w-full px-4 py-2.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#0F1A17] text-[#1F2D29] dark:text-white text-sm focus:ring-2 focus:ring-[#176B55] focus:border-[#176B55] outline-none transition"
           >
             {PET_SPECIES_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -136,8 +136,8 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
 
         {/* 2. Image Drop Zone & Preview */}
         <div>
-          <label className="block text-sm font-semibold text-slate-200 mb-2">
-            2. Fotografía de la Evidencia Visible <span className="text-amber-400">*</span>
+          <label className="block text-sm font-semibold text-[#1F2D29] dark:text-slate-200 mb-2">
+            2. Fotografía de la Evidencia Visible <span className="text-[#C83D4D]">*</span>
           </label>
 
           {!previewUrl ? (
@@ -148,32 +148,32 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center ${
                 isDragging
-                  ? 'border-indigo-400 bg-indigo-500/10'
-                  : 'border-slate-700 hover:border-cyan-400/50 bg-slate-950/40'
+                  ? 'border-[#176B55] bg-[#EAF3F0]'
+                  : 'border-[#DCE6E0] hover:border-[#176B55] bg-[#F4F7F5] dark:bg-[#0F1A17]'
               }`}
             >
-              <div className="w-12 h-12 rounded-full bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300 mb-3 shadow-sm">
+              <div className="w-12 h-12 rounded-full bg-[#EAF3F0] border border-[#DCE6E0] flex items-center justify-center text-[#176B55] mb-3 shadow-xs">
                 <UploadCloud className="w-6 h-6" />
               </div>
-              <p className="text-sm font-medium text-slate-100">
+              <p className="text-sm font-medium text-[#1F2D29] dark:text-white">
                 Arrastra y suelta tu foto aquí, o{' '}
-                <span className="text-cyan-300 underline font-semibold">explora tus archivos</span>
+                <span className="text-[#176B55] underline font-semibold">explora tus archivos</span>
               </p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-[#66756F] dark:text-[#A3B8B0] mt-1">
                 Formatos compatibles: JPG, PNG, WebP (hasta 20MB). Compresión automática con Web Worker.
               </p>
             </div>
           ) : (
-            <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900/5 max-h-80 flex items-center justify-center">
+            <div className="relative rounded-xl overflow-hidden border border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#0F1A17] max-h-80 flex items-center justify-center">
               <img
                 src={previewUrl}
                 alt="Vista previa de la lesión o estado"
-                className="max-h-72 w-auto object-contain rounded-lg shadow-sm"
+                className="max-h-72 w-auto object-contain rounded-lg shadow-xs"
               />
               <button
                 type="button"
                 onClick={clearSelectedFile}
-                className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition shadow-md"
+                className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition shadow-md"
                 title="Cambiar fotografía"
               >
                 <X className="w-5 h-5" />
@@ -196,8 +196,8 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
 
         {/* 3. Symptoms Description */}
         <div>
-          <label className="block text-sm font-semibold text-slate-200 mb-2">
-            3. Síntomas y Comportamiento Observado <span className="text-amber-400">*</span>
+          <label className="block text-sm font-semibold text-[#1F2D29] dark:text-slate-200 mb-2">
+            3. Síntomas y Comportamiento Observado <span className="text-[#C83D4D]">*</span>
           </label>
           <textarea
             rows={4}
@@ -205,22 +205,22 @@ export function ImageUploadForm({ onSubmit, loading, isCompressing }) {
             onChange={(e) => setSymptomsDescription(e.target.value)}
             disabled={loading}
             placeholder="Describe qué ocurrió, hace cuánto tiempo comenzaron los síntomas, cambios de respiración, vómitos, postura de dolor o sangrado..."
-            className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
+            className="w-full px-4 py-3 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#0F1A17] text-[#1F2D29] dark:text-white text-sm placeholder:text-[#66756F] focus:ring-2 focus:ring-[#176B55] focus:border-[#176B55] outline-none transition"
           />
         </div>
       </div>
 
       {/* Action Footer */}
-      <div className="bg-slate-950/40 px-6 sm:px-8 py-4 border-t border-slate-700/50 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center space-x-2 text-xs text-slate-400">
-          <Cpu className="w-4 h-4 text-slate-400" />
+      <div className="bg-[#F4F7F5] dark:bg-[#162420] px-6 sm:px-8 py-4 border-t border-[#DCE6E0] dark:border-[#233630] flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center space-x-2 text-xs text-[#66756F] dark:text-[#A3B8B0]">
+          <Cpu className="w-4 h-4 text-[#66756F]" />
           <span>Procesamiento Multimodal + Gemini 2.5 Flash</span>
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full sm:w-auto px-7 bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 shadow-lg shadow-indigo-600/20 text-white font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          className="w-full sm:w-auto px-7 bg-[#176B55] hover:bg-[#135846] shadow-xs text-white font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
           {loading ? (
             <>

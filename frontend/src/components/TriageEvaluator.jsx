@@ -34,6 +34,8 @@ import {
 import { analyzeTriage } from '../services/api';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { usePreferences } from '../context/PreferencesContext';
+import { translations } from '../data/translations';
 import PhotoGuidanceModal from './PhotoGuidanceModal';
 import EmergencyMap from './EmergencyMap';
 import generateTriagePDF from '../utils/generateTriagePDF';
@@ -366,6 +368,8 @@ export function TriageEvaluator({
   onOpenChat,
   userCoordinates = null,
 }) {
+  const { language } = usePreferences();
+  const t = translations[language] || translations.es;
   const { user, userProfile, tutorPhone, updateTutorPhone } = useAuth();
 
   // Form states con Bovino como valor por defecto rural
@@ -898,7 +902,7 @@ export function TriageEvaluator({
               >
                 <AlertTriangle className="w-5 h-5 text-[#C83D4D] flex-shrink-0 mt-0.5" />
                 <div>
-                  <h5 className="font-bold text-[#C83D4D]">Aviso en la Evaluación</h5>
+                  <h5 className="font-bold text-[#C83D4D]">{t.eval_notice}</h5>
                   <p className="text-[#1F2D29] dark:text-[#E8EFEA] mt-0.5 leading-relaxed">{networkError}</p>
                 </div>
               </div>
@@ -908,10 +912,10 @@ export function TriageEvaluator({
             <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                 <label id="species-grid-label" className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider">
-                  1. Especie Zootécnica / Animal Rural <span className="text-[#176B55]">*</span>
+                  {t.species_title} <span className="text-[#176B55]">*</span>
                 </label>
                 <span className="text-[11px] font-semibold text-[#176B55] dark:text-[#45A987] bg-[#EAF3F0] dark:bg-[#1F332C] px-2.5 py-0.5 rounded-full border border-[#DCE6E0] dark:border-[#233630] self-start sm:self-auto">
-                  Seleccionado: <strong>{selectedSpeciesObj.emoji} {selectedSpeciesObj.name}</strong> • Ref: {selectedSpeciesObj.defaultWeight} kg
+                  {t.species_selected} <strong>{selectedSpeciesObj.emoji} {selectedSpeciesObj.name}</strong> • {t.species_ref} {selectedSpeciesObj.defaultWeight} kg
                 </span>
               </div>
 
@@ -1024,7 +1028,7 @@ export function TriageEvaluator({
             <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider">
-                  2. Peso Corporal Estimado (kg) <span className="text-[#176B55]">*</span>
+                  {t.weight_title} <span className="text-[#176B55]">*</span>
                 </label>
                 <span className="text-[11px] text-[#66756F] dark:text-[#95A59F]">
                   Rango referencial: {selectedSpeciesObj.weightRange}
@@ -1051,7 +1055,7 @@ export function TriageEvaluator({
                 </div>
 
                 <div className="sm:col-span-7 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] text-[#66756F] dark:text-[#95A59F] mr-1 hidden sm:inline">Ajuste rápido:</span>
+                  <span className="text-[11px] text-[#66756F] dark:text-[#95A59F] mr-1 hidden sm:inline">{t.quick_adjust}</span>
                   {selectedSpeciesObj.weightPresets.map((w) => (
                     <button
                       key={w}
@@ -1074,7 +1078,7 @@ export function TriageEvaluator({
             <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider">
-                  3. Fotografía de la Evidencia Visible <span className="text-[#176B55]">*</span>
+                  {t.photo_title} <span className="text-[#176B55]">*</span>
                 </label>
 
                 <button
@@ -1083,7 +1087,7 @@ export function TriageEvaluator({
                   className="text-xs text-[#176B55] dark:text-[#45A987] font-bold hover:underline flex items-center space-x-1.5 transition cursor-pointer"
                 >
                   <Camera className="w-3.5 h-3.5" />
-                  <span>Guía Completa de Fotos</span>
+                  <span>{t.photo_guide}</span>
                 </button>
               </div>
 
@@ -1095,7 +1099,7 @@ export function TriageEvaluator({
                 >
                   <div className="flex items-center space-x-2 text-xs font-bold text-[#123B32] dark:text-[#E8EFEA]">
                     <Info className="w-4 h-4 text-[#176B55] flex-shrink-0" />
-                    <span>Consejos para una foto diagnóstica precisa (Campo, Mucosas, Pezuñas y Heridas)</span>
+                    <span>{t.photo_tips_title}</span>
                   </div>
                   <button type="button" className="text-[#66756F] p-1">
                     {isGuidanceOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -1107,30 +1111,30 @@ export function TriageEvaluator({
                     <div className="p-3 bg-white dark:bg-[#162420] rounded-lg border border-[#DCE6E0] dark:border-[#233630] space-y-1">
                       <div className="font-bold text-[#123B32] dark:text-[#E8EFEA] flex items-center space-x-1">
                         <span>🧪</span>
-                        <span>Muestras de Campo (Diarreas / Salivación)</span>
+                        <span>{t.tip_samples_title}</span>
                       </div>
                       <p className="text-[11px] text-[#66756F] dark:text-[#95A59F] leading-snug">
-                        Foto cenital a 90° con luz natural de día en corral o cama. Evita reflejo de flash sobre fluidos.
+                        {t.tip_samples_desc}
                       </p>
                     </div>
 
                     <div className="p-3 bg-white dark:bg-[#162420] rounded-lg border border-[#DCE6E0] dark:border-[#233630] space-y-1">
                       <div className="font-bold text-[#123B32] dark:text-[#E8EFEA] flex items-center space-x-1">
                         <span>👁️</span>
-                        <span>Mucosas Oculares / Belfo (FAMACHA)</span>
+                        <span>{t.tip_mucous_title}</span>
                       </div>
                       <p className="text-[11px] text-[#66756F] dark:text-[#95A59F] leading-snug">
-                        Foto nítida a 20 cm retrayendo suavemente párpado inferior o belfo para ver si hay palidez por anemia.
+                        {t.tip_mucous_desc}
                       </p>
                     </div>
 
                     <div className="p-3 bg-white dark:bg-[#162420] rounded-lg border border-[#DCE6E0] dark:border-[#233630] space-y-1">
                       <div className="font-bold text-[#123B32] dark:text-[#E8EFEA] flex items-center space-x-1">
                         <span>🦶</span>
-                        <span>Pezuñas / Aplomos / Heridas</span>
+                        <span>{t.tip_hooves_title}</span>
                       </div>
                       <p className="text-[11px] text-[#66756F] dark:text-[#95A59F] leading-snug">
-                        Toma macro del casco libre de barro o corte por alambre de púa, más toma amplia de postura del animal.
+                        {t.tip_hooves_desc}
                       </p>
                     </div>
                   </div>
@@ -1146,7 +1150,7 @@ export function TriageEvaluator({
 
                   <div className="space-y-1 max-w-sm">
                     <p className="text-xs sm:text-sm font-semibold text-[#1F2D29] dark:text-[#E8EFEA]">
-                      Carga la evidencia fotográfica del caso
+                      {t.upload_evidence_prompt}
                     </p>
                     <p className="text-[11px] text-[#66756F] dark:text-[#95A59F]">
                       Soporta fotos tomadas en vivo desde el móvil o archivos JPEG, PNG, WebP (máx. 25MB)
@@ -1245,7 +1249,7 @@ export function TriageEvaluator({
             <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                 <label className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider">
-                  4. Síntomas y Comportamiento Clínico <span className="text-[#176B55]">*</span>
+                  {t.symptoms_title} <span className="text-[#176B55]">*</span>
                 </label>
                 <VoiceRecordButton
                   onTranscriptionComplete={handleVoiceTranscription}
@@ -1290,7 +1294,7 @@ export function TriageEvaluator({
                 }}
                 disabled={loading}
                 aria-label="Descripción de síntomas y comportamiento clínico del paciente"
-                placeholder="Describe qué sucedió, tiempo desde el inicio, postura de dolor, vómito, color de encías, sangrado o dificultad respiratoria..."
+                placeholder={t.symptoms_placeholder}
                 className="w-full px-4 py-3 bg-white dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-[#E8EFEA] focus:ring-2 focus:ring-[#176B55] focus:border-[#176B55] rounded-xl text-xs sm:text-sm placeholder:text-[#66756F] outline-none transition"
               />
             </div>
@@ -1300,10 +1304,10 @@ export function TriageEvaluator({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                 <label className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider flex items-center space-x-1.5">
                   <Phone className="w-3.5 h-3.5 text-[#176B55]" />
-                  <span>Celular / WhatsApp para contacto de urgencia:</span>
+                  <span>{t.phone_title}</span>
                 </label>
                 <span className="text-[10px] text-[#66756F] dark:text-[#95A59F] font-semibold">
-                  Se incluirá automáticamente en la derivación SOS de WhatsApp
+                  {t.phone_sub}
                 </span>
               </div>
               <div className="relative max-w-sm">
@@ -1337,7 +1341,7 @@ export function TriageEvaluator({
           <div className="bg-[#F4F7F5] dark:bg-[#1B2C27] px-6 sm:px-8 py-5 border-t border-[#DCE6E0] dark:border-[#233630] flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2 text-xs text-[#66756F] dark:text-[#95A59F]">
               <Activity className="w-4 h-4 text-[#176B55] dark:text-[#45A987]" />
-              <span>Inferencia Multimodal con Google Gemini 2.5 Flash</span>
+              <span>{t.multimodal_engine}</span>
             </div>
 
             <button
@@ -1356,7 +1360,7 @@ export function TriageEvaluator({
               ) : (
                 <>
                   <HeartPulse className="w-5 h-5" />
-                  <span>Evaluar Triage de Urgencias</span>
+                  <span>{t.btn_evaluate}</span>
                 </>
               )}
             </button>
@@ -1372,13 +1376,13 @@ export function TriageEvaluator({
           <div className="space-y-2 border-b border-[#DCE6E0] dark:border-[#233630] pb-5">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EAF3F0] dark:bg-[#1F332C] border border-[#DCE6E0] dark:border-[#233630] text-[#176B55] dark:text-[#45A987] text-xs font-bold uppercase tracking-wider">
               <Stethoscope className="w-3.5 h-3.5 text-[#176B55] dark:text-[#45A987]" />
-              <span>Paso de Validación Médica</span>
+              <span>{t.step_validation}</span>
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-[#123B32] dark:text-[#E8EFEA] tracking-tight">
-              Test Clínico Rápido de Confirmación (3 preguntas)
+              {t.quick_test_title}
             </h3>
             <p className="text-xs sm:text-sm text-[#66756F] dark:text-[#95A59F] leading-relaxed">
-              La IA ha evaluado la muestra como <strong>{preliminaryResult.urgency_level}</strong>. Responde estas 3 preguntas rápidas de inspección física para confirmar con máxima precisión el semáforo final y desbloquear el protocolo de urgencias.
+              La IA ha evaluado la muestra como <strong>{preliminaryResult.urgency_level}</strong>. {t.quick_test_desc}
             </p>
           </div>
 
@@ -1409,7 +1413,7 @@ export function TriageEvaluator({
                     }`}
                   >
                     <Check className="w-4 h-4" />
-                    <span>Sí</span>
+                    <span>{t.yes}</span>
                   </button>
 
                   <button
@@ -1422,7 +1426,7 @@ export function TriageEvaluator({
                     }`}
                   >
                     <X className="w-4 h-4" />
-                    <span>No</span>
+                    <span>{t.no}</span>
                   </button>
                 </div>
               </div>
@@ -1449,7 +1453,7 @@ export function TriageEvaluator({
               ) : (
                 <>
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Confirmar Pronóstico y Desbloquear Mapa</span>
+                  <span>{t.confirm_test_btn}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -1487,7 +1491,7 @@ export function TriageEvaluator({
 
                 <div>
                   <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider">
-                    <span className="text-[#176B55] dark:text-[#45A987]">Semáforo de Triage Clínico Confirmado</span>
+                    <span className="text-[#176B55] dark:text-[#45A987]">{t.traffic_light_title}</span>
                     <span className="text-[#66756F]">•</span>
                     <span className="text-[#1F2D29] dark:text-[#E8EFEA] font-medium">{theme.sublabel}</span>
                   </div>
@@ -1519,11 +1523,11 @@ export function TriageEvaluator({
                     <div className="flex items-center space-x-2">
                       <Stethoscope className="w-4 h-4 text-[#176B55]" />
                       <h4 className="text-xs font-bold uppercase tracking-wider text-[#66756F] dark:text-[#95A59F]">
-                        Diagnóstico Presuntivo Principal
+                        {t.presumptive_diagnosis_title}
                       </h4>
                     </div>
                     <span className="text-xs font-mono font-bold text-[#176B55] dark:text-[#45A987]">
-                      {diagnosisResult.confidence ? `${Math.round(diagnosisResult.confidence * 100)}% Confianza` : '94.2% Confianza'}
+                      {diagnosisResult.confidence ? `${Math.round(diagnosisResult.confidence * 100)}% ${t.confidence}` : `94.2% ${t.confidence}`}
                     </span>
                   </div>
 
@@ -1542,7 +1546,7 @@ export function TriageEvaluator({
                       />
                     </div>
                     <p className="text-[11px] text-[#66756F] dark:text-[#95A59F] leading-relaxed">
-                      Correlación multimodal calculada por visión computacional y telemetría zootécnica.
+                      {t.multimodal_correlation}
                     </p>
                   </div>
                 </div>
@@ -1552,7 +1556,7 @@ export function TriageEvaluator({
                   <div className="flex items-center space-x-2">
                     <HeartPulse className="w-4 h-4 text-[#176B55]" />
                     <h4 className="text-xs font-bold uppercase tracking-wider text-[#66756F] dark:text-[#95A59F]">
-                      Hallazgos Visuales Detectados
+                      {t.visual_findings_title}
                     </h4>
                   </div>
                   <p className="text-xs sm:text-sm text-[#1F2D29] dark:text-[#E8EFEA] leading-relaxed font-medium">
@@ -1574,7 +1578,7 @@ export function TriageEvaluator({
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2 text-[10px] uppercase font-bold tracking-wider text-[#176B55] dark:text-[#45A987]">
                     <ShieldCheck className="w-4 h-4" />
-                    <span>Recomendación de Nivel Hospitalario</span>
+                    <span>{t.recommended_vet_care}</span>
                   </div>
                   <h4 className="text-base sm:text-lg font-extrabold text-[#123B32] dark:text-[#E8EFEA]">
                     {diagnosisResult.facility_recommendation ||
@@ -1604,7 +1608,7 @@ export function TriageEvaluator({
                   <div className="flex items-center space-x-2">
                     <AlertTriangle className="w-4 h-4 text-[#C83D4D]" />
                     <h4 className="text-xs font-bold uppercase tracking-wider text-[#C83D4D]">
-                      Riesgos Vitales y Complicaciones a Monitorear
+                      {t.vital_signs_title}
                     </h4>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1625,10 +1629,10 @@ export function TriageEvaluator({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[#123B32] dark:text-[#E8EFEA] flex items-center space-x-2">
-                    <span>Protocolo de Manejo Inmediato (Pautas Prioritarias)</span>
+                    <span>{t.first_aid_title}</span>
                   </h4>
                   <span className="text-[11px] font-bold text-[#176B55] dark:text-[#45A987] bg-[#EAF3F0] dark:bg-[#1F332C] border border-[#DCE6E0] dark:border-[#233630] px-2.5 py-0.5 rounded-full">
-                    {diagnosisResult.first_aid_actions?.length || 0} pasos clínicos
+                    {diagnosisResult.first_aid_actions?.length || 0} {t.steps}
                   </span>
                 </div>
 
@@ -1667,10 +1671,10 @@ export function TriageEvaluator({
                   type="button"
                   onClick={handleExportPDF}
                   className="bg-[#176B55] hover:bg-[#135846] text-white font-semibold py-3 px-5 rounded-xl flex items-center justify-center gap-2 shadow-xs transition-all duration-200 active:scale-95 cursor-pointer flex-shrink-0"
-                  title="Descargar Ficha Clínica (PDF)"
+                  title={t.download_pdf_btn}
                 >
                   <FileText className="w-5 h-5" />
-                  <span>Descargar Ficha Clínica (PDF)</span>
+                  <span>{t.download_pdf_btn}</span>
                 </button>
               </div>
 
@@ -1705,7 +1709,7 @@ export function TriageEvaluator({
                   className="w-full py-3.5 px-6 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white font-extrabold text-sm sm:text-base shadow-xs flex items-center justify-center space-x-2.5 transition transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                 >
                   <MessageSquare className="w-5 h-5 text-white" />
-                  <span>Abrir Chat de Primeros Auxilios con la IA</span>
+                  <span>{t.chat_with_ai_btn}</span>
                 </button>
               </div>
             </div>
@@ -1718,7 +1722,7 @@ export function TriageEvaluator({
                 className="flex items-center space-x-2 px-4 py-2.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#162420] text-[#1F2D29] dark:text-[#E8EFEA] hover:border-[#176B55] hover:text-[#176B55] text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer shadow-xs"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>Nueva Evaluación de Triage</span>
+                <span>{t.reassess_btn}</span>
               </button>
 
               <span className="text-[11px] text-[#66756F] dark:text-[#95A59F]">

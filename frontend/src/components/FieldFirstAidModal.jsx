@@ -239,25 +239,25 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-surface-dim/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-      <div className="bg-surface-container-lowest border border-surface-container-high/60 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] w-full max-w-5xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-surface-container-low via-surface-container to-surface-container-high/40 p-6 text-on-surface flex items-center justify-between gap-4 border-b border-surface-container-high/60">
+        <div className="bg-[#F4F7F5] dark:bg-[#162420] p-6 text-[#1F2D29] dark:text-white flex items-center justify-between gap-4 border-b border-[#DCE6E0] dark:border-[#233630]">
           <div className="flex items-center space-x-3.5">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-container to-blue-700 text-white flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(37,99,235,0.4)]">
+            <div className="w-12 h-12 rounded-xl bg-[#176B55] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-surface-container-high text-primary border border-primary/30 px-2.5 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#EAF3F0] text-[#176B55] border border-[#176B55]/30 px-2.5 py-0.5 rounded-full">
                   Protocolo Quirúrgico & Campo
                 </span>
-                <span className="text-xs text-on-surface-variant">• Zootecnia y Estabilización</span>
+                <span className="text-xs text-[#66756F] dark:text-[#A3B8B0]">• Zootecnia y Estabilización</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-0.5">
+              <h3 className="text-xl sm:text-2xl font-black text-[#123B32] dark:text-white tracking-tight mt-0.5">
                 Guía Rápida de Primeros Auxilios de Campo
               </h3>
-              <p className="text-xs text-on-surface-variant">
+              <p className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
                 Pautas de estabilización de urgencia para ganado mayor, menor y animales de granja.
               </p>
             </div>
@@ -266,7 +266,7 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-white transition cursor-pointer border border-surface-container-high/60"
+            className="p-2.5 rounded-xl bg-white dark:bg-[#1F2D29] hover:bg-[#F4F7F5] dark:hover:bg-[#1B2C27] text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white transition cursor-pointer border border-[#DCE6E0] dark:border-[#233630]"
             title="Cerrar Guía"
           >
             <X className="w-5 h-5" />
@@ -274,10 +274,10 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
         </div>
 
         {/* Content Layout: Left Nav + Right Details */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-surface-container-high/60 bg-surface-container-lowest">
+        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-[#DCE6E0] dark:divide-[#233630] bg-white dark:bg-[#162420]">
           {/* Left Index (Panel izquierdo de catálogo de urgencias) */}
-          <div className="md:col-span-4 p-4 space-y-2 bg-surface-container-low overflow-y-auto max-h-72 md:max-h-none">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-outline block px-2 mb-1">
+          <div className="md:col-span-4 p-4 space-y-2 bg-[#F4F7F5] dark:bg-[#0F1A17] overflow-y-auto max-h-72 md:max-h-none">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#66756F] dark:text-[#A3B8B0] block px-2 mb-1">
               Catálogo de Urgencias en Finca
             </span>
             {FIRST_AID_GUIDELINES.map((item) => {
@@ -290,15 +290,15 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                   onClick={() => setSelectedId(item.id)}
                   className={`w-full text-left p-3 rounded-xl transition flex items-start space-x-3 cursor-pointer ${
                     isSelected
-                      ? 'bg-surface-container-high border border-primary/50 text-on-surface ring-1 ring-primary/40 shadow-sm'
-                      : 'hover:bg-surface-container border border-transparent text-on-surface-variant'
+                      ? 'bg-[#EAF3F0] dark:bg-[#176B55]/20 border border-[#176B55] text-[#176B55] dark:text-white ring-1 ring-[#176B55]/30 shadow-xs'
+                      : 'hover:bg-white dark:hover:bg-[#162420] border border-transparent text-[#66756F] dark:text-[#A3B8B0]'
                   }`}
                 >
                   <div
                     className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
                       isSelected
-                        ? 'bg-primary text-white shadow-md'
-                        : 'bg-surface-container-highest text-outline'
+                        ? 'bg-[#176B55] text-white shadow-xs'
+                        : 'bg-white dark:bg-[#1F2D29] text-[#66756F] dark:text-[#A3B8B0] border border-[#DCE6E0] dark:border-[#233630]'
                     }`}
                   >
                     <ItemIcon className="w-4 h-4" />
@@ -306,43 +306,43 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                   <div className="flex-1 min-w-0">
                     <h5
                       className={`text-xs font-bold truncate leading-tight ${
-                        isSelected ? 'text-white' : 'text-on-surface'
+                        isSelected ? 'text-[#123B32] dark:text-white' : 'text-[#1F2D29] dark:text-slate-200'
                       }`}
                     >
                       {item.title}
                     </h5>
-                    <span className="text-[11px] text-on-surface-variant block truncate">
+                    <span className="text-[11px] text-[#66756F] dark:text-[#A3B8B0] block truncate">
                       {item.species}
                     </span>
                   </div>
-                  {isSelected && <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 mt-1" />}
+                  {isSelected && <ChevronRight className="w-4 h-4 text-[#176B55] flex-shrink-0 mt-1" />}
                 </button>
               );
             })}
           </div>
 
           {/* Right Detailed Procedure (Panel derecho con cronómetro de paro y guía por fases) */}
-          <div className="md:col-span-8 p-6 sm:p-8 space-y-6 bg-surface-container-lowest overflow-y-auto">
+          <div className="md:col-span-8 p-6 sm:p-8 space-y-6 bg-white dark:bg-[#162420] overflow-y-auto">
             {/* Header of selected guide + Cronómetro de Paro / Reanimación */}
-            <div className="space-y-4 border-b border-surface-container-high/60 pb-5">
+            <div className="space-y-4 border-b border-[#DCE6E0] dark:border-[#233630] pb-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${currentGuide.badgeColor}`}>
                     {currentGuide.badge}
                   </span>
-                  <span className="text-xs font-bold text-on-surface-variant bg-surface-container border border-surface-container-high px-2.5 py-0.5 rounded-full">
+                  <span className="text-xs font-bold text-[#66756F] dark:text-[#A3B8B0] bg-[#F4F7F5] dark:bg-[#1F2D29] border border-[#DCE6E0] dark:border-[#233630] px-2.5 py-0.5 rounded-full">
                     Especie: {currentGuide.species}
                   </span>
                 </div>
 
                 {/* Cronómetro de paro / estabilización en tiempo real */}
-                <div className="flex items-center space-x-2 bg-surface-container px-3 py-1.5 rounded-xl border border-surface-container-high">
-                  <span className="text-[10px] uppercase font-bold text-outline">Cronómetro de Urgencia:</span>
-                  <span className="font-mono font-bold text-sm text-secondary">{formatTimer(timerSeconds)}</span>
+                <div className="flex items-center space-x-2 bg-[#F4F7F5] dark:bg-[#1F2D29] px-3 py-1.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630]">
+                  <span className="text-[10px] uppercase font-bold text-[#66756F] dark:text-[#A3B8B0]">Cronómetro de Urgencia:</span>
+                  <span className="font-mono font-bold text-sm text-[#176B55] dark:text-[#45A987]">{formatTimer(timerSeconds)}</span>
                   <button
                     type="button"
                     onClick={() => setIsTimerRunning(!isTimerRunning)}
-                    className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary-container text-white hover:bg-primary transition cursor-pointer"
+                    className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#176B55] hover:bg-[#135846] text-white transition cursor-pointer"
                   >
                     {isTimerRunning ? 'Pausar' : 'Iniciar'}
                   </button>
@@ -353,7 +353,7 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                         setIsTimerRunning(false);
                         setTimerSeconds(0);
                       }}
-                      className="text-[10px] text-outline hover:text-white"
+                      className="text-[10px] text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white"
                     >
                       Reset
                     </button>
@@ -361,18 +361,18 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              <h4 className="text-xl sm:text-2xl font-black text-on-surface">
+              <h4 className="text-xl sm:text-2xl font-black text-[#123B32] dark:text-white">
                 {currentGuide.title}
               </h4>
-              <div className="p-3.5 rounded-xl bg-surface-container border border-surface-container-high text-on-surface text-xs sm:text-sm leading-relaxed">
-                <strong className="block font-bold text-secondary mb-0.5">Signos Clave de Identificación en Terreno:</strong>
+              <div className="p-3.5 rounded-xl bg-[#F4F7F5] dark:bg-[#0F1A17] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-slate-200 text-xs sm:text-sm leading-relaxed">
+                <strong className="block font-bold text-[#176B55] mb-0.5">Signos Clave de Identificación en Terreno:</strong>
                 {currentGuide.symptoms}
               </div>
             </div>
 
             {/* Protocol Steps / Guía por Fases */}
             <div className="space-y-4">
-              <h5 className="text-xs font-bold uppercase tracking-wider text-outline">
+              <h5 className="text-xs font-bold uppercase tracking-wider text-[#66756F] dark:text-[#A3B8B0]">
                 Guía por Fases de Estabilización Inmediata:
               </h5>
 
@@ -380,14 +380,14 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                 {currentGuide.steps.map((s) => (
                   <div
                     key={s.step}
-                    className="p-4 rounded-xl bg-surface-container-low border border-surface-container-high/60 flex items-start space-x-4 hover:border-primary/40 transition shadow-sm"
+                    className="p-4 rounded-xl bg-[#F4F7F5] dark:bg-[#0F1A17] border border-[#DCE6E0] dark:border-[#233630] flex items-start space-x-4 hover:border-[#176B55]/50 transition shadow-xs"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-container to-blue-700 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-md">
+                    <div className="w-8 h-8 rounded-lg bg-[#176B55] text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
                       F{s.step}
                     </div>
                     <div className="space-y-1">
-                      <h6 className="font-extrabold text-sm text-on-surface">{s.title}</h6>
-                      <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">{s.desc}</p>
+                      <h6 className="font-extrabold text-sm text-[#123B32] dark:text-white">{s.title}</h6>
+                      <p className="text-xs sm:text-sm text-[#66756F] dark:text-[#A3B8B0] leading-relaxed">{s.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -395,24 +395,24 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
             </div>
 
             {/* Warning Note */}
-            <div className="p-4 rounded-xl bg-surface-container-low border border-surface-container-high/60 flex items-start space-x-3 text-xs">
-              <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <p className="leading-relaxed text-on-surface-variant">
-                <strong className="text-on-surface">Aviso Clínico Importante:</strong> Estas pautas constituyen maniobras de estabilización de soporte en faena. Todo cuadro crítico debe ser valorado presencialmente por un médico veterinario zootécnico colegiado.
+            <div className="p-4 rounded-xl bg-[#FFF9F2] dark:bg-[#2A2114] border border-[#D77926]/30 flex items-start space-x-3 text-xs">
+              <ShieldAlert className="w-5 h-5 text-[#D77926] flex-shrink-0 mt-0.5" />
+              <p className="leading-relaxed text-[#1F2D29] dark:text-slate-200">
+                <strong className="text-[#D77926]">Aviso Clínico Importante:</strong> Estas pautas constituyen maniobras de estabilización de soporte en faena. Todo cuadro crítico debe ser valorado presencialmente por un médico veterinario zootécnico colegiado.
               </p>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:px-8 border-t border-surface-container-high/60 bg-surface-container-lowest flex items-center justify-between">
-          <span className="text-xs text-outline">
+        <div className="p-4 sm:px-8 border-t border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#162420] flex items-center justify-between">
+          <span className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
             Manual de Urgencias Pecuarias VetIA • Soporte Asistido
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 hover:brightness-110 text-white font-bold text-xs shadow-[0_0_14px_rgba(37,99,235,0.4)] transition cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white font-bold text-xs shadow-xs transition cursor-pointer"
           >
             Entendido / Cerrar Guía
           </button>

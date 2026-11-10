@@ -78,22 +78,22 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="backdrop-blur-xl bg-slate-900/95 rounded-3xl max-w-2xl w-full shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+        className="bg-white dark:bg-[#162420] rounded-2xl max-w-2xl w-full shadow-xl border border-[#DCE6E0] dark:border-[#233630] overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="relative p-6 bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/60 text-white flex items-start justify-between border-b border-white/10">
+        <div className="relative p-6 bg-[#F4F7F5] dark:bg-[#162420] text-[#1F2D29] dark:text-white flex items-start justify-between border-b border-[#DCE6E0] dark:border-[#233630]">
           <div className="space-y-1">
-            <div className="flex items-center space-x-2 text-indigo-300 text-xs font-bold uppercase tracking-wider">
+            <div className="flex items-center space-x-2 text-[#176B55] dark:text-[#45A987] text-xs font-bold uppercase tracking-wider">
               <Camera className="w-4 h-4" />
               <span>Guía para el Tutor</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold">
+            <h3 className="text-lg sm:text-xl font-bold text-[#123B32] dark:text-white">
               Consejos para una Foto Diagnóstica Precisa
             </h3>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
               Una fotografía nítida permite a Gemini AI y al médico veterinario clasificar con máxima precisión el riesgo.
             </p>
           </div>
@@ -101,7 +101,7 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+            className="p-2 rounded-xl bg-white dark:bg-[#1F2D29] hover:bg-[#F4F7F5] text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white border border-[#DCE6E0] dark:border-[#233630] transition cursor-pointer"
             title="Cerrar guía"
           >
             <X className="w-5 h-5" />
@@ -113,36 +113,36 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
           {GUIDANCE_TOPICS.map((topic) => (
             <div
               key={topic.id}
-              className="bg-slate-950/40 border border-slate-700/50 rounded-2xl p-5 space-y-3 hover:border-indigo-500/30 transition"
+              className="bg-[#F4F7F5] dark:bg-[#0F1A17] border border-[#DCE6E0] dark:border-[#233630] rounded-xl p-5 space-y-3 hover:border-[#176B55]/50 transition"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl">{topic.icon}</span>
                   <div>
-                    <h4 className="font-bold text-white text-sm sm:text-base">
+                    <h4 className="font-bold text-[#123B32] dark:text-white text-sm sm:text-base">
                       {topic.title}
                     </h4>
-                    <p className="text-xs text-slate-400">{topic.subtitle}</p>
+                    <p className="text-xs text-[#66756F] dark:text-[#A3B8B0]">{topic.subtitle}</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold px-2.5 py-1 bg-white/[0.04] border border-white/10 text-slate-300 rounded-full shadow-lg">
+                <span className="text-[10px] font-bold px-2.5 py-1 bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] text-[#176B55] rounded-full shadow-xs">
                   {topic.badge}
                 </span>
               </div>
 
               {/* Tips List */}
-              <ul className="space-y-2 text-xs text-slate-300">
+              <ul className="space-y-2 text-xs text-[#1F2D29] dark:text-slate-200">
                 {topic.tips.map((tip, idx) => (
                   <li key={idx} className="flex items-start space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-[#176B55] flex-shrink-0 mt-0.5" />
                     <span>{tip}</span>
                   </li>
                 ))}
               </ul>
 
               {/* Highlight Note */}
-              <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-3 text-[11px] text-indigo-100 flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+              <div className="bg-[#EAF3F0] dark:bg-[#176B55]/20 border border-[#176B55]/30 rounded-xl p-3 text-[11px] text-[#176B55] dark:text-[#45A987] flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-[#176B55] flex-shrink-0" />
                 <span>
                   <strong>Tip Pro:</strong> {topic.exampleDesc}
                 </span>
@@ -151,11 +151,11 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
           ))}
 
           {/* Quick Warning */}
-          <div className="p-4 bg-amber-500/10 border border-amber-400/30 rounded-2xl text-xs text-amber-100 flex items-start space-x-3">
-            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="p-4 bg-[#FFF9F2] dark:bg-[#2A2114] border border-[#D77926]/30 rounded-xl text-xs text-[#1F2D29] dark:text-slate-200 flex items-start space-x-3">
+            <AlertCircle className="w-4 h-4 text-[#D77926] flex-shrink-0 mt-0.5" />
             <div>
-              <h5 className="font-bold text-amber-200">Prioridad Vital de Seguridad</h5>
-              <p className="mt-0.5 text-amber-100/90 leading-relaxed">
+              <h5 className="font-bold text-[#D77926]">Prioridad Vital de Seguridad</h5>
+              <p className="mt-0.5 text-[#66756F] dark:text-[#A3B8B0] leading-relaxed">
                 Si tu mascota está sufriendo dolor extremo o se muestra agresiva por el estrés de la herida, no fuerces la toma fotográfica; tu seguridad y la del animal son prioritarias.
               </p>
             </div>
@@ -163,11 +163,11 @@ export function PhotoGuidanceModal({ isOpen, onClose }) {
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-white/[0.03] border-t border-white/10 flex justify-end">
+        <div className="p-4 bg-[#F4F7F5] dark:bg-[#162420] border-t border-[#DCE6E0] dark:border-[#233630] flex justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition cursor-pointer"
+            className="px-6 py-2.5 bg-[#176B55] hover:bg-[#135846] text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition cursor-pointer"
           >
             Entendido, volver a la consulta
           </button>

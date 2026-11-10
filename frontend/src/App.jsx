@@ -8,7 +8,8 @@ import AuthScreen, { Auth } from './components/AuthScreen';
 import FarmOverviewBanner from './components/FarmOverviewBanner';
 import FieldFirstAidModal from './components/FieldFirstAidModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { PreferencesProvider } from './context/PreferencesContext';
+import { PreferencesProvider, usePreferences } from './context/PreferencesContext';
+import { translations } from './data/translations';
 import useGeolocation from './hooks/useGeolocation';
 import useTriage from './hooks/useTriage';
 import {
@@ -22,6 +23,8 @@ import {
 } from 'lucide-react';
 
 function MainApp() {
+  const { language } = usePreferences();
+  const t = translations[language] || translations.es;
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
@@ -74,25 +77,7 @@ function MainApp() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-slate-50 dark:bg-clinical-canvas text-slate-900 dark:text-slate-100 overflow-x-hidden transition-colors duration-300">
-      {/* Ambient multi-layer light field (decorative) */}
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-48 -left-40 w-[42rem] h-[42rem] rounded-full bg-indigo-500/10 dark:bg-indigo-500/25 blur-3xl animate-aurora" />
-        <div className="absolute -bottom-52 -right-44 w-[46rem] h-[46rem] rounded-full bg-violet-600/10 dark:bg-violet-600/25 blur-3xl animate-aurora-rev" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[30rem] h-[30rem] rounded-full bg-cyan-500/10 dark:bg-cyan-500/15 blur-3xl animate-float-slow" />
-        {/* Fine grid texture for a precise, techy depth */}
-        <div
-          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, rgba(148,163,184,0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.35) 1px, transparent 1px)',
-            backgroundSize: '56px 56px',
-            maskImage: 'radial-gradient(circle at 50% 30%, black, transparent 72%)',
-            WebkitMaskImage: 'radial-gradient(circle at 50% 30%, black, transparent 72%)',
-          }}
-        />
-      </div>
-
+    <div className="relative min-h-screen flex flex-col bg-[#F4F7F5] dark:bg-[#0F1A17] text-[#1F2D29] dark:text-[#E8EFEA] overflow-x-hidden transition-colors duration-200">
       {/* Top Navigation Bar with Historial de Consultas */}
       <Header
         onOpenHistory={() => setIsHistoryOpen(true)}
@@ -101,35 +86,35 @@ function MainApp() {
       />
 
       {/* Main Container */}
-      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Subheader status banner */}
-        <div className="glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl">
-          <div className="flex items-center space-x-2 text-xs text-slate-300">
-            <MapPin className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+        <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-2 text-xs text-[#66756F] dark:text-[#95A59F]">
+            <MapPin className="w-4 h-4 text-[#176B55] dark:text-[#45A987] flex-shrink-0" />
             <span>
-              Geolocalizado en: <strong className="text-white">{coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}</strong>
+              {t.geolocation_label} <strong className="text-[#1F2D29] dark:text-[#E8EFEA] font-semibold">{coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}</strong>
               {geoError && ' (Modo fallback activo)'}
             </span>
           </div>
 
-          <div className="flex items-center space-x-3 text-xs text-slate-400">
+          <div className="flex items-center space-x-3 text-xs text-[#66756F] dark:text-[#95A59F]">
             {isAuthenticated ? (
-              <span className="flex items-center space-x-1.5 text-indigo-200 font-semibold bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/30 shadow-glow-indigo">
+              <span className="flex items-center space-x-1.5 text-[#176B55] dark:text-[#45A987] font-semibold bg-[#EAF3F0] dark:bg-[#1F332C] px-2.5 py-1 rounded-lg border border-[#DCE6E0] dark:border-[#233630]">
                 <UserCheck className="w-3.5 h-3.5" />
-                <span>Sesión Activa: {user.email}</span>
+                <span>{t.active_session} {user.email}</span>
               </span>
             ) : (
               <button
                 type="button"
                 onClick={() => setIsAuthOpen(true)}
-                className="text-xs text-cyan-300 font-semibold hover:text-cyan-200 hover:underline"
+                className="text-xs text-[#176B55] dark:text-[#45A987] font-semibold hover:underline cursor-pointer"
               >
-                Inicia sesión para vincular tus consultas
+                {t.login_prompt}
               </button>
             )}
 
             <div className="hidden sm:flex items-center space-x-1.5">
-              <Zap className="w-4 h-4 text-amber-500" />
+              <Zap className="w-4 h-4 text-[#A97812]" />
               <span>Gemini 2.5 Flash + Web Worker</span>
             </div>
           </div>
@@ -137,11 +122,11 @@ function MainApp() {
 
         {/* Global Error Banner */}
         {error && (
-          <div className="p-4 bg-rose-950/50 border border-rose-500/40 rounded-2xl flex items-start space-x-3 text-rose-100 text-sm shadow-lg shadow-rose-950/20">
-            <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+          <div className="p-4 bg-[#FDF2F4] dark:bg-[#2A1619] border border-[#F7D7DC] dark:border-[#522328] rounded-2xl flex items-start space-x-3 text-[#C83D4D] dark:text-[#FFAAB4] text-sm shadow-xs">
+            <AlertCircle className="w-5 h-5 text-[#C83D4D] flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-bold">Aviso en la Evaluación</h4>
-              <p className="mt-0.5 text-rose-200/90">{error}</p>
+              <h4 className="font-bold">{t.eval_notice}</h4>
+              <p className="mt-0.5 text-[#1F2D29] dark:text-[#E8EFEA]">{error}</p>
             </div>
           </div>
         )}

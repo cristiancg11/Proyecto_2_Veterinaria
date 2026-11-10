@@ -3,6 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, ZoomControl, useMap }
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
+import { usePreferences } from '../context/PreferencesContext';
+import { translations } from '../data/translations';
 import {
   getGoogleMapsLocationUrl,
   getGoogleMapsDirectionsUrl,
@@ -330,6 +332,8 @@ export function EmergencyMap({
   onBackToTriage = null,
   triageData = null,
 }) {
+  const { language } = usePreferences();
+  const t = translations[language] || translations.es;
   const { user, userProfile: authProfile, tutorPhone: authTutorPhone } = useAuth();
   const tutorPhone = triageData?.tutor_phone || authTutorPhone || authProfile?.phone || user?.user_metadata?.phone || '';
   const userProfile = useMemo(
@@ -670,13 +674,13 @@ export function EmergencyMap({
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-[#176B55] dark:text-[#45A987] text-xs font-bold uppercase tracking-wider">
             <Compass className="w-4 h-4 animate-spin-slow" />
-            <span>Navegación Guiada de Emergencia</span>
+            <span>{t.guided_nav}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-[#123B32] dark:text-white tracking-tight">
-            Centros Veterinarios & Almacenes Agropecuarios Cercanos
+            {t.map_title}
           </h2>
           <p className="text-xs sm:text-sm text-[#66756F] dark:text-[#A3B8B0]">
-            Hospitales pecuarios, clínicas de urgencia y distribuidores de insumos agropecuarios ordenados por cercanía GPS con ruta en tiempo real.
+            {t.map_subtitle}
           </p>
         </div>
 
@@ -688,7 +692,7 @@ export function EmergencyMap({
               className="px-4 py-2 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#162420] hover:bg-[#F4F7F5] dark:hover:bg-[#1F2D29] text-[#1F2D29] dark:text-white text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Ver Diagnóstico IA</span>
+              <span>{t.view_ai_diagnosis}</span>
             </button>
           )}
 
@@ -697,10 +701,10 @@ export function EmergencyMap({
             onClick={handleGpsSync}
             disabled={geoLoading}
             className="px-4 py-2.5 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white text-xs font-semibold shadow-xs flex items-center space-x-2 transition cursor-pointer"
-            title="Activar mi GPS en vivo"
+            title={t.enable_live_gps}
           >
             <Crosshair className={`w-4 h-4 text-white ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>{geoLoading ? 'Conectando GPS...' : gpsActive ? 'GPS en vivo activo' : 'Activar mi GPS en vivo'}</span>
+            <span>{geoLoading ? t.connecting_gps : gpsActive ? t.live_gps_active : t.enable_live_gps}</span>
           </button>
         </div>
       </div>
@@ -718,7 +722,7 @@ export function EmergencyMap({
             className="px-3.5 py-1.5 rounded-xl bg-[#D77926] hover:bg-[#C26B1E] text-white font-bold text-xs flex items-center space-x-1.5 self-start sm:self-auto transition shadow-xs cursor-pointer"
           >
             <Crosshair className={`w-3.5 h-3.5 ${geoLoading ? 'animate-spin' : ''}`} />
-            <span>Activar mi GPS en vivo</span>
+            <span>{t.enable_live_gps}</span>
           </button>
         </div>
       )}
@@ -737,13 +741,13 @@ export function EmergencyMap({
             onClick={handleGpsSync}
             disabled={geoLoading}
             className="absolute top-4 right-4 z-[1000] bg-white/95 dark:bg-[#162420]/95 hover:bg-white text-[#1F2D29] dark:text-white px-3.5 py-2 rounded-xl shadow-md border border-[#DCE6E0] dark:border-[#233630] text-xs font-bold flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 cursor-pointer group"
-            title="Activar mi GPS en vivo"
+            title={t.enable_live_gps}
           >
             <div className="w-6 h-6 rounded-lg bg-[#EAF3F0] group-hover:bg-[#D5E8E1] flex items-center justify-center text-[#176B55] transition border border-[#DCE6E0]">
               <Crosshair className={`w-4 h-4 text-[#176B55] ${geoLoading ? 'animate-spin' : ''}`} />
             </div>
             <span className="hidden sm:inline font-bold text-[#1F2D29] dark:text-white group-hover:text-[#176B55]">
-              {geoLoading ? 'Conectando GPS...' : gpsActive ? 'GPS en vivo activo' : 'Activar mi GPS en vivo'}
+              {geoLoading ? t.connecting_gps : gpsActive ? t.live_gps_active : t.enable_live_gps}
             </span>
             {gpsActive && (
               <span className="flex h-2 w-2 relative">
@@ -829,7 +833,7 @@ export function EmergencyMap({
                               : 'bg-[#EAF3F0] text-[#176B55]'
                           }`}
                         >
-                          {clinic.category || (clinic.isEmergency ? '24H URGENCIAS' : 'CONSULTA GENERAL')}
+                          {clinic.category || (clinic.isEmergency ? t.emergency_24h : t.general_consult)}
                         </span>
                         <span className="font-bold text-[#1F2D29]">{clinic.distanceKm} km</span>
                       </div>
@@ -843,7 +847,7 @@ export function EmergencyMap({
                         onClick={() => setSelectedClinicId(clinic.id)}
                         className="w-full py-1.5 bg-[#176B55] hover:bg-[#135846] text-white rounded-lg text-xs font-bold transition cursor-pointer"
                       >
-                        Trazar Ruta hacia Aquí
+                        {t.calculate_route_here}
                       </button>
                     </div>
                   </Popup>
@@ -860,13 +864,13 @@ export function EmergencyMap({
               </div>
               <div className="truncate">
                 <span className="text-[10px] text-[#C83D4D] font-bold uppercase tracking-wider block">
-                  Ruta hacia:
+                  {t.route_towards}
                 </span>
                 <span className="font-bold text-[#123B32] dark:text-white truncate block">
                   {activeClinic.name}
                 </span>
                 <span className="text-[11px] text-[#66756F] dark:text-[#A3B8B0]">
-                  {routeDistanceKm} km • Est: {routeDurationMin || '~8'} min en vehículo
+                  {routeDistanceKm} km • Est: {routeDurationMin || '~8'} min {t.in_vehicle}
                 </span>
               </div>
             </div>
@@ -880,7 +884,7 @@ export function EmergencyMap({
             <div className="flex items-start justify-between">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#FDECEE] text-[#C83D4D] border border-[#C83D4D]/30 inline-block mb-1">
-                  Destino Activo de Emergencia
+                  {t.active_destination}
                 </span>
                 <h3 className="font-bold text-[#123B32] dark:text-white text-base leading-snug">
                   {activeClinic?.name}
@@ -909,7 +913,7 @@ export function EmergencyMap({
                 className="px-3 py-1.5 bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] text-[#123B32] dark:text-white rounded-lg font-bold flex items-center space-x-1 transition flex-shrink-0 hover:bg-[#F4F7F5]"
               >
                 <Phone className="w-3.5 h-3.5" />
-                <span>Llamar</span>
+                <span>{t.call}</span>
               </a>
             </div>
 
@@ -921,7 +925,7 @@ export function EmergencyMap({
                   className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-[#C83D4D] hover:bg-[#A92E3C] text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
                 >
                   <Phone className="w-3.5 h-3.5 text-white" />
-                  <span>Llamar a Urgencias</span>
+                  <span>{t.call_emergency}</span>
                 </a>
 
                 <a
@@ -931,7 +935,7 @@ export function EmergencyMap({
                   className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-[#176B55] hover:bg-[#135846] text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
                 >
                   <span className="text-sm">💬</span>
-                  <span>Avisar por WhatsApp</span>
+                  <span>{t.alert_whatsapp}</span>
                 </a>
               </div>
 
@@ -944,7 +948,7 @@ export function EmergencyMap({
                 >
                   <div className="flex items-center space-x-1.5">
                     <span>💬</span>
-                    <span>Vista previa del mensaje con GPS incluido</span>
+                    <span>{t.msg_preview_gps}</span>
                   </div>
                   {showWaPreview ? (
                     <ChevronUp className="w-3.5 h-3.5 text-[#176B55] flex-shrink-0" />
@@ -955,7 +959,7 @@ export function EmergencyMap({
 
                 {showWaPreview && (
                   <div className="mt-1.5 p-3 bg-[#F4F7F5] dark:bg-[#0F1A17] text-[#1F2D29] dark:text-slate-200 rounded-xl text-[11px] font-mono whitespace-pre-wrap leading-relaxed border border-[#DCE6E0] dark:border-[#233630] shadow-inner max-h-48 overflow-y-auto">
-                    {activeWhatsAppMessageText || 'Generando vista previa del mensaje con GPS...'}
+                    {activeWhatsAppMessageText || t.msg_preview_generating}
                   </div>
                 )}
               </div>
@@ -980,7 +984,7 @@ export function EmergencyMap({
                   className="flex items-center justify-center space-x-1.5 py-2.5 px-3 rounded-xl bg-[#2D8CFF] hover:bg-[#1E74E0] text-white text-xs font-bold shadow-xs transition"
                 >
                   <span>🚗</span>
-                  <span>Abrir en Waze</span>
+                  <span>{t.open_waze}</span>
                   <ExternalLink className="w-3 h-3 text-white" />
                 </a>
               </div>
@@ -991,10 +995,10 @@ export function EmergencyMap({
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-xs uppercase tracking-wider text-[#123B32] dark:text-slate-200 flex items-center space-x-1.5">
                   <Navigation className="w-3.5 h-3.5 text-[#176B55]" />
-                  <span>Instrucciones de Giro Paso a Paso</span>
+                  <span>{t.step_by_step_directions}</span>
                 </h4>
                 <span className="text-[10px] text-[#66756F] dark:text-[#A3B8B0]">
-                  {routeSteps.length} pasos
+                  {routeSteps.length} {t.steps}
                 </span>
               </div>
 
@@ -1032,10 +1036,10 @@ export function EmergencyMap({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base sm:text-lg font-black text-[#123B32] dark:text-white">
-            Red de Centros Veterinarios y Almacenes Agropecuarios Cercanos
+            {t.network_title}
           </h3>
           <span className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
-            {clinicsWithDistance.length} puntos de atención identificados
+            {clinicsWithDistance.length} {t.care_points_identified}
           </span>
         </div>
 
@@ -1064,7 +1068,7 @@ export function EmergencyMap({
                           : 'bg-[#EAF3F0] text-[#176B55] border-[#176B55]/30'
                       }`}
                     >
-                      {clinic.category || (clinic.isEmergency ? '24H URGENCIAS' : 'CONSULTA GENERAL')}
+                      {clinic.category || (clinic.isEmergency ? t.emergency_24h : t.general_consult)}
                     </span>
 
                     <span className="text-xs font-bold text-[#1F2D29] dark:text-slate-200 bg-[#F4F7F5] dark:bg-[#1F2D29] border border-[#DCE6E0] dark:border-[#233630] px-2 py-0.5 rounded-md">
@@ -1096,7 +1100,7 @@ export function EmergencyMap({
                         : 'bg-white dark:bg-[#1F2D29] border border-[#DCE6E0] dark:border-[#233630] hover:bg-[#F4F7F5] text-[#1F2D29] dark:text-white'
                     }`}
                   >
-                    <span>{isSelected ? 'Ruta Seleccionada' : 'Ver Ruta'}</span>
+                    <span>{isSelected ? t.route_selected : t.view_route}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
 
@@ -1104,7 +1108,7 @@ export function EmergencyMap({
                     href={`tel:${clinic.phone}`}
                     onClick={(e) => e.stopPropagation()}
                     className="p-2 rounded-xl bg-[#C83D4D] hover:bg-[#A92E3C] text-white transition flex-shrink-0 shadow-xs"
-                    title={`Llamar a ${clinic.name}`}
+                    title={`${t.call} ${clinic.name}`}
                   >
                     <Phone className="w-4 h-4 text-white" />
                   </a>
@@ -1115,7 +1119,7 @@ export function EmergencyMap({
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
                     className="p-2 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white transition flex-shrink-0 shadow-xs"
-                    title="Avisar por WhatsApp"
+                    title={t.alert_whatsapp}
                   >
                     <span className="text-xs">💬</span>
                   </a>

@@ -33,22 +33,22 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
 
   return (
     <header className="sticky top-2 z-40 px-2 sm:px-4">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between rounded-2xl bg-white/95 dark:bg-[#060911]/90 backdrop-blur-xl border border-slate-200/80 dark:border-surface-container-high/60 shadow-[0_4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_8px_rgba(0,0,0,0.5)] transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between rounded-2xl bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] shadow-xs transition-colors duration-200">
         {/* Brand identity */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-blue-700 flex items-center justify-center text-white shadow-[0_0_12px_rgba(37,99,235,0.4)] flex-shrink-0">
-            <HeartPulse className="w-6 h-6 animate-pulse" />
+          <div className="w-9 h-9 rounded-xl bg-[#176B55] flex items-center justify-center text-white shadow-xs flex-shrink-0">
+            <HeartPulse className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">
-                Vet<span className="text-primary">IA</span>
+              <span className="font-extrabold text-xl tracking-tight text-[#123B32] dark:text-[#E8EFEA]">
+                Vet<span className="text-[#176B55] dark:text-[#45A987]">IA</span>
               </span>
-              <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-surface-container-high text-primary font-semibold border border-primary/20">
+              <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-[#EAF3F0] dark:bg-[#1F332C] text-[#176B55] dark:text-[#45A987] font-semibold border border-[#DCE6E0] dark:border-[#233630]">
                 Clinical Intelligence
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-on-surface-variant hidden sm:block">
+            <p className="text-[11px] text-[#66756F] dark:text-[#95A59F] hidden sm:block">
               {t.nav?.telemetry || 'Triage Quirúrgico & Telemetría Veterinaria'}
             </p>
           </div>
@@ -57,10 +57,9 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
         {/* Center telemetry & emergency badges */}
         <div className="hidden lg:flex items-center space-x-2 xl:space-x-3">
           {/* Badge de telemetría */}
-          <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-surface-container-high border border-slate-200 dark:border-primary/20 text-xs font-semibold text-slate-700 dark:text-on-surface">
+          <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] text-xs font-semibold text-[#1F2D29] dark:text-[#E8EFEA]">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              <span className="inline-flex rounded-full h-2 w-2 bg-[#176B55] dark:bg-[#45A987]"></span>
             </span>
             <span className="text-[11px]">
               {t.nav?.aiEngineStatus || 'IA Motor v4.2 Activo • 99.8% Precisión Diagnóstica'}
@@ -68,69 +67,23 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
           </div>
 
           {/* Badge de emergencia SOS */}
-          <div className="hidden xl:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-error-container/30 border border-error/30 text-error shadow-[0_0_12px_rgba(239,68,68,0.25)] text-xs font-bold tracking-wide">
-            <ShieldAlert className="w-3.5 h-3.5 animate-bounce" />
+          <div className="hidden xl:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FDF2F4] dark:bg-[#2A1619] border border-[#F7D7DC] dark:border-[#522328] text-[#C83D4D] dark:text-[#FFAAB4] text-xs font-bold tracking-wide">
+            <ShieldAlert className="w-3.5 h-3.5" />
             <span>SOS Urgencias: *911-VET</span>
           </div>
         </div>
 
         {/* Action buttons & Preferences Dock */}
-        <div className="flex items-center space-x-1.5 sm:space-x-2.5">
-          {/* Global Preferences: Language & Theme */}
-          <div className="flex items-center space-x-1 bg-slate-100 dark:bg-surface-container-high/60 p-0.5 sm:p-1 rounded-xl border border-slate-200 dark:border-outline-variant/30">
-            {/* Language Segmented Pill */}
-            <div className="flex items-center rounded-lg p-0.5 bg-white dark:bg-surface-container-low shadow-xs border border-slate-200/60 dark:border-transparent text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => setLanguage('es')}
-                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[11px] sm:text-xs transition-all cursor-pointer ${
-                  language === 'es'
-                    ? 'bg-primary text-white shadow-xs'
-                    : 'text-slate-600 dark:text-on-surface-variant hover:text-slate-900 dark:hover:text-white'
-                }`}
-                title="Español"
-              >
-                ES
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage('en')}
-                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[11px] sm:text-xs transition-all cursor-pointer ${
-                  language === 'en'
-                    ? 'bg-primary text-white shadow-xs'
-                    : 'text-slate-600 dark:text-on-surface-variant hover:text-slate-900 dark:hover:text-white'
-                }`}
-                title="English"
-              >
-                EN
-              </button>
-            </div>
-
-            {/* Theme Switcher Button */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="p-1 sm:p-1.5 rounded-lg bg-white dark:bg-surface-container-low border border-slate-200/60 dark:border-transparent text-slate-700 dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-all flex items-center justify-center cursor-pointer shadow-xs"
-              title={theme === 'dark' ? (language === 'es' ? 'Cambiar a Modo Claro' : 'Switch to Light Mode') : (language === 'es' ? 'Cambiar a Modo Oscuro' : 'Switch to Dark Mode')}
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 animate-pulse" />
-              ) : (
-                <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-              )}
-            </button>
-          </div>
-
+        <div className="ml-auto flex items-center space-x-1.5 sm:space-x-2.5">
           <button
             onClick={onOpenHistory}
-            className="flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 dark:border-surface-container-high/80 bg-white dark:bg-surface-container-low text-slate-700 dark:text-on-surface hover:bg-slate-50 dark:hover:bg-surface-container hover:border-primary/40 hover:text-primary text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer shadow-xs"
+            className="flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#162420] text-[#1F2D29] dark:text-[#E8EFEA] hover:bg-[#F4F7F5] dark:hover:bg-[#1B2C27] hover:border-[#176B55] hover:text-[#176B55] text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer shadow-xs"
             title="Ver Historial de Consultas en Supabase"
           >
-            <History className="w-4 h-4 text-secondary" />
+            <History className="w-4 h-4 text-[#176B55] dark:text-[#45A987]" />
             <span className="hidden sm:inline">{t.nav?.history || 'Historial'}</span>
             {historyCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-secondary-container/40 text-secondary border border-secondary/30 text-xs font-bold">
+              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-[#EAF3F0] dark:bg-[#1F332C] text-[#176B55] dark:text-[#45A987] border border-[#DCE6E0] dark:border-[#233630] text-xs font-bold">
                 {historyCount}
               </span>
             )}
@@ -138,25 +91,25 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
 
           {/* Authentication Status & Tutor Phone Badge */}
           {isAuthenticated ? (
-            <div className="flex items-center space-x-2 pl-1 sm:pl-2 border-l border-slate-200 dark:border-surface-container-high">
+            <div className="flex items-center space-x-2 pl-1 sm:pl-2 border-l border-[#DCE6E0] dark:border-[#233630]">
               {/* Tutor Phone badge / inline editor */}
               <div className="relative">
                 {isEditingPhone ? (
-                  <form onSubmit={handleSavePhone} className="flex items-center space-x-1 bg-white dark:bg-surface-container-lowest border-2 border-primary/70 rounded-lg px-2 py-0.5 shadow-md z-50">
-                    <Phone className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                  <form onSubmit={handleSavePhone} className="flex items-center space-x-1 bg-white dark:bg-[#162420] border-2 border-[#176B55] rounded-xl px-2 py-0.5 shadow-xs z-50">
+                    <Phone className="w-3.5 h-3.5 text-[#176B55] flex-shrink-0" />
                     <input
                       type="tel"
                       maxLength={10}
                       value={tempPhone}
                       onChange={(e) => setTempPhone(e.target.value.replace(/\D/g, ''))}
                       placeholder="Celular 10 dígitos"
-                      className="w-28 text-xs font-bold outline-none text-slate-800 dark:text-on-surface bg-transparent placeholder:text-slate-400 dark:placeholder:text-on-surface-variant"
+                      className="w-28 text-xs font-bold outline-none text-[#1F2D29] dark:text-[#E8EFEA] bg-transparent placeholder:text-[#66756F]"
                       autoFocus
                     />
                     <button
                       type="submit"
                       disabled={isSavingPhone}
-                      className="p-1 text-primary hover:text-secondary cursor-pointer"
+                      className="p-1 text-[#176B55] hover:text-[#123B32] cursor-pointer"
                       title="Guardar teléfono de contacto"
                     >
                       <Check className="w-3.5 h-3.5" />
@@ -167,7 +120,7 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
                         setIsEditingPhone(false);
                         setTempPhone(tutorPhone || '');
                       }}
-                      className="p-1 text-slate-400 dark:text-on-surface-variant hover:text-slate-700 dark:hover:text-on-surface cursor-pointer"
+                      className="p-1 text-[#66756F] hover:text-[#1F2D29] cursor-pointer"
                       title="Cancelar"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -177,14 +130,14 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
                   <button
                     type="button"
                     onClick={() => setIsEditingPhone(true)}
-                    className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all duration-200 cursor-pointer ${
+                    className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition-all duration-200 cursor-pointer ${
                       tutorPhone
-                        ? 'bg-primary-container/10 dark:bg-primary-container/20 border-primary/30 text-primary hover:bg-primary-container/20'
-                        : 'bg-amber-500/10 border-amber-400/40 text-amber-600 dark:text-amber-300 hover:bg-amber-500/20'
+                        ? 'bg-[#EAF3F0] dark:bg-[#1F332C] border-[#DCE6E0] dark:border-[#233630] text-[#176B55] dark:text-[#45A987] hover:border-[#176B55]'
+                        : 'bg-[#FEFCE8] dark:bg-[#2B2713] border-[#FEF08A] dark:border-[#4E4416] text-[#A97812] dark:text-[#FDE047] hover:bg-[#FEF9C3]'
                     }`}
                     title="Clic para editar tu celular o WhatsApp de contacto"
                   >
-                    <Phone className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                    <Phone className="w-3.5 h-3.5 text-[#176B55] flex-shrink-0" />
                     <span className="hidden sm:inline">
                       {tutorPhone ? `Tel: ${tutorPhone}` : 'Añadir celular 📱'}
                     </span>
@@ -195,8 +148,8 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
                 )}
               </div>
 
-              <div className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-surface-container-high border border-slate-200 dark:border-surface-container-highest text-slate-700 dark:text-on-surface text-xs font-semibold">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-container to-blue-700 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+              <div className="flex items-center space-x-2 px-2.5 py-1 rounded-xl bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-[#E8EFEA] text-xs font-semibold">
+                <div className="w-6 h-6 rounded-full bg-[#176B55] text-white flex items-center justify-center text-xs font-bold shadow-xs">
                   {userInitial.toUpperCase()}
                 </div>
                 <span className="max-w-[100px] truncate hidden md:inline">{userName}</span>
@@ -205,21 +158,69 @@ export function Header({ onOpenHistory, onOpenAuth, historyCount = 0 }) {
                 type="button"
                 onClick={signOut}
                 title="Cerrar Sesión en Supabase"
-                className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 dark:border-surface-container-high bg-white dark:bg-surface-container-low hover:bg-error-container/25 hover:border-error/40 text-slate-600 dark:text-on-surface-variant hover:text-error text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer shadow-xs"
+                className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#162420] hover:bg-[#FDF2F4] dark:hover:bg-[#2A1619] hover:border-[#F7D7DC] text-[#66756F] dark:text-[#95A59F] hover:text-[#C83D4D] text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer shadow-xs"
               >
-                <LogOut className="w-4 h-4 text-error" />
+                <LogOut className="w-4 h-4 text-[#C83D4D]" />
                 <span className="hidden md:inline">{t.nav?.logout || 'Cerrar Sesión'}</span>
               </button>
             </div>
           ) : (
             <button
               onClick={onOpenAuth}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 hover:brightness-110 text-white text-xs sm:text-sm font-semibold transition-all duration-200 shadow-[0_0_14px_rgba(37,99,235,0.4)] cursor-pointer"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white text-xs sm:text-sm font-semibold transition-all duration-200 shadow-xs cursor-pointer"
             >
               <LogIn className="w-4 h-4" />
               <span>{t.nav?.login || 'Sign In'}</span>
             </button>
           )}
+
+          {/* Global Preferences: Language & Theme strictly anchored to top-right corner */}
+          <div className="ml-auto flex items-center gap-2 pl-1 sm:pl-2 border-l border-[#DCE6E0] dark:border-[#233630]">
+            <div className="flex items-center space-x-1 bg-[#F4F7F5] dark:bg-[#1B2C27] p-0.5 sm:p-1 rounded-xl border border-[#DCE6E0] dark:border-[#233630]">
+              {/* Language Segmented Pill */}
+              <div className="flex items-center rounded-lg p-0.5 bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setLanguage('es')}
+                  className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[11px] sm:text-xs transition-all cursor-pointer ${
+                    language === 'es'
+                      ? 'bg-[#176B55] text-white shadow-xs'
+                      : 'text-[#66756F] dark:text-[#95A59F] hover:text-[#1F2D29] dark:hover:text-white'
+                  }`}
+                  title="Español"
+                >
+                  ES
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[11px] sm:text-xs transition-all cursor-pointer ${
+                    language === 'en'
+                      ? 'bg-[#176B55] text-white shadow-xs'
+                      : 'text-[#66756F] dark:text-[#95A59F] hover:text-[#1F2D29] dark:hover:text-white'
+                  }`}
+                  title="English"
+                >
+                  EN
+                </button>
+              </div>
+
+              {/* Theme Switcher Button */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-1 sm:p-1.5 rounded-lg bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] text-[#66756F] dark:text-[#95A59F] hover:text-[#176B55] dark:hover:text-[#45A987] transition-all flex items-center justify-center cursor-pointer shadow-xs"
+                title={theme === 'dark' ? (language === 'es' ? 'Cambiar a Modo Claro' : 'Switch to Light Mode') : (language === 'es' ? 'Cambiar a Modo Oscuro' : 'Switch to Dark Mode')}
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#A97812]" />
+                ) : (
+                  <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#176B55]" />
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </header>

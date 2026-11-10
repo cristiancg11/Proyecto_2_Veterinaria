@@ -902,19 +902,10 @@ export function EmergencyMap({
               </div>
             </div>
 
-            {/* Quick Phone Call & Hours */}
-            <div className="flex flex-wrap items-center justify-between gap-2 w-full p-3 bg-[#F4F7F5] dark:bg-[#1F2D29]/40 rounded-xl border border-[#DCE6E0] dark:border-[#233630] text-xs">
-              <div className="flex items-center space-x-2 text-[#1F2D29] dark:text-slate-200 min-w-0 flex-1">
-                <Clock className="w-4 h-4 text-[#66756F] flex-shrink-0" />
-                <span className="truncate">{activeClinic?.hours}</span>
-              </div>
-              <a
-                href={`tel:${activeClinic?.phone}`}
-                className="px-3 py-1.5 bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] text-[#123B32] dark:text-white rounded-lg font-bold flex items-center space-x-1 transition flex-shrink-0 hover:bg-[#F4F7F5]"
-              >
-                <Phone className="w-3.5 h-3.5" />
-                <span>{t.call}</span>
-              </a>
+            {/* Operating Hours */}
+            <div className="flex items-center space-x-2 p-3 bg-[#F4F7F5] dark:bg-[#1F2D29]/40 rounded-xl border border-[#DCE6E0] dark:border-[#233630] text-xs text-[#1F2D29] dark:text-slate-200">
+              <Clock className="w-4 h-4 text-[#66756F] flex-shrink-0" />
+              <span className="truncate">{activeClinic?.hours}</span>
             </div>
 
             {/* Direct SOS Action Buttons: Phone, WhatsApp & Maps */}

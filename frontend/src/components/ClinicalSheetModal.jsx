@@ -1,43 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Printer, HeartPulse, Building2, ShieldAlert, Download } from 'lucide-react';
 import generateTriagePDF from '../utils/generateTriagePDF';
+import { useAuth } from '../context/AuthContext';
 
 export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Mascota' }) {
+  const { tutorPhone } = useAuth();
+  const [whatsappPhone, setWhatsappPhone] = useState(
+    tutorPhone ? (tutorPhone.startsWith('+') ? tutorPhone : `+57${tutorPhone}`) : '+57'
+  );
+
   if (!isOpen || !diagnosis) return null;
 
   const handlePrint = () => {
     window.print();
   };
 
+  const handleSendWhatsApp = (phone, patientData) => {
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const text = encodeURIComponent(
+      `*Reporte Clínico VetIA*\n` +
+      `*Paciente:* ${patientData.name || 'Paciente'} (${patientData.species})\n` +
+      `*Diagnóstico Principal:* ${patientData.diagnosis || 'En evaluación'}\n` +
+      `*Urgencia:* ${patientData.urgency || 'Código de Atención'}\n` +
+      `*Tratamiento/Manejo Inmediato:* ${patientData.treatment || 'Ver ficha adjunta'}\n\n` +
+      `Consulte el expediente completo en la plataforma VetIA.`
+    );
+    window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
+  };
+
   const urgencyColors = {
     CRITICAL: {
-      border: 'border-rose-600',
-      badge: 'bg-rose-600 text-white',
+      border: 'border-[#C83D4D]',
+      badge: 'bg-[#C83D4D] text-white',
       label: 'URGENCIA CRÍTICA / EMERGENCIA VITAL',
     },
     MODERATE: {
-      border: 'border-amber-500',
-      badge: 'bg-amber-500 text-white',
+      border: 'border-[#A97812]',
+      badge: 'bg-[#A97812] text-white',
       label: 'URGENCIA MODERADA / PRIORITARIA',
     },
     MILD: {
-      border: 'border-indigo-600',
-      badge: 'bg-indigo-600 text-white',
+      border: 'border-[#27825D]',
+      badge: 'bg-[#27825D] text-white',
       label: 'ATENCIÓN GENERAL / LEVE',
     },
   }[diagnosis.urgency_level] || {
-    border: 'border-slate-600',
-    badge: 'bg-slate-600 text-white',
+    border: 'border-[#66756F]',
+    badge: 'bg-[#66756F] text-white',
     label: diagnosis.urgency_level,
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-surface-dim/80 backdrop-blur-xl flex items-center justify-center p-4">
-      <div className="bg-[#060911]/90 backdrop-blur-2xl w-full max-w-3xl rounded-3xl shadow-2xl border border-surface-container-high/60 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-[#162420] w-full max-w-3xl rounded-2xl shadow-xl border border-[#DCE6E0] dark:border-[#233630] overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Controls (Hidden in Print) */}
-        <div className="p-4 px-6 border-b border-surface-container-high/60 bg-surface-container-low/95 flex items-center justify-between print:hidden">
+        <div className="p-4 px-6 border-b border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#162420] flex items-center justify-between print:hidden">
           <div className="flex items-center space-x-2">
-            <span className="font-bold text-on-surface text-sm">
+            <span className="font-bold text-[#123B32] dark:text-white text-sm">
               Clinical Triage Referral Sheet (Vista de Impresión / Descarga)
             </span>
           </div>
@@ -54,7 +73,7 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
                   first_aid_actions: diagnosis.immediate_care_tips,
                 })
               }
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 hover:brightness-110 text-white text-xs font-bold shadow-[0_0_14px_rgba(37,99,235,0.4)] transition cursor-pointer"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white text-xs font-bold shadow-xs transition cursor-pointer"
               title="Descargar Ficha en PDF"
             >
               <Download className="w-4 h-4" />
@@ -62,22 +81,56 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-surface-container-high text-on-surface text-xs font-semibold transition cursor-pointer"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white dark:bg-[#1F2D29] hover:bg-[#F4F7F5] dark:hover:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-white text-xs font-semibold transition cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Imprimir</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-on-surface-variant hover:text-white hover:bg-surface-container transition cursor-pointer"
+              className="p-1.5 rounded-lg text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white hover:bg-white dark:hover:bg-[#1F2D29] transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
+        {/* WhatsApp Quick Dispatch Bar (Hidden in Print) */}
+        <div className="p-3 px-6 bg-[#EAF3F0] dark:bg-[#12241F] border-b border-[#DCE6E0] dark:border-[#233630] flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
+          <div className="flex items-center space-x-2 text-xs font-bold text-[#123B32] dark:text-white">
+            <span className="text-base">💬</span>
+            <span>Enviar Reporte Clínico a WhatsApp:</span>
+          </div>
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <input
+              type="tel"
+              value={whatsappPhone}
+              onChange={(e) => setWhatsappPhone(e.target.value)}
+              placeholder="+573001234567"
+              className="px-3 py-1.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#162420] text-xs font-bold text-[#1F2D29] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#176B55] w-full sm:w-44 shadow-xs"
+            />
+            <button
+              type="button"
+              onClick={() =>
+                handleSendWhatsApp(whatsappPhone, {
+                  name: diagnosis.patient_name || petType,
+                  species: petType,
+                  diagnosis: diagnosis.primary_diagnosis || diagnosis.presumptive_diagnosis || diagnosis.preliminary_assessment,
+                  urgency: diagnosis.urgency_level,
+                  treatment: Array.isArray(diagnosis.immediate_care_tips)
+                    ? diagnosis.immediate_care_tips.join('; ')
+                    : diagnosis.immediate_care_tips,
+                })
+              }
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#20BD5A] text-white text-xs font-bold shadow-xs transition flex-shrink-0 cursor-pointer"
+            >
+              <span>Enviar Reporte por WhatsApp</span>
+            </button>
+          </div>
+        </div>
+
         {/* Printable Document Body */}
-        <div id="printable-clinical-sheet" className="p-8 sm:p-10 overflow-y-auto space-y-6 bg-[#FCFDFE] text-[#0F172A] border border-slate-200">
+        <div id="printable-clinical-sheet" className="p-8 sm:p-10 overflow-y-auto space-y-6 bg-[#FCFDFE] text-[#0F172A] border border-[#DCE6E0]">
           {/* Sheet Header */}
           <div className="border-b-2 border-slate-900 pb-4 flex items-start justify-between">
             <div className="flex items-center space-x-3">

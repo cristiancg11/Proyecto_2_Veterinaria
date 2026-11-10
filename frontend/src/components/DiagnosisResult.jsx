@@ -17,6 +17,7 @@ import {
   Layers,
 } from 'lucide-react';
 import ClinicalSheetModal from './ClinicalSheetModal';
+import { useAuth } from '../context/AuthContext';
 
 // Strict color mappings per technical specification
 const SEVERITY_THEMES = {
@@ -53,10 +54,27 @@ const SEVERITY_THEMES = {
 };
 
 export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpenChat }) {
+  const { tutorPhone } = useAuth();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [showDifferentials, setShowDifferentials] = useState(false);
+  const [directWhatsappPhone, setDirectWhatsappPhone] = useState(
+    tutorPhone ? (tutorPhone.startsWith('+') ? tutorPhone : `+57${tutorPhone}`) : '+57'
+  );
 
   if (!diagnosis) return null;
+
+  const handleSendWhatsApp = (phone, patientData) => {
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const text = encodeURIComponent(
+      `*Reporte Clínico VetIA*\n` +
+      `*Paciente:* ${patientData.name || 'Paciente'} (${patientData.species})\n` +
+      `*Diagnóstico Principal:* ${patientData.diagnosis || 'En evaluación'}\n` +
+      `*Urgencia:* ${patientData.urgency || 'Código de Atención'}\n` +
+      `*Tratamiento/Manejo Inmediato:* ${patientData.treatment || 'Ver ficha adjunta'}\n\n` +
+      `Consulte el expediente completo en la plataforma VetIA.`
+    );
+    window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
+  };
 
   const currentTheme =
     SEVERITY_THEMES[diagnosis.urgency_level] || SEVERITY_THEMES.MODERATE;
@@ -303,22 +321,52 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
             </div>
           )}
 
-          {/* Clinical Sheet Download Section */}
-          <div className="p-4 rounded-xl bg-[#F4F7F5] dark:bg-[#0F1A17] text-[#1F2D29] dark:text-white border border-[#DCE6E0] dark:border-[#233630] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-            <div>
-              <h4 className="font-bold text-sm text-[#123B32] dark:text-white">Ficha Clínica de Triaje</h4>
+          {/* Clinical Sheet Download & WhatsApp Dispatch Section */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#F4F7F5] dark:bg-[#0F1A17] text-[#1F2D29] dark:text-white border border-[#DCE6E0] dark:border-[#233630] flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs">
+            <div className="space-y-0.5">
+              <h4 className="font-bold text-sm text-[#123B32] dark:text-white">Ficha Clínica & Reporte de Triaje</h4>
               <p className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
-                Imprime o exporta el informe para presentarlo al equipo veterinario.
+                Descarga el informe médico o envíalo directamente por WhatsApp a cualquier especialista o tutor.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsSheetOpen(true)}
-              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white text-xs font-semibold shadow-xs transition flex items-center justify-center space-x-1.5 flex-shrink-0"
-            >
-              <Printer className="w-4 h-4 text-white" />
-              <span>Descargar Ficha Médica</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center space-x-1.5 bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl px-2.5 py-1.5 shadow-xs">
+                <span className="text-xs">💬</span>
+                <input
+                  type="tel"
+                  value={directWhatsappPhone}
+                  onChange={(e) => setDirectWhatsappPhone(e.target.value)}
+                  placeholder="+573001234567"
+                  className="w-32 sm:w-36 text-xs font-bold outline-none text-[#1F2D29] dark:text-white bg-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleSendWhatsApp(directWhatsappPhone, {
+                      name: diagnosis.patient_name || petType,
+                      species: petType,
+                      diagnosis: primaryDiagnosisName,
+                      urgency: diagnosis.urgency_level,
+                      treatment: Array.isArray(diagnosis.immediate_care_tips)
+                        ? diagnosis.immediate_care_tips.join('; ')
+                        : diagnosis.immediate_care_tips,
+                    })
+                  }
+                  className="px-2.5 py-1 rounded-lg bg-[#25D366] hover:bg-[#20BD5A] text-white text-[11px] font-bold shadow-xs transition cursor-pointer"
+                >
+                  Enviar por WhatsApp
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsSheetOpen(true)}
+                className="px-4 py-2 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white text-xs font-semibold shadow-xs transition flex items-center justify-center space-x-1.5 flex-shrink-0 cursor-pointer"
+              >
+                <Printer className="w-4 h-4 text-white" />
+                <span>Descargar Ficha</span>
+              </button>
+            </div>
           </div>
 
           {/* Medical & Legal Disclaimer */}

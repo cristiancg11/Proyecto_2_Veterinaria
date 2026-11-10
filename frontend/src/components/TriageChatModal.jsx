@@ -20,26 +20,26 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
   const urgencyLevel = diagnosis?.urgency_level || 'MODERATE';
   const urgencyTheme = {
     CRITICAL: {
-      hex: '#EF4444',
-      bg: 'bg-red-500/15 text-red-300 border-red-500/40',
+      hex: '#C83D4D',
+      bg: 'bg-[#FDECEE] text-[#C83D4D] border-[#C83D4D]/30',
       label: 'Nivel Crítico',
       icon: AlertTriangle,
     },
     MODERATE: {
-      hex: '#F59E0B',
-      bg: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+      hex: '#A97812',
+      bg: 'bg-[#FFF9F2] text-[#A97812] border-[#A97812]/30',
       label: 'Nivel Moderado',
       icon: AlertTriangle,
     },
     MILD: {
-      hex: '#06b6d4',
-      bg: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40',
+      hex: '#27825D',
+      bg: 'bg-[#EAF3F0] text-[#27825D] border-[#27825D]/30',
       label: 'Nivel Leve',
       icon: CheckCircle2,
     },
   }[urgencyLevel] || {
-    hex: '#F59E0B',
-    bg: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+    hex: '#A97812',
+    bg: 'bg-[#FFF9F2] text-[#A97812] border-[#A97812]/30',
     label: urgencyLevel,
     icon: AlertTriangle,
   };
@@ -51,31 +51,39 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
     record_id: diagnosis?.record_id,
     id: diagnosis?.record_id,
     pet_type: petType,
+    species: petType,
+    weight: diagnosis?.weight,
     urgency_level: diagnosis?.urgency_level,
     preliminary_assessment: diagnosis?.preliminary_assessment,
+    primary_diagnosis: diagnosis?.primary_diagnosis || diagnosis?.diagnosis || diagnosis?.preliminary_assessment,
+    differential_diagnoses: diagnosis?.differential_diagnoses || diagnosis?.differentials,
     immediate_care_tips: diagnosis?.immediate_care_tips,
     recommended_facility_type: diagnosis?.recommended_facility_type,
     image_url: diagnosis?.image_url,
+    system_prompt:
+      'Eres el Asistente Clínico de VetIA. Tienes en contexto los datos del paciente. Responde con precisión clínica directa a cualquier duda del médico o tutor sobre el diagnóstico, tratamiento, cuidados en casa o medicación.',
+    system_instruction:
+      'Eres el Asistente Clínico de VetIA. Tienes en contexto los datos del paciente. Responde con precisión clínica directa a cualquier duda del médico o tutor sobre el diagnóstico, tratamiento, cuidados en casa o medicación.',
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-surface-dim/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative bg-surface-container-lowest w-full max-w-3xl rounded-3xl shadow-2xl border border-surface-container-high/60 overflow-hidden flex flex-col h-[85vh] max-h-[700px] animate-in zoom-in-95 duration-200"
+        className="relative bg-white dark:bg-[#162420] w-full max-w-3xl rounded-2xl shadow-xl border border-[#DCE6E0] dark:border-[#233630] overflow-hidden flex flex-col h-[85vh] max-h-[700px] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="relative p-4 sm:p-5 border-b border-surface-container-high/60 bg-surface-container-low/95 flex items-center justify-between gap-3">
+        <div className="relative p-4 sm:p-5 border-b border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#162420] flex items-center justify-between gap-3">
           <div className="flex items-center space-x-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-blue-700 text-white flex items-center justify-center shadow-[0_0_12px_rgba(37,99,235,0.4)] flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#176B55] text-white flex items-center justify-center shadow-xs flex-shrink-0">
               <Bot className="w-5 h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center space-x-2">
-                <h3 className="text-base sm:text-lg font-bold text-on-surface truncate">
+                <h3 className="text-base sm:text-lg font-bold text-[#123B32] dark:text-white truncate">
                   Asistente IA: Consulta de Triaje
                 </h3>
                 <span
@@ -85,7 +93,7 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
                   <span>{urgencyTheme.label}</span>
                 </span>
               </div>
-              <p className="text-xs text-on-surface-variant truncate">
+              <p className="text-xs text-[#66756F] dark:text-[#A3B8B0] truncate">
                 Contexto activo: {petType} • Caso #{diagnosis?.record_id ? diagnosis.record_id.slice(0, 8) : 'En vivo'}
               </p>
             </div>
@@ -94,7 +102,7 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition flex-shrink-0 cursor-pointer"
+            className="p-2 rounded-xl text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white hover:bg-white dark:hover:bg-[#1F2D29] border border-transparent hover:border-[#DCE6E0] transition flex-shrink-0 cursor-pointer"
             title="Cerrar modal"
           >
             <X className="w-5 h-5" />

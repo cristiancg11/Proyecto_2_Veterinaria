@@ -187,6 +187,10 @@ export async function sendChatMessage({
         message: user_message,
         triage_id: triageId,
         conversation_history: history,
+        system_prompt:
+          triage_context?.system_prompt ||
+          'Eres el Asistente Clínico de VetIA. Tienes en contexto los datos del paciente. Responde con precisión clínica directa a cualquier duda del médico o tutor sobre el diagnóstico, tratamiento, cuidados en casa o medicación.',
+        triage_context,
       }),
     });
 

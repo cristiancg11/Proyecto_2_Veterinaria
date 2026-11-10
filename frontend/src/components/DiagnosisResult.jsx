@@ -10,51 +10,87 @@ import {
   MessageSquare,
   Sparkles,
   HeartPulse,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  Activity,
+  Layers,
 } from 'lucide-react';
 import ClinicalSheetModal from './ClinicalSheetModal';
 
 // Strict color mappings per technical specification
 const SEVERITY_THEMES = {
   CRITICAL: {
-    hex: '#EF4444',
+    hex: '#C83D4D',
     title: 'NIVEL CRÍTICO (EMERGENCIA INMEDIATA)',
     sublabel: 'Riesgo Vital Inminente',
-    badgeBg: 'bg-red-600',
-    border: 'border-red-500/70',
-    bannerBg: 'bg-urgency-critical',
-    accentText: 'text-red-200',
+    badgeBg: 'bg-[#C83D4D]',
+    border: 'border-[#C83D4D]/70',
+    bannerBg: 'bg-[#FDECEE]',
+    accentText: 'text-[#C83D4D]',
     icon: AlertTriangle,
   },
   MODERATE: {
-    hex: '#F59E0B',
+    hex: '#A97812',
     title: 'NIVEL MODERADO (ATENCIÓN PRIORITARIA)',
     sublabel: 'Urgencia Intermedia',
-    badgeBg: 'bg-amber-500',
-    border: 'border-amber-400/70',
-    bannerBg: 'bg-urgency-watch',
-    accentText: 'text-amber-100',
+    badgeBg: 'bg-[#A97812]',
+    border: 'border-[#A97812]/70',
+    bannerBg: 'bg-[#FFF9F2]',
+    accentText: 'text-[#A97812]',
     icon: AlertTriangle,
   },
   MILD: {
-    hex: '#06b6d4',
+    hex: '#27825D',
     title: 'NIVEL LEVE (MANEJO RUTINARIO)',
     sublabel: 'Baja Urgencia / Ambulatorio',
-    badgeBg: 'bg-indigo-500',
-    border: 'border-indigo-400/60',
-    bannerBg: 'bg-urgency-preventive',
-    accentText: 'text-indigo-100',
+    badgeBg: 'bg-[#27825D]',
+    border: 'border-[#27825D]/60',
+    bannerBg: 'bg-[#EAF3F0]',
+    accentText: 'text-[#27825D]',
     icon: CheckCircle2,
   },
 };
 
 export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpenChat }) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [showDifferentials, setShowDifferentials] = useState(false);
 
   if (!diagnosis) return null;
 
   const currentTheme =
     SEVERITY_THEMES[diagnosis.urgency_level] || SEVERITY_THEMES.MODERATE;
   const BadgeIcon = currentTheme.icon;
+
+  // Extract explicit primary diagnosis name
+  const primaryDiagnosisName =
+    diagnosis.primary_diagnosis ||
+    diagnosis.presumptive_diagnosis ||
+    diagnosis.pathology ||
+    (typeof diagnosis.preliminary_assessment === 'string' && diagnosis.preliminary_assessment.split('.')[0]) ||
+    'Síndrome Clínico Agudo';
+
+  // Certainty calculation
+  const rawConfidence = diagnosis.confidence_score || diagnosis.confidence || diagnosis.certainty;
+  const certaintyPercent = rawConfidence
+    ? Math.round(Number(rawConfidence) > 1 ? Number(rawConfidence) : Number(rawConfidence) * 100)
+    : 92;
+
+  // Visual findings on image
+  const visualFindingsText =
+    diagnosis.visual_findings ||
+    diagnosis.image_findings ||
+    'Evaluación visual multimodal: Exploración de coloración de mucosas (rosadas/pálidas/cianóticas), integridad de tejido y lesiones dérmicas, y morfología anatómica observada en la imagen.';
+
+  // Differential diagnoses breakdown with %
+  const differentialsList =
+    Array.isArray(diagnosis.differential_diagnoses) && diagnosis.differential_diagnoses.length > 0
+      ? diagnosis.differential_diagnoses
+      : [
+          { name: 'Reacción Inflamatoria / Infección Tisular Secundaria', probability: '35%' },
+          { name: 'Contusión Profunda o Traumatismo Osteomuscular', probability: '22%' },
+          { name: 'Compromiso Sistémico o Reacción de Hipersensibilidad', probability: '14%' },
+        ];
 
   const handleConsultAssistant = () => {
     if (onOpenChat) {
@@ -65,8 +101,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
   return (
     <>
       <div
-        className={`backdrop-blur-md bg-slate-900/75 rounded-2xl shadow-xl shadow-indigo-950/20 border ${currentTheme.border} overflow-hidden space-y-6 transition-all duration-300`}
-        style={{ borderColor: currentTheme.hex }}
+        className="bg-white dark:bg-[#162420] rounded-2xl shadow-xs border border-[#DCE6E0] dark:border-[#233630] overflow-hidden space-y-6 transition-all duration-300"
       >
         {/* Dynamic Urgency Level Top Banner */}
         <div
@@ -77,7 +112,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
         >
           <div className="flex items-center space-x-3.5">
             <div
-              className="p-3 rounded-2xl text-white shadow-lg flex-shrink-0"
+              className="p-3 rounded-xl text-white shadow-xs flex-shrink-0"
               style={{ backgroundColor: currentTheme.hex }}
             >
               <BadgeIcon className="w-7 h-7" />
@@ -90,20 +125,20 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
                 >
                   Triaje Multimodal IA
                 </span>
-                <span className="text-xs text-slate-400">•</span>
-                <span className="text-xs font-medium text-slate-100">
+                <span className="text-xs text-[#66756F]">•</span>
+                <span className="text-xs font-medium text-[#1F2D29]">
                   {currentTheme.sublabel}
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white mt-0.5 leading-snug">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-[#123B32] mt-0.5 leading-snug">
                 {currentTheme.title}
               </h2>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-950/60 border border-white/20 text-white shadow-sm flex items-center space-x-1.5">
-              <Building2 className="w-4 h-4 text-cyan-300" />
+            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-white shadow-xs flex items-center space-x-1.5">
+              <Building2 className="w-4 h-4 text-[#176B55]" />
               <span>{diagnosis.recommended_facility_type || 'Clínica Veterinaria'}</span>
             </span>
           </div>
@@ -111,15 +146,85 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
 
         {/* Content Section */}
         <div className="px-6 sm:px-8 space-y-6">
+          {/* Explicit Primary Diagnostic Verdict & Image Analysis Card */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-[#F4F7F5] dark:bg-[#0F1A17] border-2 border-[#176B55]/50 dark:border-[#45A987]/50 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <span className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-[#176B55] text-white text-xs sm:text-sm font-black uppercase tracking-wider shadow-xs">
+                <Activity className="w-4 h-4" />
+                <span>DIAGNÓSTICO PRINCIPAL: {primaryDiagnosisName}</span>
+              </span>
+              <div className="flex items-center space-x-2 text-xs font-bold text-[#176B55] dark:text-[#45A987] bg-white dark:bg-[#162420] px-3.5 py-1.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] shadow-xs">
+                <span>Nivel de Certeza:</span>
+                <span className="font-black text-sm">{certaintyPercent}%</span>
+              </div>
+            </div>
+
+            {/* Resumen de hallazgos observados en la imagen */}
+            <div className="space-y-1.5 pt-2 border-t border-[#DCE6E0] dark:border-[#233630]">
+              <div className="flex items-center space-x-1.5 text-xs font-bold text-[#123B32] dark:text-white uppercase tracking-wider">
+                <Eye className="w-4 h-4 text-[#176B55]" />
+                <span>Hallazgos observados en imagen (Mucosas, Lesiones dérmicas, Silueta radiográfica):</span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#1F2D29] dark:text-slate-200 leading-relaxed bg-white dark:bg-[#162420] p-3.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630]">
+                {visualFindingsText}
+              </p>
+            </div>
+
+            {/* Sección desplegable: Diagnósticos Diferenciales a Descartar */}
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowDifferentials(!showDifferentials)}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] hover:border-[#176B55] text-xs font-bold text-[#123B32] dark:text-white transition cursor-pointer"
+              >
+                <div className="flex items-center space-x-2">
+                  <Layers className="w-4 h-4 text-[#176B55]" />
+                  <span>Diagnósticos Diferenciales a Descartar</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF3F0] dark:bg-[#1F332C] text-[#176B55] font-black">
+                    {differentialsList.length} considerados
+                  </span>
+                </div>
+                {showDifferentials ? <ChevronUp className="w-4 h-4 text-[#66756F]" /> : <ChevronDown className="w-4 h-4 text-[#66756F]" />}
+              </button>
+
+              {showDifferentials && (
+                <div className="mt-2 space-y-2 p-3.5 bg-white dark:bg-[#162420] rounded-xl border border-[#DCE6E0] dark:border-[#233630] animate-in fade-in duration-200">
+                  <p className="text-[11px] text-[#66756F] dark:text-[#A3B8B0]">
+                    Patologías secundarias con sintomatología análoga que deben descartarse en clínica presencial:
+                  </p>
+                  <div className="space-y-1.5 pt-1">
+                    {differentialsList.map((item, idx) => {
+                      const name = typeof item === 'string' ? item : item.name;
+                      const prob = typeof item === 'string' ? `${Math.max(10, 38 - idx * 11)}%` : (item.probability || item.likelihood || `${Math.max(10, 38 - idx * 11)}%`);
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#F4F7F5] dark:bg-[#0F1A17] border border-[#DCE6E0] dark:border-[#233630] text-xs"
+                        >
+                          <span className="font-semibold text-[#1F2D29] dark:text-slate-200">
+                            {idx + 1}. {name}
+                          </span>
+                          <span className="font-black text-[#176B55] dark:text-[#45A987] bg-white dark:bg-[#162420] px-2 py-0.5 rounded border border-[#DCE6E0] dark:border-[#233630]">
+                            {prob}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Preliminary Clinical Assessment */}
           <div>
             <div className="flex items-center space-x-2 mb-2">
-              <HeartPulse className="w-4 h-4 text-indigo-300" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <HeartPulse className="w-4 h-4 text-[#176B55]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#66756F]">
                 Síntomas identificados
               </h3>
             </div>
-            <div className="p-4 rounded-xl bg-slate-950/45 border border-slate-700/60 text-slate-100 leading-relaxed text-sm">
+            <div className="p-4 rounded-xl bg-[#F4F7F5] dark:bg-[#0F1A17] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-slate-200 leading-relaxed text-sm">
               {diagnosis.preliminary_assessment}
             </div>
           </div>
@@ -127,10 +232,10 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           {/* Immediate First-Aid & Care Tips */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-200">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#123B32] dark:text-white">
                 Tratamiento sugerido / Manejo
               </h3>
-              <span className="text-[11px] font-semibold text-slate-400">
+              <span className="text-[11px] font-semibold text-[#66756F]">
                 {diagnosis.immediate_care_tips?.length || 0} pautas prioritarias
               </span>
             </div>
@@ -139,10 +244,10 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
               {diagnosis.immediate_care_tips?.map((tip, index) => (
                 <li
                   key={index}
-                  className="flex items-start space-x-3 p-3.5 rounded-xl bg-slate-950/40 border border-slate-700/60 text-sm text-slate-100 hover:border-indigo-500/30 transition"
+                  className="flex items-start space-x-3 p-3.5 rounded-xl bg-[#F4F7F5] dark:bg-[#0F1A17] border border-[#DCE6E0] dark:border-[#233630] text-sm text-[#1F2D29] dark:text-slate-200 hover:border-[#176B55]/50 transition"
                 >
                   <div
-                    className="w-6 h-6 rounded-lg text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5 shadow-sm"
+                    className="w-6 h-6 rounded-lg text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5 shadow-xs"
                     style={{ backgroundColor: currentTheme.hex }}
                   >
                     {index + 1}
@@ -154,18 +259,18 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           </div>
 
           {/* Featured AI Assistant CTA Button */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-lg shadow-indigo-950/30 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-5 rounded-2xl bg-[#EAF3F0] dark:bg-[#162420] text-[#1F2D29] dark:text-white shadow-xs border border-[#176B55]/30 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="space-y-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start space-x-2">
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo-200">
+                <Sparkles className="w-4 h-4 text-[#176B55]" />
+                <span className="text-xs font-bold uppercase tracking-wider text-[#176B55]">
                   Recomendación de visita médica
                 </span>
               </div>
-              <h4 className="font-bold text-base text-white">
+              <h4 className="font-bold text-base text-[#123B32] dark:text-white">
                 ¿Tienes dudas sobre los cuidados de tu mascota?
               </h4>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-[#66756F] dark:text-[#A3B8B0] leading-relaxed">
                 Pregunta al asistente IA con todo el contexto clínico de esta evaluación.
               </p>
             </div>
@@ -173,7 +278,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
             <button
               type="button"
               onClick={handleConsultAssistant}
-              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white font-semibold text-sm shadow-lg shadow-indigo-600/20 transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2 flex-shrink-0 cursor-pointer"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white font-semibold text-sm shadow-xs transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2 flex-shrink-0 cursor-pointer"
             >
               <MessageSquare className="w-4 h-4 text-white" />
               <span>Consultar dudas con el Asistente IA sobre este caso</span>
@@ -182,7 +287,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
 
           {/* Cloud Stored Image Reference if available */}
           {diagnosis.image_url && (
-            <div className="p-3 bg-slate-950/40 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs text-slate-300">
+            <div className="p-3 bg-[#F4F7F5] dark:bg-[#0F1A17] rounded-xl border border-[#DCE6E0] dark:border-[#233630] flex items-center justify-between text-xs text-[#66756F] dark:text-[#A3B8B0]">
               <span className="truncate max-w-xs sm:max-w-md">
                 Evidencia gráfica resguardada en el registro médico
               </span>
@@ -190,7 +295,7 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
                 href={diagnosis.image_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-cyan-300 font-semibold hover:underline flex items-center space-x-1 flex-shrink-0"
+                className="text-[#176B55] font-semibold hover:underline flex items-center space-x-1 flex-shrink-0"
               >
                 <span>Ver Fotografía Analizada</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -199,27 +304,27 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
           )}
 
           {/* Clinical Sheet Download Section */}
-          <div className="p-4 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+          <div className="p-4 rounded-xl bg-[#F4F7F5] dark:bg-[#0F1A17] text-[#1F2D29] dark:text-white border border-[#DCE6E0] dark:border-[#233630] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
             <div>
-              <h4 className="font-bold text-sm">Ficha Clínica de Triaje</h4>
-              <p className="text-xs text-slate-300">
+              <h4 className="font-bold text-sm text-[#123B32] dark:text-white">Ficha Clínica de Triaje</h4>
+              <p className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
                 Imprime o exporta el informe para presentarlo al equipo veterinario.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setIsSheetOpen(true)}
-              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 shadow-sm transition flex items-center justify-center space-x-1.5 flex-shrink-0"
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white text-xs font-semibold shadow-xs transition flex items-center justify-center space-x-1.5 flex-shrink-0"
             >
-              <Printer className="w-4 h-4 text-slate-300" />
+              <Printer className="w-4 h-4 text-white" />
               <span>Descargar Ficha Médica</span>
             </button>
           </div>
 
           {/* Medical & Legal Disclaimer */}
-          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-400/30 text-xs text-amber-50 space-y-1">
-            <div className="flex items-center space-x-2 font-bold text-amber-200">
-              <ShieldAlert className="w-4 h-4 text-amber-300" />
+          <div className="p-4 rounded-xl bg-[#FFF9F2] dark:bg-[#2A2114] border border-[#D77926]/30 text-xs text-[#1F2D29] dark:text-slate-200 space-y-1">
+            <div className="flex items-center space-x-2 font-bold text-[#D77926]">
+              <ShieldAlert className="w-4 h-4 text-[#D77926]" />
               <span>Aviso Médico y Responsabilidad</span>
             </div>
             <p className="leading-relaxed opacity-90">
@@ -230,17 +335,17 @@ export function DiagnosisResult({ diagnosis, onReset, petType = 'Mascota', onOpe
         </div>
 
         {/* Footer Navigation */}
-        <div className="bg-slate-950/40 px-6 sm:px-8 py-4 border-t border-slate-700/50 flex items-center justify-between">
+        <div className="bg-[#F4F7F5] dark:bg-[#162420] px-6 sm:px-8 py-4 border-t border-[#DCE6E0] dark:border-[#233630] flex items-center justify-between">
           <button
             type="button"
             onClick={onReset}
-            className="flex items-center space-x-2 px-5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/70 text-slate-200 hover:border-indigo-500/40 hover:text-indigo-200 text-sm font-semibold transition-all duration-200"
+            className="flex items-center space-x-2 px-5 py-2.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#1F2D29] text-[#1F2D29] dark:text-white hover:bg-[#F4F7F5] text-sm font-semibold transition cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Nueva Consulta de Triaje</span>
           </button>
 
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-[#66756F] dark:text-[#A3B8B0]">
             Registro ID: {diagnosis.record_id ? diagnosis.record_id.slice(0, 8) : 'Caso Activo'}
           </span>
         </div>

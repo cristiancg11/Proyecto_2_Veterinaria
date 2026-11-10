@@ -32,12 +32,12 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-3xl rounded-3xl shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-surface-dim/80 backdrop-blur-xl flex items-center justify-center p-4">
+      <div className="bg-[#060911]/90 backdrop-blur-2xl w-full max-w-3xl rounded-3xl shadow-2xl border border-surface-container-high/60 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Controls (Hidden in Print) */}
-        <div className="p-4 px-6 border-b border-white/10 bg-white/[0.03] flex items-center justify-between print:hidden">
+        <div className="p-4 px-6 border-b border-surface-container-high/60 bg-surface-container-low/95 flex items-center justify-between print:hidden">
           <div className="flex items-center space-x-2">
-            <span className="font-bold text-white text-sm">
+            <span className="font-bold text-on-surface text-sm">
               Clinical Triage Referral Sheet (Vista de Impresión / Descarga)
             </span>
           </div>
@@ -54,7 +54,7 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
                   first_aid_actions: diagnosis.immediate_care_tips,
                 })
               }
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:from-indigo-500 hover:to-teal-400 text-white text-xs font-bold shadow-lg shadow-indigo-950/40 transition cursor-pointer"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 hover:brightness-110 text-white text-xs font-bold shadow-[0_0_14px_rgba(37,99,235,0.4)] transition cursor-pointer"
               title="Descargar Ficha en PDF"
             >
               <Download className="w-4 h-4" />
@@ -62,14 +62,14 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-slate-100 text-xs font-semibold transition"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-surface-container-high text-on-surface text-xs font-semibold transition cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Imprimir</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
+              className="p-1.5 rounded-lg text-on-surface-variant hover:text-white hover:bg-surface-container transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -77,7 +77,7 @@ export function ClinicalSheetModal({ isOpen, onClose, diagnosis, petType = 'Masc
         </div>
 
         {/* Printable Document Body */}
-        <div id="printable-clinical-sheet" className="p-8 sm:p-10 overflow-y-auto space-y-6 text-slate-900 bg-white">
+        <div id="printable-clinical-sheet" className="p-8 sm:p-10 overflow-y-auto space-y-6 bg-[#FCFDFE] text-[#0F172A] border border-slate-200">
           {/* Sheet Header */}
           <div className="border-b-2 border-slate-900 pb-4 flex items-start justify-between">
             <div className="flex items-center space-x-3">

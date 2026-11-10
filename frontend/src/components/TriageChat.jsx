@@ -227,7 +227,7 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
       </div>
 
       {/* Messages container */}
-      <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-950/30">
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-surface-container-lowest">
         {messages.map((msg, index) => {
           const isAi =
             msg.role === 'assistant' ||
@@ -242,23 +242,23 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
               }`}
             >
               {isAi && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-indigo-600/20">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-container to-blue-700 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-[0_0_12px_rgba(37,99,235,0.4)]">
                   <Bot className="w-4 h-4" />
                 </div>
               )}
 
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-lg ${
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed ${
                   isAi
-                    ? 'bg-slate-900/80 text-slate-100 border border-slate-700/50'
-                    : 'bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium'
+                    ? 'bg-surface-container-low/95 border border-[#1e293b] text-on-surface shadow-xl'
+                    : 'bg-surface-container-highest/90 border border-[#334155] text-on-surface shadow-md'
                 }`}
               >
                 {msg.content}
               </div>
 
               {!isAi && (
-                <div className="w-8 h-8 rounded-full bg-white/[0.06] text-slate-300 flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10">
+                <div className="w-8 h-8 rounded-xl bg-surface-container-high text-on-surface-variant flex items-center justify-center flex-shrink-0 mt-0.5 border border-surface-container-highest">
                   <User className="w-4 h-4" />
                 </div>
               )}
@@ -268,19 +268,19 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
 
         {loading && (
           <div className="flex items-start space-x-2.5 justify-start">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5 animate-pulse shadow-lg shadow-indigo-600/20">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-container to-blue-700 text-white flex items-center justify-center flex-shrink-0 mt-0.5 animate-pulse shadow-[0_0_12px_rgba(37,99,235,0.4)]">
               <Bot className="w-4 h-4" />
             </div>
-            <div className="bg-slate-900/80 text-slate-300 rounded-2xl px-4 py-3 text-xs border border-slate-700/50 flex items-center space-x-2 shadow-lg">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
-              <span>El Asistente VetIA está razonando sobre el caso clínico...</span>
+            <div className="bg-surface-container-low/95 text-on-surface-variant rounded-2xl px-4 py-3 text-xs border border-[#1e293b] flex items-center space-x-2 shadow-xl">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+              <span>El Asistente Clínico de VetIA está analizando el caso...</span>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs text-rose-100 flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+          <div className="p-3 rounded-xl bg-error-container/30 border border-error/40 text-xs text-error flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 text-error flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -289,14 +289,14 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
       </div>
 
       {/* Suggested Quick Prompts */}
-      <div className="p-2.5 px-4 bg-slate-950/40 border-t border-slate-700/50 overflow-x-auto flex space-x-2 no-scrollbar">
+      <div className="p-2.5 px-4 bg-surface-container-low border-t border-surface-container-high/60 overflow-x-auto flex space-x-2 no-scrollbar">
         {QUICK_PROMPTS.map((prompt, idx) => (
           <button
             key={idx}
             type="button"
             disabled={loading}
             onClick={() => handleSendMessage(prompt)}
-            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-900/70 hover:bg-indigo-500/15 hover:text-indigo-200 text-slate-300 transition border border-slate-700/60 font-medium cursor-pointer"
+            className="text-[11px] whitespace-nowrap px-3 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high hover:text-white text-on-surface-variant transition border border-surface-container-high/60 font-medium cursor-pointer"
           >
             {prompt}
           </button>
@@ -304,7 +304,7 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
       </div>
 
       {/* Input controls */}
-      <div className="p-3 sm:p-4 bg-slate-950/40 border-t border-slate-700/50 flex items-center space-x-2">
+      <div className="p-3 sm:p-4 bg-surface-container-low border-t border-surface-container-high/60 flex items-center space-x-2">
         <textarea
           rows={1}
           value={inputText}
@@ -312,14 +312,14 @@ export function TriageChat({ triageId, petType = 'Mascota', triageContext = null
           onKeyDown={handleKeyDown}
           disabled={loading}
           placeholder="Escribe tu consulta adicional sobre primeros auxilios o síntomas..."
-          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 placeholder:text-slate-500 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none resize-none"
+          className="flex-1 px-4 py-2.5 rounded-xl border border-surface-container-high bg-surface-container-lowest text-on-surface placeholder:text-outline text-xs sm:text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none resize-none"
         />
 
         <button
           type="button"
           onClick={() => handleSendMessage()}
           disabled={loading || !inputText.trim()}
-          className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-indigo-600/20 transition disabled:opacity-40 flex items-center space-x-1.5 cursor-pointer"
+          className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-[0_0_14px_rgba(37,99,235,0.4)] transition disabled:opacity-40 flex items-center space-x-1.5 cursor-pointer"
         >
           <Send className="w-4 h-4" />
           <span className="hidden sm:inline">Enviar</span>

@@ -212,32 +212,52 @@ const FIRST_AID_GUIDELINES = [
 
 export function FieldFirstAidModal({ isOpen, onClose }) {
   const [selectedId, setSelectedId] = useState('timpanismo');
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+  React.useEffect(() => {
+    let interval = null;
+    if (isTimerRunning) {
+      interval = setInterval(() => {
+        setTimerSeconds((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isTimerRunning]);
 
   if (!isOpen) return null;
 
   const currentGuide = FIRST_AID_GUIDELINES.find((g) => g.id === selectedId) || FIRST_AID_GUIDELINES[0];
   const IconComponent = currentGuide.icon;
 
+  const formatTimer = (totalSeconds) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-      <div className="backdrop-blur-xl bg-slate-900/95 w-full max-w-4xl rounded-3xl shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-surface-dim/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+      <div className="bg-surface-container-lowest border border-surface-container-high/60 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/70 p-6 text-white flex items-center justify-between gap-4 border-b border-white/10">
+        <div className="bg-gradient-to-r from-surface-container-low via-surface-container to-surface-container-high/40 p-6 text-on-surface flex items-center justify-between gap-4 border-b border-surface-container-high/60">
           <div className="flex items-center space-x-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center flex-shrink-0 shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-container to-blue-700 text-white flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(37,99,235,0.4)]">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 px-2.5 py-0.5 rounded-full">
-                  Protocolo Veterinario Rural
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-surface-container-high text-primary border border-primary/30 px-2.5 py-0.5 rounded-full">
+                  Protocolo Quirúrgico & Campo
                 </span>
-                <span className="text-xs text-slate-400">• Zootecnia y Campo</span>
+                <span className="text-xs text-on-surface-variant">• Zootecnia y Estabilización</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">
+              <h3 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-0.5">
                 Guía Rápida de Primeros Auxilios de Campo
               </h3>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-on-surface-variant">
                 Pautas de estabilización de urgencia para ganado mayor, menor y animales de granja.
               </p>
             </div>
@@ -246,7 +266,7 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition cursor-pointer"
+            className="p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-white transition cursor-pointer border border-surface-container-high/60"
             title="Cerrar Guía"
           >
             <X className="w-5 h-5" />
@@ -254,11 +274,11 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
         </div>
 
         {/* Content Layout: Left Nav + Right Details */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-white/10 bg-slate-950/40">
-          {/* Left Index */}
-          <div className="md:col-span-4 p-4 space-y-2 bg-white/[0.02] overflow-y-auto max-h-72 md:max-h-none">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 block px-2 mb-1">
-              Emergencias Frecuentes en Finca
+        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-surface-container-high/60 bg-surface-container-lowest">
+          {/* Left Index (Panel izquierdo de catálogo de urgencias) */}
+          <div className="md:col-span-4 p-4 space-y-2 bg-surface-container-low overflow-y-auto max-h-72 md:max-h-none">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-outline block px-2 mb-1">
+              Catálogo de Urgencias en Finca
             </span>
             {FIRST_AID_GUIDELINES.map((item) => {
               const ItemIcon = item.icon;
@@ -268,17 +288,17 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                   key={item.id}
                   type="button"
                   onClick={() => setSelectedId(item.id)}
-                  className={`w-full text-left p-3 rounded-2xl transition flex items-start space-x-3 cursor-pointer ${
+                  className={`w-full text-left p-3 rounded-xl transition flex items-start space-x-3 cursor-pointer ${
                     isSelected
-                      ? 'bg-indigo-500/10 shadow-sm border border-indigo-500/40 ring-2 ring-indigo-500/20'
-                      : 'hover:bg-white/5 border border-transparent text-slate-400'
+                      ? 'bg-surface-container-high border border-primary/50 text-on-surface ring-1 ring-primary/40 shadow-sm'
+                      : 'hover:bg-surface-container border border-transparent text-on-surface-variant'
                   }`}
                 >
                   <div
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
                       isSelected
-                        ? 'bg-gradient-to-tr from-indigo-600 to-teal-500 text-white shadow-lg shadow-indigo-950/40'
-                        : 'bg-slate-800 text-slate-400'
+                        ? 'bg-primary text-white shadow-md'
+                        : 'bg-surface-container-highest text-outline'
                     }`}
                   >
                     <ItemIcon className="w-4 h-4" />
@@ -286,60 +306,88 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
                   <div className="flex-1 min-w-0">
                     <h5
                       className={`text-xs font-bold truncate leading-tight ${
-                        isSelected ? 'text-white' : 'text-slate-300'
+                        isSelected ? 'text-white' : 'text-on-surface'
                       }`}
                     >
                       {item.title}
                     </h5>
-                    <span className="text-[11px] text-slate-500 block truncate">
+                    <span className="text-[11px] text-on-surface-variant block truncate">
                       {item.species}
                     </span>
                   </div>
-                  {isSelected && <ChevronRight className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-1" />}
+                  {isSelected && <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 mt-1" />}
                 </button>
               );
             })}
           </div>
 
-          {/* Right Detailed Procedure */}
-          <div className="md:col-span-8 p-6 sm:p-8 space-y-6 bg-slate-950/30 overflow-y-auto">
-            {/* Header of selected guide */}
-            <div className="space-y-2 border-b border-white/10 pb-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${currentGuide.badgeColor}`}>
-                  {currentGuide.badge}
-                </span>
-                <span className="text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">
-                  Especie: {currentGuide.species}
-                </span>
+          {/* Right Detailed Procedure (Panel derecho con cronómetro de paro y guía por fases) */}
+          <div className="md:col-span-8 p-6 sm:p-8 space-y-6 bg-surface-container-lowest overflow-y-auto">
+            {/* Header of selected guide + Cronómetro de Paro / Reanimación */}
+            <div className="space-y-4 border-b border-surface-container-high/60 pb-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${currentGuide.badgeColor}`}>
+                    {currentGuide.badge}
+                  </span>
+                  <span className="text-xs font-bold text-on-surface-variant bg-surface-container border border-surface-container-high px-2.5 py-0.5 rounded-full">
+                    Especie: {currentGuide.species}
+                  </span>
+                </div>
+
+                {/* Cronómetro de paro / estabilización en tiempo real */}
+                <div className="flex items-center space-x-2 bg-surface-container px-3 py-1.5 rounded-xl border border-surface-container-high">
+                  <span className="text-[10px] uppercase font-bold text-outline">Cronómetro de Urgencia:</span>
+                  <span className="font-mono font-bold text-sm text-secondary">{formatTimer(timerSeconds)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsTimerRunning(!isTimerRunning)}
+                    className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary-container text-white hover:bg-primary transition cursor-pointer"
+                  >
+                    {isTimerRunning ? 'Pausar' : 'Iniciar'}
+                  </button>
+                  {timerSeconds > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsTimerRunning(false);
+                        setTimerSeconds(0);
+                      }}
+                      className="text-[10px] text-outline hover:text-white"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
               </div>
-              <h4 className="text-xl sm:text-2xl font-black text-white">
+
+              <h4 className="text-xl sm:text-2xl font-black text-on-surface">
                 {currentGuide.title}
               </h4>
-              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-400/30 text-amber-100 text-xs sm:text-sm leading-relaxed">
-                <strong className="block font-bold text-amber-300 mb-0.5">Signos Clave de Identificación en Terreno:</strong>
+              <div className="p-3.5 rounded-xl bg-surface-container border border-surface-container-high text-on-surface text-xs sm:text-sm leading-relaxed">
+                <strong className="block font-bold text-secondary mb-0.5">Signos Clave de Identificación en Terreno:</strong>
                 {currentGuide.symptoms}
               </div>
             </div>
 
-            {/* Protocol Steps */}
+            {/* Protocol Steps / Guía por Fases */}
             <div className="space-y-4">
-              <h5 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                Secuencia Inmediata de Acción en Campo:
+              <h5 className="text-xs font-bold uppercase tracking-wider text-outline">
+                Guía por Fases de Estabilización Inmediata:
               </h5>
 
-              <div className="space-y-3.5">
+              <div className="space-y-3">
                 {currentGuide.steps.map((s) => (
                   <div
                     key={s.step}
-                    className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex items-start space-x-4 hover:border-indigo-500/30 transition"
+                    className="p-4 rounded-xl bg-surface-container-low border border-surface-container-high/60 flex items-start space-x-4 hover:border-primary/40 transition shadow-sm"
                   >
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-teal-500 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-950/40">
-                      {s.step}
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-container to-blue-700 text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-md">
+                      F{s.step}
                     </div>
                     <div className="space-y-1">
-                      <h6 className="font-extrabold text-sm text-white">{s.title}</h6>
-                      <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{s.desc}</p>
+                      <h6 className="font-extrabold text-sm text-on-surface">{s.title}</h6>
+                      <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">{s.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -347,24 +395,24 @@ export function FieldFirstAidModal({ isOpen, onClose }) {
             </div>
 
             {/* Warning Note */}
-            <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 flex items-start space-x-3 text-xs">
+            <div className="p-4 rounded-xl bg-surface-container-low border border-surface-container-high/60 flex items-start space-x-3 text-xs">
               <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <p className="leading-relaxed text-slate-400">
-                <strong className="text-white">Aviso Clínico Importante:</strong> Estas pautas constituyen maniobras de estabilización de soporte en faena. Todo cuadro crítico debe ser valorado presencialmente por un médico veterinario zootécnico colegiado.
+              <p className="leading-relaxed text-on-surface-variant">
+                <strong className="text-on-surface">Aviso Clínico Importante:</strong> Estas pautas constituyen maniobras de estabilización de soporte en faena. Todo cuadro crítico debe ser valorado presencialmente por un médico veterinario zootécnico colegiado.
               </p>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:px-8 border-t border-white/10 bg-white/[0.03] flex items-center justify-between">
-          <span className="text-xs text-slate-500">
+        <div className="p-4 sm:px-8 border-t border-surface-container-high/60 bg-surface-container-lowest flex items-center justify-between">
+          <span className="text-xs text-outline">
             Manual de Urgencias Pecuarias VetIA • Soporte Asistido
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:from-indigo-500 hover:to-teal-400 text-white font-bold text-xs shadow-lg shadow-indigo-950/40 transition cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 hover:brightness-110 text-white font-bold text-xs shadow-[0_0_14px_rgba(37,99,235,0.4)] transition cursor-pointer"
           >
             Entendido / Cerrar Guía
           </button>

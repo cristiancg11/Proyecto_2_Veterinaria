@@ -60,22 +60,22 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 overflow-y-auto bg-surface-dim/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative backdrop-blur-xl bg-slate-900/95 w-full max-w-3xl rounded-3xl shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden flex flex-col h-[85vh] max-h-[700px] animate-in zoom-in-95 duration-200"
+        className="relative bg-surface-container-lowest w-full max-w-3xl rounded-3xl shadow-2xl border border-surface-container-high/60 overflow-hidden flex flex-col h-[85vh] max-h-[700px] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="relative p-4 sm:p-5 border-b border-white/10 bg-white/[0.03] flex items-center justify-between gap-3">
+        <div className="relative p-4 sm:p-5 border-b border-surface-container-high/60 bg-surface-container-low/95 flex items-center justify-between gap-3">
           <div className="flex items-center space-x-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/25 flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-blue-700 text-white flex items-center justify-center shadow-[0_0_12px_rgba(37,99,235,0.4)] flex-shrink-0">
               <Bot className="w-5 h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center space-x-2">
-                <h3 className="text-base sm:text-lg font-bold text-white truncate">
+                <h3 className="text-base sm:text-lg font-bold text-on-surface truncate">
                   Asistente IA: Consulta de Triaje
                 </h3>
                 <span
@@ -85,7 +85,7 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
                   <span>{urgencyTheme.label}</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-400 truncate">
+              <p className="text-xs text-on-surface-variant truncate">
                 Contexto activo: {petType} • Caso #{diagnosis?.record_id ? diagnosis.record_id.slice(0, 8) : 'En vivo'}
               </p>
             </div>
@@ -94,7 +94,7 @@ export function TriageChatModal({ isOpen, onClose, diagnosis, petType = 'Mascota
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition flex-shrink-0"
+            className="p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition flex-shrink-0 cursor-pointer"
             title="Cerrar modal"
           >
             <X className="w-5 h-5" />

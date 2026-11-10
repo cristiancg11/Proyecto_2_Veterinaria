@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { X, Lock, Mail, User, AlertCircle, Loader2, CheckCircle2, UserPlus, LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { usePreferences } from '../context/PreferencesContext';
 import { SUPABASE_URL } from '../services/supabaseClient';
 
 export function AuthModal({ isOpen, onClose }) {
+  const { theme, toggleTheme, language, setLanguage } = usePreferences();
   const { signIn, signUp } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
@@ -50,30 +52,29 @@ export function AuthModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative backdrop-blur-xl bg-slate-900/95 w-full max-w-md rounded-2xl shadow-2xl shadow-indigo-950/40 border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-indigo-500/15 blur-[100px]" />
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="relative bg-white dark:bg-[#162420] w-full max-w-md rounded-2xl shadow-xl border border-[#DCE6E0] dark:border-[#233630] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="relative p-5 border-b border-white/10 bg-white/[0.03] flex items-center justify-between">
+        <div className="relative p-5 border-b border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#162420] flex items-center justify-between">
           <div>
-            <h3 className="text-base font-bold text-white">
+            <h3 className="text-base font-bold text-[#123B32] dark:text-white">
               {isRegister ? 'Crear Cuenta de Tutor' : 'Iniciar Sesión en VetIA'}
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#66756F] dark:text-[#A3B8B0] mt-0.5">
               Accede a tu historial clínico y seguimiento contextual de urgencias
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            className="p-1.5 rounded-lg text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white hover:bg-white dark:hover:bg-[#1F2D29] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab switch */}
-        <div className="flex border-b border-white/10 text-sm font-semibold text-center">
+        <div className="flex border-b border-[#DCE6E0] dark:border-[#233630] text-sm font-semibold text-center">
           <button
             type="button"
             onClick={() => {
@@ -81,8 +82,8 @@ export function AuthModal({ isOpen, onClose }) {
               setError(null);
             }}
             className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${!isRegister
-              ? 'border-indigo-500 text-indigo-300 bg-indigo-500/10'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-[#176B55] text-[#176B55] bg-[#EAF3F0] dark:bg-[#176B55]/15'
+              : 'border-transparent text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white'
               }`}
           >
             <LogIn className="w-4 h-4" />
@@ -95,8 +96,8 @@ export function AuthModal({ isOpen, onClose }) {
               setError(null);
             }}
             className={`flex-1 py-3 transition border-b-2 cursor-pointer flex items-center justify-center space-x-1.5 ${isRegister
-              ? 'border-indigo-500 text-indigo-300 bg-indigo-500/10'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-[#176B55] text-[#176B55] bg-[#EAF3F0] dark:bg-[#176B55]/15'
+              : 'border-transparent text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white'
               }`}
           >
             <UserPlus className="w-4 h-4" />
@@ -107,64 +108,64 @@ export function AuthModal({ isOpen, onClose }) {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3.5 bg-rose-950/40 border border-rose-500/40 rounded-xl text-xs text-rose-100 flex items-start space-x-2.5 shadow-lg shadow-rose-950/20">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400 mt-0.5" />
+            <div className="p-3.5 bg-[#FDECEE] border border-[#C83D4D]/40 rounded-xl text-xs text-[#C83D4D] flex items-start space-x-2.5 shadow-xs">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-[#C83D4D] mt-0.5" />
               <div className="flex-1">
-                <span className="font-bold block text-rose-300 mb-0.5">Aviso de Validación / Error:</span>
+                <span className="font-bold block text-[#C83D4D] mb-0.5">Aviso de Validación / Error:</span>
                 <span className="leading-relaxed">{error}</span>
               </div>
             </div>
           )}
 
           {successMessage && (
-            <div className="p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-xs text-indigo-200 flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-indigo-400" />
+            <div className="p-3 bg-[#EAF3F0] border border-[#176B55]/30 rounded-xl text-xs text-[#176B55] flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-[#176B55]" />
               <span>{successMessage}</span>
             </div>
           )}
 
           {isRegister && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-[#1F2D29] dark:text-slate-200 mb-1.5">
                 Nombre Completo del Tutor
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <User className="w-4 h-4 text-[#66756F] absolute left-3 top-3" />
                 <input
                   type="text"
                   required
                   placeholder="Ej. Dra. Mariana Torres o Carlos Ramírez"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#0F1A17] text-[#1F2D29] dark:text-white text-sm placeholder:text-[#66756F] focus:ring-2 focus:ring-[#176B55] focus:border-[#176B55] outline-none transition"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-[#1F2D29] dark:text-slate-200 mb-1.5">
               Correo Electrónico
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+              <Mail className="w-4 h-4 text-[#66756F] absolute left-3 top-3" />
               <input
                 type="email"
                 required
                 placeholder="tutor@ejemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#0F1A17] text-[#1F2D29] dark:text-white text-sm placeholder:text-[#66756F] focus:ring-2 focus:ring-[#176B55] focus:border-[#176B55] outline-none transition"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-[#1F2D29] dark:text-slate-200 mb-1.5">
               Contraseña
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+              <Lock className="w-4 h-4 text-[#66756F] absolute left-3 top-3" />
               <input
                 type="password"
                 required
@@ -172,7 +173,7 @@ export function AuthModal({ isOpen, onClose }) {
                 placeholder="Mínimo 6 caracteres"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#0F1A17] text-[#1F2D29] dark:text-white text-sm placeholder:text-[#66756F] focus:ring-2 focus:ring-[#176B55] focus:border-[#176B55] outline-none transition"
               />
             </div>
           </div>
@@ -180,7 +181,7 @@ export function AuthModal({ isOpen, onClose }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 text-white font-semibold text-sm shadow-lg shadow-indigo-600/20 transition disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+            className="w-full mt-2 py-3 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white font-semibold text-sm shadow-xs transition disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
           >
             {loading ? (
               <>

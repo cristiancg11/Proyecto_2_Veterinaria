@@ -54,8 +54,54 @@ export function AuthModal({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="relative bg-white dark:bg-[#162420] w-full max-w-md rounded-2xl shadow-xl border border-[#DCE6E0] dark:border-[#233630] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+          {/* Selector ES / EN */}
+          <div className="flex items-center bg-slate-100 dark:bg-[#151e34] border border-slate-300 dark:border-[#334155] rounded-lg p-0.5 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setLanguage('es')}
+              className={`px-2 py-0.5 rounded transition-all cursor-pointer ${language === 'es' ? 'bg-[#2563eb] text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+            >
+              ES
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage('en')}
+              className={`px-2 py-0.5 rounded transition-all cursor-pointer ${language === 'en' ? 'bg-[#2563eb] text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+            >
+              EN
+            </button>
+          </div>
+
+          {/* Botón Sol / Luna */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-1.5 rounded-lg bg-slate-100 dark:bg-[#151e34] border border-slate-300 dark:border-[#334155] text-slate-600 dark:text-slate-300 hover:text-[#2563eb] dark:hover:text-[#38bdf8] transition-all flex items-center justify-center shadow-sm cursor-pointer"
+            title={theme === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <span className="material-symbols-outlined text-[1.15rem] text-amber-400">light_mode</span>
+            ) : (
+              <span className="material-symbols-outlined text-[1.15rem] text-[#2563eb]">dark_mode</span>
+            )}
+          </button>
+
+          {/* Botón Cerrar */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white hover:bg-white dark:hover:bg-[#1F2D29] transition cursor-pointer"
+            title="Cerrar modal"
+            aria-label="Cerrar modal"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
         {/* Header */}
-        <div className="relative p-5 border-b border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#162420] flex items-center justify-between">
+        <div className="relative p-5 pr-36 border-b border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#162420] flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-[#123B32] dark:text-white">
               {isRegister ? 'Crear Cuenta de Tutor' : 'Iniciar Sesión en VetIA'}
@@ -64,13 +110,6 @@ export function AuthModal({ isOpen, onClose }) {
               Accede a tu historial clínico y seguimiento contextual de urgencias
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-[#66756F] hover:text-[#1F2D29] dark:hover:text-white hover:bg-white dark:hover:bg-[#1F2D29] transition cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Tab switch */}

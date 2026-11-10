@@ -899,9 +899,9 @@ export function EmergencyMap({
             </div>
 
             {/* Quick Phone Call & Hours */}
-            <div className="flex items-center justify-between p-3 bg-[#F4F7F5] dark:bg-[#1F2D29]/40 rounded-xl border border-[#DCE6E0] dark:border-[#233630] text-xs">
-              <div className="flex items-center space-x-2 text-[#1F2D29] dark:text-slate-200">
-                <Clock className="w-4 h-4 text-[#66756F]" />
+            <div className="flex flex-wrap items-center justify-between gap-2 w-full p-3 bg-[#F4F7F5] dark:bg-[#1F2D29]/40 rounded-xl border border-[#DCE6E0] dark:border-[#233630] text-xs">
+              <div className="flex items-center space-x-2 text-[#1F2D29] dark:text-slate-200 min-w-0 flex-1">
+                <Clock className="w-4 h-4 text-[#66756F] flex-shrink-0" />
                 <span className="truncate">{activeClinic?.hours}</span>
               </div>
               <a

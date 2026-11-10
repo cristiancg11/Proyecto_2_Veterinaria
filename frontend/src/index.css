@@ -5,15 +5,32 @@
 @tailwind utilities;
 
 body {
-  @apply bg-surface text-on-surface;
+  @apply bg-slate-50 text-slate-900;
   font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Clinical canvas + font smoothing. Specificity beats the light body utilities in index.html. */
+/* Clinical canvas + font smoothing in daylight light mode */
 body.antialiased {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+  color: #0f172a;
+  background-image:
+    radial-gradient(1200px 620px at 6% -12%, rgba(37, 99, 235, 0.08), transparent 56%),
+    radial-gradient(1040px 560px at 100% 0%, rgba(56, 189, 248, 0.06), transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  background-attachment: fixed;
+}
+
+/* Dark mode styling when root html has .dark class */
+html.dark body {
   @apply bg-surface text-on-surface;
+}
+
+html.dark body.antialiased {
+  background-color: #0b0f19;
+  color: #f1f5f9;
   background-image:
     radial-gradient(1200px 620px at 6% -12%, rgba(37, 99, 235, 0.22), transparent 56%),
     radial-gradient(1040px 560px at 100% 0%, rgba(56, 189, 248, 0.16), transparent 50%),
@@ -47,12 +64,12 @@ body.antialiased {
 @layer components {
   /* Futuristic glass surface used for primary cards & modals */
   .glass-card {
-    @apply relative backdrop-blur-2xl bg-slate-900/40 border border-indigo-500/20 shadow-depth transition-all duration-300;
+    @apply relative backdrop-blur-2xl bg-white/95 dark:bg-slate-900/40 border border-slate-200/90 dark:border-indigo-500/20 shadow-md dark:shadow-depth text-slate-800 dark:text-slate-100 transition-all duration-300;
   }
 
   .glass-card:hover {
-    @apply border-cyan-400/40;
-    box-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
+    @apply border-indigo-400/40 dark:border-cyan-400/40;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
   }
 
   /* Gradient hairline highlight on the top edge for premium depth */
@@ -228,6 +245,22 @@ body.antialiased {
     height: 22px;
     opacity: 1;
   }
+}
+
+/* Ensure printable clinical sheet always remains pure white in both dark and light themes */
+#printable-clinical-sheet {
+  background-color: #FCFDFE !important;
+  color: #0F172A !important;
+}
+
+#printable-clinical-sheet h1,
+#printable-clinical-sheet h2,
+#printable-clinical-sheet h3,
+#printable-clinical-sheet h4,
+#printable-clinical-sheet p,
+#printable-clinical-sheet span,
+#printable-clinical-sheet div {
+  color: inherit;
 }
 
 .animate-wave-bar-1 {

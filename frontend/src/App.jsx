@@ -74,15 +74,15 @@ function MainApp() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-clinical-canvas text-slate-100 overflow-x-hidden">
+    <div className="relative min-h-screen flex flex-col bg-slate-50 dark:bg-clinical-canvas text-slate-900 dark:text-slate-100 overflow-x-hidden transition-colors duration-300">
       {/* Ambient multi-layer light field (decorative) */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-48 -left-40 w-[42rem] h-[42rem] rounded-full bg-indigo-500/25 blur-3xl animate-aurora" />
-        <div className="absolute -bottom-52 -right-44 w-[46rem] h-[46rem] rounded-full bg-violet-600/25 blur-3xl animate-aurora-rev" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[30rem] h-[30rem] rounded-full bg-cyan-500/15 blur-3xl animate-float-slow" />
+        <div className="absolute -top-48 -left-40 w-[42rem] h-[42rem] rounded-full bg-indigo-500/10 dark:bg-indigo-500/25 blur-3xl animate-aurora" />
+        <div className="absolute -bottom-52 -right-44 w-[46rem] h-[46rem] rounded-full bg-violet-600/10 dark:bg-violet-600/25 blur-3xl animate-aurora-rev" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[30rem] h-[30rem] rounded-full bg-cyan-500/10 dark:bg-cyan-500/15 blur-3xl animate-float-slow" />
         {/* Fine grid texture for a precise, techy depth */}
         <div
-          className="absolute inset-0 opacity-[0.05]"
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
           style={{
             backgroundImage:
               'linear-gradient(to right, rgba(148,163,184,0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.35) 1px, transparent 1px)',

@@ -845,20 +845,20 @@ export function TriageEvaluator({
           onSubmit={handleSubmit}
           role="region"
           aria-label="Formulario de Evaluación de Triage Clínico Veterinario"
-          className="bg-surface-container-low border border-surface-container-high/60 rounded-2xl overflow-hidden shadow-xl"
+          className="bg-white dark:bg-surface-container-low border border-slate-200 dark:border-surface-container-high/60 rounded-2xl overflow-hidden shadow-xl transition-colors duration-200"
         >
           {/* Header */}
-          <div className="relative p-6 sm:p-8 bg-gradient-to-br from-surface-container-low via-surface-container to-surface-container-high/40 border-b border-surface-container-high/60 space-y-2 overflow-hidden">
+          <div className="relative p-6 sm:p-8 bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-surface-container-low dark:via-surface-container dark:to-surface-container-high/40 border-b border-slate-200 dark:border-surface-container-high/60 space-y-2 overflow-hidden">
             <div className="absolute inset-0 bg-glass-sheen pointer-events-none" />
             <div className="absolute -top-24 -right-16 w-64 h-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
             <div className="relative flex items-center space-x-2 text-primary text-xs font-bold uppercase tracking-wider">
               <Sparkles className="w-4 h-4 text-secondary animate-pulse" />
               <span>Diagnóstico Multimodal Asistido por IA</span>
             </div>
-            <h2 className="relative text-xl sm:text-2xl font-black text-on-surface tracking-tight">
+            <h2 className="relative text-xl sm:text-2xl font-black text-slate-900 dark:text-on-surface tracking-tight">
               Evaluación de Triage en Vivo
             </h2>
-            <p className="relative text-xs sm:text-sm text-on-surface-variant">
+            <p className="relative text-xs sm:text-sm text-slate-600 dark:text-on-surface-variant">
               Ingresa los datos del paciente y captura una fotografía de la lesión o estado clínico para clasificar la severidad en tiempo real.
             </p>
           </div>
@@ -894,7 +894,7 @@ export function TriageEvaluator({
             )}
 
             {/* 1. Selector Visual de Especies Rurales (Grid de 8 Tarjetas Interactivas) */}
-            <div className="bg-surface-container-low border border-surface-container-high/60 rounded-xl shadow-md p-6 space-y-4">
+            <div className="bg-slate-50 dark:bg-surface-container-low border border-slate-200 dark:border-surface-container-high/60 rounded-xl shadow-md p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                 <label id="species-grid-label" className="block text-xs font-bold text-on-surface uppercase tracking-wider">
                   1. Especie Zootécnica / Animal Rural <span className="text-primary">*</span>

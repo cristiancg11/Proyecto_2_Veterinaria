@@ -8,6 +8,7 @@ import AuthScreen, { Auth } from './components/AuthScreen';
 import FarmOverviewBanner from './components/FarmOverviewBanner';
 import FieldFirstAidModal from './components/FieldFirstAidModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { PreferencesProvider } from './context/PreferencesContext';
 import useGeolocation from './hooks/useGeolocation';
 import useTriage from './hooks/useTriage';
 import {
@@ -209,9 +210,11 @@ function MainApp() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <PreferencesProvider>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </PreferencesProvider>
   );
 }
 

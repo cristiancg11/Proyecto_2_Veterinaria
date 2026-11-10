@@ -39,6 +39,7 @@ import EmergencyMap from './EmergencyMap';
 import generateTriagePDF from '../utils/generateTriagePDF';
 import compressImage from '../utils/imageCompressor';
 import VoiceRecordButton from './VoiceRecordButton';
+import { yieldToMain, runChunkedTask, withInputPriority } from '../utils/eventLoopOptimizer';
 
 /**
  * Off-thread image compressor helper using Web Worker
@@ -77,124 +78,124 @@ function compressImageWithWorker(file) {
   });
 }
 
-// Visual themes mapped strictly to urgency levels
+// Visual themes mapped strictly to urgency levels with sober clinical colors
 const URGENCY_THEMES = {
   CRITICO: {
-    color: '#EF4444',
-    bgBadge: 'bg-red-600',
-    border: 'border-red-500/70',
-    bgBanner: 'bg-urgency-critical',
-    textAccent: 'text-red-200',
+    color: '#C83D4D',
+    bgBadge: 'bg-[#C83D4D]',
+    border: 'border-[#C83D4D]',
+    bgBanner: 'bg-[#FDF2F4] dark:bg-[#2A1619]',
+    textAccent: 'text-[#C83D4D] dark:text-[#FFAAB4]',
     label: 'NIVEL CRÍTICO (EMERGENCIA INMEDIATA)',
     sublabel: 'Riesgo Vital Inminente - Hospitalización Urgente',
     icon: AlertTriangle,
-    pulse: true,
+    pulse: false,
   },
   CRITICAL: {
-    color: '#EF4444',
-    bgBadge: 'bg-red-600',
-    border: 'border-red-500/70',
-    bgBanner: 'bg-urgency-critical',
-    textAccent: 'text-red-200',
+    color: '#C83D4D',
+    bgBadge: 'bg-[#C83D4D]',
+    border: 'border-[#C83D4D]',
+    bgBanner: 'bg-[#FDF2F4] dark:bg-[#2A1619]',
+    textAccent: 'text-[#C83D4D] dark:text-[#FFAAB4]',
     label: 'NIVEL CRÍTICO (EMERGENCIA INMEDIATA)',
     sublabel: 'Riesgo Vital Inminente - Hospitalización Urgente',
     icon: AlertTriangle,
-    pulse: true,
+    pulse: false,
   },
   RED: {
-    color: '#EF4444',
-    bgBadge: 'bg-red-600',
-    border: 'border-red-500/70',
-    bgBanner: 'bg-urgency-critical',
-    textAccent: 'text-red-200',
+    color: '#C83D4D',
+    bgBadge: 'bg-[#C83D4D]',
+    border: 'border-[#C83D4D]',
+    bgBanner: 'bg-[#FDF2F4] dark:bg-[#2A1619]',
+    textAccent: 'text-[#C83D4D] dark:text-[#FFAAB4]',
     label: 'NIVEL CRÍTICO (EMERGENCIA INMEDIATA)',
     sublabel: 'Riesgo Vital Inminente',
     icon: AlertTriangle,
-    pulse: true,
+    pulse: false,
   },
   URGENTE: {
-    color: '#F97316',
-    bgBadge: 'bg-rose-600',
-    border: 'border-rose-500/70',
-    bgBanner: 'bg-urgency-critical',
-    textAccent: 'text-rose-200',
+    color: '#D77926',
+    bgBadge: 'bg-[#D77926]',
+    border: 'border-[#D77926]',
+    bgBanner: 'bg-[#FFF6ED] dark:bg-[#2B1B10]',
+    textAccent: 'text-[#D77926] dark:text-[#FFB575]',
     label: 'NIVEL URGENTE (ALTA PRIORIDAD)',
     sublabel: 'Atención médica en menos de 1-2 horas',
     icon: AlertTriangle,
     pulse: false,
   },
   ORANGE: {
-    color: '#F97316',
-    bgBadge: 'bg-rose-600',
-    border: 'border-rose-500/70',
-    bgBanner: 'bg-urgency-critical',
-    textAccent: 'text-rose-200',
+    color: '#D77926',
+    bgBadge: 'bg-[#D77926]',
+    border: 'border-[#D77926]',
+    bgBanner: 'bg-[#FFF6ED] dark:bg-[#2B1B10]',
+    textAccent: 'text-[#D77926] dark:text-[#FFB575]',
     label: 'NIVEL URGENTE (ALTA PRIORIDAD)',
     sublabel: 'Atención médica en menos de 1-2 horas',
     icon: AlertTriangle,
     pulse: false,
   },
   MODERADO: {
-    color: '#F59E0B',
-    bgBadge: 'bg-amber-500',
-    border: 'border-amber-400/70',
-    bgBanner: 'bg-urgency-watch',
-    textAccent: 'text-amber-100',
+    color: '#A97812',
+    bgBadge: 'bg-[#A97812]',
+    border: 'border-[#A97812]',
+    bgBanner: 'bg-[#FEFCE8] dark:bg-[#2B2713]',
+    textAccent: 'text-[#A97812] dark:text-[#FDE047]',
     label: 'NIVEL MODERADO (ATENCIÓN PRIORITARIA)',
     sublabel: 'Atención médica en el transcurso del día',
     icon: AlertTriangle,
     pulse: false,
   },
   MODERATE: {
-    color: '#F59E0B',
-    bgBadge: 'bg-amber-500',
-    border: 'border-amber-400/70',
-    bgBanner: 'bg-urgency-watch',
-    textAccent: 'text-amber-100',
+    color: '#A97812',
+    bgBadge: 'bg-[#A97812]',
+    border: 'border-[#A97812]',
+    bgBanner: 'bg-[#FEFCE8] dark:bg-[#2B2713]',
+    textAccent: 'text-[#A97812] dark:text-[#FDE047]',
     label: 'NIVEL MODERADO (ATENCIÓN PRIORITARIA)',
     sublabel: 'Atención médica en el transcurso del día',
     icon: AlertTriangle,
     pulse: false,
   },
   YELLOW: {
-    color: '#F59E0B',
-    bgBadge: 'bg-amber-500',
-    border: 'border-amber-400/70',
-    bgBanner: 'bg-urgency-watch',
-    textAccent: 'text-amber-100',
+    color: '#A97812',
+    bgBadge: 'bg-[#A97812]',
+    border: 'border-[#A97812]',
+    bgBanner: 'bg-[#FEFCE8] dark:bg-[#2B2713]',
+    textAccent: 'text-[#A97812] dark:text-[#FDE047]',
     label: 'NIVEL MODERADO (ATENCIÓN PRIORITARIA)',
     sublabel: 'Atención médica en el transcurso del día',
     icon: AlertTriangle,
     pulse: false,
   },
   LEVE: {
-    color: '#06b6d4',
-    bgBadge: 'bg-cyan-500',
-    border: 'border-cyan-400/60',
-    bgBanner: 'bg-urgency-preventive',
-    textAccent: 'text-cyan-100',
+    color: '#27825D',
+    bgBadge: 'bg-[#27825D]',
+    border: 'border-[#27825D]',
+    bgBanner: 'bg-[#EAF3F0] dark:bg-[#152720]',
+    textAccent: 'text-[#27825D] dark:text-[#64DDB0]',
     label: 'NIVEL LEVE (MANEJO AMBULATORIO)',
     sublabel: 'Sin riesgo vital aparente - Manejo en 24-48h',
     icon: CheckCircle2,
     pulse: false,
   },
   MILD: {
-    color: '#06b6d4',
-    bgBadge: 'bg-cyan-500',
-    border: 'border-cyan-400/60',
-    bgBanner: 'bg-urgency-preventive',
-    textAccent: 'text-cyan-100',
+    color: '#27825D',
+    bgBadge: 'bg-[#27825D]',
+    border: 'border-[#27825D]',
+    bgBanner: 'bg-[#EAF3F0] dark:bg-[#152720]',
+    textAccent: 'text-[#27825D] dark:text-[#64DDB0]',
     label: 'NIVEL LEVE (MANEJO AMBULATORIO)',
     sublabel: 'Sin riesgo vital aparente',
     icon: CheckCircle2,
     pulse: false,
   },
   GREEN: {
-    color: '#06b6d4',
-    bgBadge: 'bg-cyan-500',
-    border: 'border-cyan-400/60',
-    bgBanner: 'bg-urgency-preventive',
-    textAccent: 'text-cyan-100',
+    color: '#27825D',
+    bgBadge: 'bg-[#27825D]',
+    border: 'border-[#27825D]',
+    bgBanner: 'bg-[#EAF3F0] dark:bg-[#152720]',
+    textAccent: 'text-[#27825D] dark:text-[#64DDB0]',
     label: 'NIVEL LEVE (MANEJO AMBULATORIO)',
     sublabel: 'Sin riesgo vital aparente',
     icon: CheckCircle2,
@@ -470,6 +471,15 @@ export function TriageEvaluator({
     });
   };
 
+  /**
+   * Batch processes symptom tags using chunked task slicing to prevent main-thread lag.
+   */
+  const handleAddSymptomsBatch = async (symptomsList = []) => {
+    await runChunkedTask(symptomsList, (symptom) => {
+      handleAddSymptom(symptom);
+    }, 5);
+  };
+
   // Voice transcription states and real-time live data-binding
   const [voiceSuccessMessage, setVoiceSuccessMessage] = useState('');
   const [liveSpeechText, setLiveSpeechText] = useState('');
@@ -610,6 +620,9 @@ export function TriageEvaluator({
 
     // b) Cambia el estado a loading = true con spinner animado
     setLoading(true);
+
+    // Yield execution to the browser event loop to flush the loading state before heavy I/O
+    await yieldToMain();
 
     try {
       // 1. Subida acelerada de imagen ya comprimida a Supabase Storage (bucket triage-images)
@@ -845,20 +858,18 @@ export function TriageEvaluator({
           onSubmit={handleSubmit}
           role="region"
           aria-label="Formulario de Evaluación de Triage Clínico Veterinario"
-          className="bg-white dark:bg-surface-container-low border border-slate-200 dark:border-surface-container-high/60 rounded-2xl overflow-hidden shadow-xl transition-colors duration-200"
+          className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-2xl overflow-hidden shadow-xs transition-colors duration-200"
         >
           {/* Header */}
-          <div className="relative p-6 sm:p-8 bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-surface-container-low dark:via-surface-container dark:to-surface-container-high/40 border-b border-slate-200 dark:border-surface-container-high/60 space-y-2 overflow-hidden">
-            <div className="absolute inset-0 bg-glass-sheen pointer-events-none" />
-            <div className="absolute -top-24 -right-16 w-64 h-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-            <div className="relative flex items-center space-x-2 text-primary text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-4 h-4 text-secondary animate-pulse" />
+          <div className="p-6 sm:p-8 bg-white dark:bg-[#162420] border-b border-[#DCE6E0] dark:border-[#233630] space-y-2">
+            <div className="flex items-center space-x-2 text-[#176B55] dark:text-[#45A987] text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-4 h-4" />
               <span>Diagnóstico Multimodal Asistido por IA</span>
             </div>
-            <h2 className="relative text-xl sm:text-2xl font-black text-slate-900 dark:text-on-surface tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-[#123B32] dark:text-[#E8EFEA] tracking-tight">
               Evaluación de Triage en Vivo
             </h2>
-            <p className="relative text-xs sm:text-sm text-slate-600 dark:text-on-surface-variant">
+            <p className="text-xs sm:text-sm text-[#66756F] dark:text-[#95A59F]">
               Ingresa los datos del paciente y captura una fotografía de la lesión o estado clínico para clasificar la severidad en tiempo real.
             </p>
           </div>
@@ -869,12 +880,12 @@ export function TriageEvaluator({
               <div
                 role="alert"
                 aria-live="polite"
-                className="flex items-start space-x-3 p-4 bg-error-container/40 border border-error/40 rounded-xl text-on-surface text-xs sm:text-sm shadow-sm"
+                className="flex items-start space-x-3 p-4 bg-[#FDF2F4] dark:bg-[#2A1619] border border-[#F7D7DC] dark:border-[#522328] rounded-xl text-[#C83D4D] text-xs sm:text-sm shadow-xs"
               >
-                <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-[#C83D4D] flex-shrink-0 mt-0.5" />
                 <div>
-                  <h5 className="font-bold text-white">Datos Incompletos</h5>
-                  <p className="text-on-surface-variant mt-0.5">{validationError}</p>
+                  <h5 className="font-bold text-[#C83D4D]">Datos Incompletos</h5>
+                  <p className="text-[#1F2D29] dark:text-[#E8EFEA] mt-0.5">{validationError}</p>
                 </div>
               </div>
             )}
@@ -883,23 +894,23 @@ export function TriageEvaluator({
               <div
                 role="alert"
                 aria-live="polite"
-                className="flex items-start space-x-3 p-4 bg-error-container/40 border border-error/40 rounded-xl text-on-surface text-xs sm:text-sm shadow-sm"
+                className="flex items-start space-x-3 p-4 bg-[#FDF2F4] dark:bg-[#2A1619] border border-[#F7D7DC] dark:border-[#522328] rounded-xl text-[#C83D4D] text-xs sm:text-sm shadow-xs"
               >
-                <AlertTriangle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-[#C83D4D] flex-shrink-0 mt-0.5" />
                 <div>
-                  <h5 className="font-bold text-white">Aviso en la Evaluación</h5>
-                  <p className="text-on-surface-variant mt-0.5 leading-relaxed">{networkError}</p>
+                  <h5 className="font-bold text-[#C83D4D]">Aviso en la Evaluación</h5>
+                  <p className="text-[#1F2D29] dark:text-[#E8EFEA] mt-0.5 leading-relaxed">{networkError}</p>
                 </div>
               </div>
             )}
 
             {/* 1. Selector Visual de Especies Rurales (Grid de 8 Tarjetas Interactivas) */}
-            <div className="bg-slate-50 dark:bg-surface-container-low border border-slate-200 dark:border-surface-container-high/60 rounded-xl shadow-md p-6 space-y-4">
+            <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                <label id="species-grid-label" className="block text-xs font-bold text-on-surface uppercase tracking-wider">
-                  1. Especie Zootécnica / Animal Rural <span className="text-primary">*</span>
+                <label id="species-grid-label" className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider">
+                  1. Especie Zootécnica / Animal Rural <span className="text-[#176B55]">*</span>
                 </label>
-                <span className="text-[11px] font-semibold text-secondary bg-surface-container-high px-2.5 py-0.5 rounded-full border border-primary/20 self-start sm:self-auto">
+                <span className="text-[11px] font-semibold text-[#176B55] dark:text-[#45A987] bg-[#EAF3F0] dark:bg-[#1F332C] px-2.5 py-0.5 rounded-full border border-[#DCE6E0] dark:border-[#233630] self-start sm:self-auto">
                   Seleccionado: <strong>{selectedSpeciesObj.emoji} {selectedSpeciesObj.name}</strong> • Ref: {selectedSpeciesObj.defaultWeight} kg
                 </span>
               </div>
@@ -930,26 +941,24 @@ export function TriageEvaluator({
                           handleSelectSpecies(sp);
                         }
                       }}
-                      className={`group p-3.5 rounded-xl border text-left transition-all duration-300 relative flex flex-col justify-between space-y-2 cursor-pointer focus:outline-hidden hover:-translate-y-0.5 ${
+                      className={`group p-3.5 rounded-xl border text-left transition-all duration-200 relative flex flex-col justify-between space-y-2 cursor-pointer focus:outline-hidden ${
                         isSelected
-                          ? 'ring-2 ring-primary bg-gradient-to-b from-primary-container/20 to-transparent bg-surface-container-high border-primary/30 text-on-surface shadow-md'
-                          : 'bg-surface-container-low hover:bg-surface-container border-surface-container-high/40 text-on-surface-variant'
+                          ? 'border-2 border-[#176B55] bg-[#EAF3F0] dark:bg-[#1F332C] text-[#123B32] dark:text-[#E8EFEA] shadow-xs'
+                          : 'bg-white dark:bg-[#1B2C27] border-[#DCE6E0] dark:border-[#233630] hover:border-[#176B55]/50 text-[#1F2D29] dark:text-[#E8EFEA]'
                       }`}
                     >
                       {/* Punto indicador de selección en la esquina superior derecha */}
                       {isSelected && (
                         <span
-                          className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(59,130,246,0.85)]"
+                          className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#176B55]"
                           aria-hidden="true"
                         />
                       )}
 
                       <div className="flex items-center justify-between">
                         <span
-                          className={`text-2xl sm:text-3xl transition-transform duration-300 ${
-                            isSelected
-                              ? 'scale-110 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]'
-                              : 'group-hover:scale-105'
+                          className={`text-2xl sm:text-3xl transition-transform duration-200 ${
+                            isSelected ? 'scale-105' : 'group-hover:scale-105'
                           }`}
                           aria-hidden="true"
                         >
@@ -958,8 +967,8 @@ export function TriageEvaluator({
                         <span
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
                             isSelected
-                              ? 'bg-primary text-white'
-                              : 'bg-surface-container-highest text-on-surface-variant'
+                              ? 'bg-[#176B55] text-white'
+                              : 'bg-[#F4F7F5] dark:bg-[#233630] text-[#66756F] dark:text-[#95A59F]'
                           }`}
                         >
                           {sp.category}
@@ -967,17 +976,17 @@ export function TriageEvaluator({
                       </div>
 
                       <div className="space-y-0.5">
-                        <div className={`font-extrabold text-xs sm:text-sm leading-tight ${isSelected ? 'text-white' : 'text-on-surface'}`}>
+                        <div className={`font-extrabold text-xs sm:text-sm leading-tight ${isSelected ? 'text-[#123B32] dark:text-white' : 'text-[#1F2D29] dark:text-[#E8EFEA]'}`}>
                           {sp.name}
                         </div>
-                        <div className="text-[10px] text-on-surface-variant truncate leading-tight">
+                        <div className="text-[10px] text-[#66756F] dark:text-[#95A59F] truncate leading-tight">
                           {sp.sublabel}
                         </div>
                       </div>
 
-                      <div className={`pt-1 border-t flex items-center justify-between text-[10px] ${isSelected ? 'border-primary/20' : 'border-surface-container-high/50'}`}>
-                        <span className="text-outline">Peso Ref:</span>
-                        <span className={`font-black ${isSelected ? 'text-primary' : 'text-secondary'}`}>~{sp.defaultWeight} kg</span>
+                      <div className={`pt-1 border-t flex items-center justify-between text-[10px] ${isSelected ? 'border-[#176B55]/20' : 'border-[#DCE6E0] dark:border-[#233630]'}`}>
+                        <span className="text-[#66756F] dark:text-[#95A59F]">Peso Ref:</span>
+                        <span className={`font-black ${isSelected ? 'text-[#176B55] dark:text-[#45A987]' : 'text-[#1F2D29] dark:text-[#E8EFEA]'}`}>~{sp.defaultWeight} kg</span>
                       </div>
                     </button>
                   );
@@ -985,13 +994,13 @@ export function TriageEvaluator({
               </div>
 
               {/* Orientación de Síntomas Frecuentes en la Especie Seleccionada */}
-              <div className="p-4 rounded-xl bg-surface-container-lowest border border-surface-container-high/60 space-y-2.5">
+              <div className="p-4 rounded-xl bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1.5 text-xs font-bold text-on-surface">
-                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <div className="flex items-center space-x-1.5 text-xs font-bold text-[#123B32] dark:text-[#E8EFEA]">
+                    <Sparkles className="w-3.5 h-3.5 text-[#176B55] dark:text-[#45A987]" />
                     <span>Síntomas Frecuentes en {selectedSpeciesObj.name} (Toca para agregar al reporte):</span>
                   </div>
-                  <span className="text-[10px] text-on-surface-variant hidden sm:inline">Guía zootécnica de campo</span>
+                  <span className="text-[10px] text-[#66756F] dark:text-[#95A59F] hidden sm:inline">Guía zootécnica de campo</span>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
@@ -1000,10 +1009,10 @@ export function TriageEvaluator({
                       key={idx}
                       type="button"
                       onClick={() => handleAddSymptom(symptom)}
-                      className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-surface-container border border-surface-container-high hover:border-primary/50 hover:bg-primary-container/20 hover:text-white text-on-surface-variant transition-all duration-200 flex items-center space-x-1 cursor-pointer text-left"
+                      className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] hover:border-[#176B55] hover:text-[#176B55] text-[#1F2D29] dark:text-[#E8EFEA] transition-all duration-200 flex items-center space-x-1 cursor-pointer text-left shadow-xs"
                       title="Haz clic para añadir a la descripción clínica"
                     >
-                      <Plus className="w-3 h-3 text-primary flex-shrink-0" />
+                      <Plus className="w-3 h-3 text-[#176B55] dark:text-[#45A987] flex-shrink-0" />
                       <span>{symptom}</span>
                     </button>
                   ))}
@@ -1012,12 +1021,12 @@ export function TriageEvaluator({
             </div>
 
             {/* 2. Peso Corporal Estimado (kg) */}
-            <div className="bg-surface-container-low border border-surface-container-high/60 rounded-xl shadow-md p-6 space-y-4">
+            <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold text-on-surface uppercase tracking-wider">
-                  2. Peso Corporal Estimado (kg) <span className="text-primary">*</span>
+                <label className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider">
+                  2. Peso Corporal Estimado (kg) <span className="text-[#176B55]">*</span>
                 </label>
-                <span className="text-[11px] text-on-surface-variant">
+                <span className="text-[11px] text-[#66756F] dark:text-[#95A59F]">
                   Rango referencial: {selectedSpeciesObj.weightRange}
                 </span>
               </div>
@@ -1034,15 +1043,15 @@ export function TriageEvaluator({
                     placeholder="Ej: 450"
                     disabled={loading}
                     aria-label="Peso corporal estimado en kilogramos"
-                    className="w-full pl-4 pr-14 py-3 bg-surface-container-lowest border border-surface-container-high text-on-surface focus:ring-1 focus:ring-primary focus:border-primary rounded-lg text-sm font-semibold placeholder:text-outline outline-none transition"
+                    className="w-full pl-4 pr-14 py-3 bg-white dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-[#E8EFEA] focus:ring-2 focus:ring-[#176B55] focus:border-[#176B55] rounded-xl text-sm font-semibold placeholder:text-[#66756F] outline-none transition"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-primary bg-primary-container/20 border border-primary/30 px-2 py-1 rounded-md">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#176B55] dark:text-[#45A987] bg-[#EAF3F0] dark:bg-[#1F332C] border border-[#DCE6E0] dark:border-[#233630] px-2 py-1 rounded-md">
                     KG
                   </div>
                 </div>
 
                 <div className="sm:col-span-7 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] text-on-surface-variant mr-1 hidden sm:inline">Ajuste rápido:</span>
+                  <span className="text-[11px] text-[#66756F] dark:text-[#95A59F] mr-1 hidden sm:inline">Ajuste rápido:</span>
                   {selectedSpeciesObj.weightPresets.map((w) => (
                     <button
                       key={w}
@@ -1050,8 +1059,8 @@ export function TriageEvaluator({
                       onClick={() => setPesoKg(w)}
                       className={`text-xs font-bold px-3 py-2 rounded-lg border transition-all duration-200 cursor-pointer ${
                         pesoKg === w
-                          ? 'bg-primary text-white border-primary shadow-md'
-                          : 'bg-surface-container-lowest border-surface-container-high text-on-surface-variant hover:border-primary/40 hover:text-on-surface'
+                          ? 'bg-[#176B55] text-white border-[#176B55] shadow-xs'
+                          : 'bg-white dark:bg-[#1B2C27] border-[#DCE6E0] dark:border-[#233630] text-[#66756F] dark:text-[#95A59F] hover:border-[#176B55] hover:text-[#176B55]'
                       }`}
                     >
                       {w} kg
@@ -1062,16 +1071,16 @@ export function TriageEvaluator({
             </div>
 
             {/* 3. Photo Upload & Preview with Photo Tips Accordion */}
-            <div className="bg-surface-container-low border border-surface-container-high/60 rounded-xl shadow-md p-6 space-y-4">
+            <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold text-on-surface uppercase tracking-wider">
-                  3. Fotografía de la Evidencia Visible <span className="text-primary">*</span>
+                <label className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider">
+                  3. Fotografía de la Evidencia Visible <span className="text-[#176B55]">*</span>
                 </label>
 
                 <button
                   type="button"
                   onClick={() => setIsGuidanceModalOpen(true)}
-                  className="text-xs text-secondary font-bold hover:text-primary flex items-center space-x-1.5 transition cursor-pointer"
+                  className="text-xs text-[#176B55] dark:text-[#45A987] font-bold hover:underline flex items-center space-x-1.5 transition cursor-pointer"
                 >
                   <Camera className="w-3.5 h-3.5" />
                   <span>Guía Completa de Fotos</span>
@@ -1079,48 +1088,48 @@ export function TriageEvaluator({
               </div>
 
               {/* Accordion: Consejos para una foto diagnóstica precisa */}
-              <div className="bg-surface-container-lowest border border-surface-container-high/60 rounded-xl overflow-hidden transition">
+              <div className="bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] rounded-xl overflow-hidden transition">
                 <div
                   onClick={() => setIsGuidanceOpen(!isGuidanceOpen)}
-                  className="p-3.5 flex items-center justify-between cursor-pointer select-none bg-surface-container/60 hover:bg-surface-container"
+                  className="p-3.5 flex items-center justify-between cursor-pointer select-none hover:bg-[#EAF3F0]/60 dark:hover:bg-[#1F332C]/60"
                 >
-                  <div className="flex items-center space-x-2 text-xs font-bold text-on-surface">
-                    <Info className="w-4 h-4 text-primary flex-shrink-0" />
+                  <div className="flex items-center space-x-2 text-xs font-bold text-[#123B32] dark:text-[#E8EFEA]">
+                    <Info className="w-4 h-4 text-[#176B55] flex-shrink-0" />
                     <span>Consejos para una foto diagnóstica precisa (Campo, Mucosas, Pezuñas y Heridas)</span>
                   </div>
-                  <button type="button" className="text-on-surface-variant p-1">
+                  <button type="button" className="text-[#66756F] p-1">
                     {isGuidanceOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                 </div>
 
                 {isGuidanceOpen && (
-                  <div className="p-4 pt-1 border-t border-surface-container-high/40 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                    <div className="p-3 bg-surface-container-low rounded-lg border border-surface-container-high/40 space-y-1">
-                      <div className="font-bold text-on-surface flex items-center space-x-1">
+                  <div className="p-4 pt-1 border-t border-[#DCE6E0] dark:border-[#233630] grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div className="p-3 bg-white dark:bg-[#162420] rounded-lg border border-[#DCE6E0] dark:border-[#233630] space-y-1">
+                      <div className="font-bold text-[#123B32] dark:text-[#E8EFEA] flex items-center space-x-1">
                         <span>🧪</span>
                         <span>Muestras de Campo (Diarreas / Salivación)</span>
                       </div>
-                      <p className="text-[11px] text-on-surface-variant leading-snug">
+                      <p className="text-[11px] text-[#66756F] dark:text-[#95A59F] leading-snug">
                         Foto cenital a 90° con luz natural de día en corral o cama. Evita reflejo de flash sobre fluidos.
                       </p>
                     </div>
 
-                    <div className="p-3 bg-surface-container-low rounded-lg border border-surface-container-high/40 space-y-1">
-                      <div className="font-bold text-on-surface flex items-center space-x-1">
+                    <div className="p-3 bg-white dark:bg-[#162420] rounded-lg border border-[#DCE6E0] dark:border-[#233630] space-y-1">
+                      <div className="font-bold text-[#123B32] dark:text-[#E8EFEA] flex items-center space-x-1">
                         <span>👁️</span>
                         <span>Mucosas Oculares / Belfo (FAMACHA)</span>
                       </div>
-                      <p className="text-[11px] text-on-surface-variant leading-snug">
+                      <p className="text-[11px] text-[#66756F] dark:text-[#95A59F] leading-snug">
                         Foto nítida a 20 cm retrayendo suavemente párpado inferior o belfo para ver si hay palidez por anemia.
                       </p>
                     </div>
 
-                    <div className="p-3 bg-surface-container-low rounded-lg border border-surface-container-high/40 space-y-1">
-                      <div className="font-bold text-on-surface flex items-center space-x-1">
+                    <div className="p-3 bg-white dark:bg-[#162420] rounded-lg border border-[#DCE6E0] dark:border-[#233630] space-y-1">
+                      <div className="font-bold text-[#123B32] dark:text-[#E8EFEA] flex items-center space-x-1">
                         <span>🦶</span>
                         <span>Pezuñas / Aplomos / Heridas</span>
                       </div>
-                      <p className="text-[11px] text-on-surface-variant leading-snug">
+                      <p className="text-[11px] text-[#66756F] dark:text-[#95A59F] leading-snug">
                         Toma macro del casco libre de barro o corte por alambre de púa, más toma amplia de postura del animal.
                       </p>
                     </div>
@@ -1130,16 +1139,16 @@ export function TriageEvaluator({
 
               {/* Upload Dropzone or Image Preview */}
               {!previewUrl ? (
-                <div className="border-2 border-dashed border-surface-container-high hover:border-primary/50 rounded-xl p-6 bg-surface-container-lowest text-center transition flex flex-col items-center justify-center space-y-4">
-                  <div className="w-14 h-14 rounded-xl bg-primary-container/20 text-primary border border-primary/30 flex items-center justify-center shadow-lg shadow-black/40">
-                    <UploadCloud className="w-7 h-7" />
+                <div className="border-2 border-dashed border-[#DCE6E0] dark:border-[#233630] hover:border-[#176B55]/60 rounded-xl p-6 bg-[#F4F7F5] dark:bg-[#1B2C27] text-center transition flex flex-col items-center justify-center space-y-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#EAF3F0] dark:bg-[#1F332C] text-[#176B55] dark:text-[#45A987] border border-[#DCE6E0] dark:border-[#233630] flex items-center justify-center shadow-xs">
+                    <UploadCloud className="w-6 h-6" />
                   </div>
 
                   <div className="space-y-1 max-w-sm">
-                    <p className="text-xs sm:text-sm font-semibold text-on-surface">
+                    <p className="text-xs sm:text-sm font-semibold text-[#1F2D29] dark:text-[#E8EFEA]">
                       Carga la evidencia fotográfica del caso
                     </p>
-                    <p className="text-[11px] text-on-surface-variant">
+                    <p className="text-[11px] text-[#66756F] dark:text-[#95A59F]">
                       Soporta fotos tomadas en vivo desde el móvil o archivos JPEG, PNG, WebP (máx. 25MB)
                     </p>
                   </div>
@@ -1148,7 +1157,7 @@ export function TriageEvaluator({
                     <button
                       type="button"
                       onClick={() => cameraInputRef.current?.click()}
-                      className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 hover:brightness-110 text-white font-bold text-xs shadow-[0_0_14px_rgba(37,99,235,0.35)] flex items-center space-x-2 transition-all duration-200 cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white font-bold text-xs shadow-xs flex items-center space-x-2 transition cursor-pointer"
                     >
                       <Camera className="w-4 h-4 text-white" />
                       <span>Tomar Foto con Cámara</span>
@@ -1157,26 +1166,26 @@ export function TriageEvaluator({
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-4 py-2.5 rounded-lg bg-surface-container border border-surface-container-high hover:border-primary/40 text-on-surface font-semibold text-xs flex items-center space-x-2 transition-all duration-200 cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] hover:border-[#176B55] text-[#176B55] dark:text-[#45A987] font-semibold text-xs flex items-center space-x-2 transition cursor-pointer shadow-xs"
                     >
-                      <ImageIcon className="w-4 h-4 text-secondary" />
+                      <ImageIcon className="w-4 h-4 text-[#176B55] dark:text-[#45A987]" />
                       <span>Subir desde Galería</span>
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="relative rounded-xl overflow-hidden border border-surface-container-high bg-surface-container-lowest flex items-center justify-center max-h-80 shadow-inner">
+                <div className="relative rounded-xl overflow-hidden border border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#1B2C27] flex items-center justify-center max-h-80 shadow-xs">
                   <img
                     src={previewUrl}
                     alt="Evidencia clínica del paciente"
                     className="max-h-72 w-auto object-contain rounded-lg"
                   />
                   <div className="absolute bottom-3 left-3 flex flex-wrap items-center gap-2">
-                    <div className="bg-surface-container-low/90 backdrop-blur-xs text-on-surface text-[11px] px-3 py-1 rounded-full font-medium border border-surface-container-high/60">
+                    <div className="bg-white/95 dark:bg-[#162420]/95 text-[#1F2D29] dark:text-[#E8EFEA] text-[11px] px-3 py-1 rounded-full font-medium border border-[#DCE6E0] dark:border-[#233630] shadow-xs">
                       {selectedFile?.name || 'Fotografía adjunta'}
                     </div>
                     {isOptimized && (
-                      <span className="bg-primary-container text-white text-[11px] px-2.5 py-1 rounded-full font-bold shadow-xs flex items-center space-x-1">
+                      <span className="bg-[#176B55] text-white text-[11px] px-2.5 py-1 rounded-full font-bold shadow-xs flex items-center space-x-1">
                         <span>Foto optimizada para envío rápido ⚡</span>
                       </span>
                     )}
@@ -1184,7 +1193,7 @@ export function TriageEvaluator({
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="absolute top-3 right-3 p-2 rounded-full bg-surface-container-low/90 hover:bg-error text-white transition shadow-md cursor-pointer border border-surface-container-high"
+                    className="absolute top-3 right-3 p-2 rounded-full bg-white/90 dark:bg-[#162420]/90 hover:bg-[#C83D4D] hover:text-white text-[#C83D4D] transition shadow-xs cursor-pointer border border-[#DCE6E0]"
                     title="Eliminar o cambiar fotografía"
                   >
                     <X className="w-4 h-4" />
@@ -1193,20 +1202,19 @@ export function TriageEvaluator({
               )}
 
               {isCompressing && (
-                <div className="flex items-center space-x-2 text-xs font-semibold text-on-surface bg-surface-container-lowest p-2.5 rounded-lg border border-primary/30">
+                <div className="flex items-center space-x-2 text-xs font-semibold text-[#1F2D29] dark:text-[#E8EFEA] bg-[#F4F7F5] dark:bg-[#1B2C27] p-2.5 rounded-xl border border-[#176B55]/30">
                   <span className="relative flex h-3 w-3 flex-shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-70" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary" />
+                    <span className="inline-flex rounded-full h-3 w-3 bg-[#176B55]" />
                   </span>
-                  <span className="animate-pulse">Optimizando fotografía para transmisión rápida...</span>
+                  <span>Optimizando fotografía para transmisión rápida...</span>
                 </div>
               )}
 
               {isOptimized && !isCompressing && (
-                <div className="flex items-center space-x-2 text-xs font-bold text-primary bg-primary-container/20 border border-primary/30 px-3.5 py-2 rounded-lg">
-                  <Zap className="w-3.5 h-3.5 text-secondary animate-pulse" />
+                <div className="flex items-center space-x-2 text-xs font-bold text-[#176B55] dark:text-[#45A987] bg-[#EAF3F0] dark:bg-[#1F332C] border border-[#DCE6E0] dark:border-[#233630] px-3.5 py-2 rounded-xl">
+                  <Zap className="w-3.5 h-3.5 text-[#176B55] dark:text-[#45A987]" />
                   <span>Foto optimizada para envío rápido ⚡</span>
-                  <span className="text-[11px] text-on-surface-variant font-normal">
+                  <span className="text-[11px] text-[#66756F] dark:text-[#95A59F] font-normal">
                     (~{(selectedFile?.size / 1024).toFixed(0)} KB listos para inferencia acelerada)
                   </span>
                 </div>
@@ -1234,10 +1242,10 @@ export function TriageEvaluator({
             </div>
 
             {/* 4. Symptoms Description */}
-            <div className="bg-surface-container-low border border-surface-container-high/60 rounded-xl shadow-md p-6 space-y-4">
+            <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                <label className="block text-xs font-bold text-on-surface uppercase tracking-wider">
-                  4. Síntomas y Comportamiento Clínico <span className="text-primary">*</span>
+                <label className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider">
+                  4. Síntomas y Comportamiento Clínico <span className="text-[#176B55]">*</span>
                 </label>
                 <VoiceRecordButton
                   onTranscriptionComplete={handleVoiceTranscription}
@@ -1249,15 +1257,15 @@ export function TriageEvaluator({
               </div>
 
               {voiceSuccessMessage && (
-                <div className="mb-2.5 p-3 rounded-lg bg-primary-container/20 border border-primary/30 text-on-surface text-xs font-bold flex items-center justify-between shadow-sm animate-fadeIn">
+                <div className="mb-2.5 p-3 rounded-xl bg-[#EAF3F0] dark:bg-[#1F332C] border border-[#DCE6E0] dark:border-[#233630] text-[#176B55] dark:text-[#45A987] text-xs font-bold flex items-center justify-between shadow-xs">
                   <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-[#176B55] flex-shrink-0" />
                     <span>{voiceSuccessMessage}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setVoiceSuccessMessage('')}
-                    className="text-on-surface-variant hover:text-white text-xs font-bold px-1"
+                    className="text-[#66756F] hover:text-[#1F2D29] text-xs font-bold px-1"
                     aria-label="Cerrar notificación"
                   >
                     ✕
@@ -1266,9 +1274,9 @@ export function TriageEvaluator({
               )}
 
               {liveSpeechText && (
-                <div className="mb-2 px-3 py-2 rounded-lg bg-surface-container-lowest border border-primary text-secondary text-xs flex items-center space-x-2 animate-pulse shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-ping flex-shrink-0" />
-                  <span className="font-bold text-primary flex-shrink-0">Dictando en vivo:</span>
+                <div className="mb-2 px-3 py-2 rounded-xl bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#176B55] text-[#176B55] dark:text-[#45A987] text-xs flex items-center space-x-2 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-[#176B55] flex-shrink-0" />
+                  <span className="font-bold text-[#176B55] flex-shrink-0">Dictando en vivo:</span>
                   <span className="truncate italic font-medium">&ldquo;{liveSpeechText}&rdquo;</span>
                 </div>
               )}
@@ -1283,18 +1291,18 @@ export function TriageEvaluator({
                 disabled={loading}
                 aria-label="Descripción de síntomas y comportamiento clínico del paciente"
                 placeholder="Describe qué sucedió, tiempo desde el inicio, postura de dolor, vómito, color de encías, sangrado o dificultad respiratoria..."
-                className="w-full px-4 py-3 bg-surface-container-lowest border border-surface-container-high text-on-surface focus:ring-1 focus:ring-primary focus:border-primary rounded-lg text-xs sm:text-sm placeholder:text-outline outline-none transition"
+                className="w-full px-4 py-3 bg-white dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-[#E8EFEA] focus:ring-2 focus:ring-[#176B55] focus:border-[#176B55] rounded-xl text-xs sm:text-sm placeholder:text-[#66756F] outline-none transition"
               />
             </div>
 
             {/* 5. Celular / WhatsApp para contacto de urgencia */}
-            <div className="bg-surface-container-low border border-surface-container-high/60 rounded-xl shadow-md p-6 space-y-3">
+            <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs p-6 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <label className="block text-xs font-bold text-on-surface uppercase tracking-wider flex items-center space-x-1.5">
-                  <Phone className="w-3.5 h-3.5 text-primary" />
+                <label className="block text-xs font-bold text-[#123B32] dark:text-[#E8EFEA] uppercase tracking-wider flex items-center space-x-1.5">
+                  <Phone className="w-3.5 h-3.5 text-[#176B55]" />
                   <span>Celular / WhatsApp para contacto de urgencia:</span>
                 </label>
-                <span className="text-[10px] text-secondary font-semibold">
+                <span className="text-[10px] text-[#66756F] dark:text-[#95A59F] font-semibold">
                   Se incluirá automáticamente en la derivación SOS de WhatsApp
                 </span>
               </div>
@@ -1318,31 +1326,31 @@ export function TriageEvaluator({
                   disabled={loading}
                   aria-label="Celular / WhatsApp para contacto de urgencia"
                   placeholder="Ej: 3123456789"
-                  className="w-full pl-9 pr-4 py-2.5 bg-surface-container-lowest border border-surface-container-high text-on-surface focus:ring-1 focus:ring-primary focus:border-primary rounded-lg text-xs sm:text-sm font-semibold placeholder:text-outline outline-none transition"
+                  className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-[#E8EFEA] focus:ring-2 focus:ring-[#176B55] focus:border-[#176B55] rounded-xl text-xs sm:text-sm font-semibold placeholder:text-[#66756F] outline-none transition"
                 />
-                <Phone className="w-4 h-4 text-primary absolute left-3 top-1/2 -translate-y-1/2" />
+                <Phone className="w-4 h-4 text-[#176B55] absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
             </div>
           </div>
 
           {/* Action Footer */}
-          <div className="bg-surface-container-lowest px-6 sm:px-8 py-5 border-t border-surface-container-high/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-2 text-xs text-on-surface-variant">
-              <Activity className="w-4 h-4 text-secondary" />
+          <div className="bg-[#F4F7F5] dark:bg-[#1B2C27] px-6 sm:px-8 py-5 border-t border-[#DCE6E0] dark:border-[#233630] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-2 text-xs text-[#66756F] dark:text-[#95A59F]">
+              <Activity className="w-4 h-4 text-[#176B55] dark:text-[#45A987]" />
               <span>Inferencia Multimodal con Google Gemini 2.5 Flash</span>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto px-8 bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-[0_0_24px_rgba(37,99,235,0.45)] hover:brightness-110 py-3.5 transition-all duration-300 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2.5 cursor-pointer"
+              className="w-full sm:w-auto px-8 bg-[#176B55] hover:bg-[#135846] text-white font-bold rounded-xl shadow-xs py-3.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2.5 cursor-pointer"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin text-white" />
                   <div className="flex items-center space-x-1.5 text-left">
                     <span>{getLoadingMessage()}</span>
-                    <span className="text-indigo-100/80 text-xs font-mono">({loadingSeconds}s)</span>
+                    <span className="text-white/80 text-xs font-mono">({loadingSeconds}s)</span>
                   </div>
                 </>
               ) : (
@@ -1360,16 +1368,16 @@ export function TriageEvaluator({
       {/* PASO 2: TEST CLÍNICO RÁPIDO DE CONFIRMACIÓN (3 PREGUNTAS SÍ/NO) */}
       {/* ============================================================ */}
       {step === 'confirm_test' && preliminaryResult && (
-        <div className="glass-card glass-edge rounded-3xl p-6 sm:p-8 space-y-6 animate-in zoom-in-95 duration-200">
-          <div className="space-y-2 border-b border-white/10 pb-5">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-200 text-xs font-bold uppercase tracking-wider">
-              <Stethoscope className="w-3.5 h-3.5 text-cyan-300" />
+        <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-2xl p-6 sm:p-8 space-y-6 shadow-xs animate-in zoom-in-95 duration-200">
+          <div className="space-y-2 border-b border-[#DCE6E0] dark:border-[#233630] pb-5">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EAF3F0] dark:bg-[#1F332C] border border-[#DCE6E0] dark:border-[#233630] text-[#176B55] dark:text-[#45A987] text-xs font-bold uppercase tracking-wider">
+              <Stethoscope className="w-3.5 h-3.5 text-[#176B55] dark:text-[#45A987]" />
               <span>Paso de Validación Médica</span>
             </div>
-            <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            <h3 className="text-xl sm:text-2xl font-black text-[#123B32] dark:text-[#E8EFEA] tracking-tight">
               Test Clínico Rápido de Confirmación (3 preguntas)
             </h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#66756F] dark:text-[#95A59F] leading-relaxed">
               La IA ha evaluado la muestra como <strong>{preliminaryResult.urgency_level}</strong>. Responde estas 3 preguntas rápidas de inspección física para confirmar con máxima precisión el semáforo final y desbloquear el protocolo de urgencias.
             </p>
           </div>
@@ -1379,13 +1387,13 @@ export function TriageEvaluator({
             {testQuestions.map((item, idx) => (
               <div
                 key={item.id}
-                className="p-5 rounded-2xl border border-slate-700/60 bg-slate-950/40 space-y-3 transition hover:border-indigo-500/30"
+                className="p-5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-[#F4F7F5] dark:bg-[#1B2C27] space-y-3 transition"
               >
                 <div className="flex items-start space-x-3">
-                  <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                  <div className="w-7 h-7 rounded-lg bg-[#176B55] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
                     {idx + 1}
                   </div>
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-100 leading-snug">
+                  <h4 className="text-xs sm:text-sm font-bold text-[#1F2D29] dark:text-[#E8EFEA] leading-snug">
                     {item.question}
                   </h4>
                 </div>
@@ -1396,8 +1404,8 @@ export function TriageEvaluator({
                     onClick={() => setTestAnswers((prev) => ({ ...prev, [item.id]: true }))}
                     className={`py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition cursor-pointer ${
                       testAnswers[item.id] === true
-                        ? 'bg-red-600 text-white border-red-600 shadow-md shadow-red-600/30'
-                        : 'bg-slate-950/40 text-slate-300 border-slate-700 hover:border-rose-400/40 hover:text-rose-200'
+                        ? 'bg-[#C83D4D] text-white border-[#C83D4D] shadow-xs'
+                        : 'bg-white dark:bg-[#162420] text-[#1F2D29] dark:text-[#E8EFEA] border-[#DCE6E0] dark:border-[#233630] hover:border-[#C83D4D] hover:text-[#C83D4D]'
                     }`}
                   >
                     <Check className="w-4 h-4" />
@@ -1409,8 +1417,8 @@ export function TriageEvaluator({
                     onClick={() => setTestAnswers((prev) => ({ ...prev, [item.id]: false }))}
                     className={`py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition cursor-pointer ${
                       testAnswers[item.id] === false
-                        ? 'bg-gradient-to-r from-indigo-600 to-teal-500 text-white border-transparent shadow-md shadow-indigo-600/20'
-                        : 'bg-slate-950/40 text-slate-300 border-slate-700 hover:border-cyan-400/40 hover:text-cyan-200'
+                        ? 'bg-[#176B55] text-white border-[#176B55] shadow-xs'
+                        : 'bg-white dark:bg-[#162420] text-[#1F2D29] dark:text-[#E8EFEA] border-[#DCE6E0] dark:border-[#233630] hover:border-[#176B55] hover:text-[#176B55]'
                     }`}
                   >
                     <X className="w-4 h-4" />
@@ -1422,8 +1430,8 @@ export function TriageEvaluator({
           </div>
 
           {/* Action Button */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-700/50">
-            <span className="text-xs text-slate-400">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#DCE6E0] dark:border-[#233630]">
+            <span className="text-xs text-[#66756F] dark:text-[#95A59F]">
               {Object.values(testAnswers).filter((v) => v !== null).length} de 3 respondidas
             </span>
 
@@ -1431,7 +1439,7 @@ export function TriageEvaluator({
               type="button"
               onClick={handleConfirmPronostico}
               disabled={loading}
-              className="w-full sm:w-auto px-8 bg-gradient-to-r from-indigo-600 to-teal-500 hover:brightness-110 shadow-lg shadow-indigo-600/20 text-white font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto px-8 bg-[#176B55] hover:bg-[#135846] shadow-xs text-white font-semibold py-3 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -1464,44 +1472,39 @@ export function TriageEvaluator({
             role="alert"
             aria-live="assertive"
             aria-label={`Semáforo de urgencia clínica: ${theme.label}. ${theme.sublabel}`}
-            className="bg-surface-container-low border border-surface-container-high/60 rounded-2xl overflow-hidden shadow-2xl space-y-6 transition-all duration-300"
+            className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-2xl overflow-hidden shadow-xs space-y-6 transition-all duration-200"
           >
-            {/* Banner superior de severidad con animación de pulso Stitch */}
+            {/* Banner superior de severidad */}
             <div
-              className="relative overflow-hidden p-6 sm:p-8 border-b border-surface-container-high/60 bg-gradient-to-r from-surface-container-low via-surface-container to-surface-container-high/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              className={`p-6 sm:p-8 border-b border-[#DCE6E0] dark:border-[#233630] ${theme.bgBanner} flex flex-col sm:flex-row sm:items-center justify-between gap-4`}
             >
-              <div className="absolute inset-0 bg-glass-sheen pointer-events-none" />
-              <div className="relative flex items-center space-x-4">
+              <div className="flex items-center space-x-4">
                 <div
-                  className="w-14 h-14 rounded-2xl bg-gradient-to-br from-error via-red-600 to-rose-700 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] flex items-center justify-center flex-shrink-0 animate-pulse"
+                  className={`w-12 h-12 rounded-xl text-white flex items-center justify-center flex-shrink-0 shadow-xs ${theme.bgBadge}`}
                 >
-                  <UrgencyIcon className="w-8 h-8" />
+                  <UrgencyIcon className="w-6 h-6" />
                 </div>
 
                 <div>
-                  <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-wider">
-                    <span className="text-secondary font-bold">Semáforo de Triage Clínico Confirmado</span>
-                    <span className="text-on-surface-variant">•</span>
-                    <span className="text-on-surface font-semibold">{theme.sublabel}</span>
+                  <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider">
+                    <span className="text-[#176B55] dark:text-[#45A987]">Semáforo de Triage Clínico Confirmado</span>
+                    <span className="text-[#66756F]">•</span>
+                    <span className="text-[#1F2D29] dark:text-[#E8EFEA] font-medium">{theme.sublabel}</span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight mt-0.5 leading-snug">
+                  <h2 className="text-xl sm:text-2xl font-black text-[#123B32] dark:text-[#E8EFEA] tracking-tight mt-0.5 leading-snug">
                     {theme.label}
                   </h2>
                 </div>
               </div>
 
-              <div className="relative flex items-center space-x-3">
-                {/* Badge pulsante de Criticidad Nivel 1 */}
-                <div className="bg-error-container/30 border border-error/40 text-error shadow-[0_0_20px_rgba(239,68,68,0.4)] px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center space-x-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
-                  </span>
-                  <span>Nivel 1 • Rescate Inmediato</span>
+              <div className="flex items-center space-x-3">
+                <div className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center space-x-2 border ${theme.border} ${theme.bgBanner} ${theme.textAccent}`}>
+                  <span className={`w-2 h-2 rounded-full ${theme.bgBadge}`} />
+                  <span>{theme.label.includes('CRÍTICO') ? 'Nivel 1 • Inmediato' : theme.label.includes('URGENTE') ? 'Nivel 2 • Urgente' : 'Atención Requerida'}</span>
                 </div>
 
-                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-surface-container-high border border-surface-container-highest text-on-surface shadow-sm flex items-center space-x-1.5">
-                  <Clock className="w-3.5 h-3.5 text-secondary" />
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-[#E8EFEA] shadow-xs flex items-center space-x-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[#176B55]" />
                   <span>{diagnosisResult.vet_consultation_timeframe || 'Inmediata'}</span>
                 </span>
               </div>
@@ -1511,55 +1514,55 @@ export function TriageEvaluator({
               {/* Diagnósticos Presuntivos Probabilísticos & Hallazgos Visuales */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Tarjeta de Diagnóstico Presuntivo con Barra de Probabilidad */}
-                <div className="bg-surface-container-high border border-surface-container-highest/60 rounded-xl p-4 space-y-3 shadow-sm hover:border-primary/40 transition-colors">
+                <div className="bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] rounded-xl p-4 space-y-3 shadow-xs">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Stethoscope className="w-4 h-4 text-primary" />
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                      <Stethoscope className="w-4 h-4 text-[#176B55]" />
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#66756F] dark:text-[#95A59F]">
                         Diagnóstico Presuntivo Principal
                       </h4>
                     </div>
-                    <span className="text-xs font-mono font-bold text-secondary">
+                    <span className="text-xs font-mono font-bold text-[#176B55] dark:text-[#45A987]">
                       {diagnosisResult.confidence ? `${Math.round(diagnosisResult.confidence * 100)}% Confianza` : '94.2% Confianza'}
                     </span>
                   </div>
 
-                  <p className="text-base sm:text-lg font-black text-on-surface leading-snug">
+                  <p className="text-base sm:text-lg font-black text-[#123B32] dark:text-[#E8EFEA] leading-snug">
                     {diagnosisResult.presumptive_diagnosis || 'Evaluación de urgencia en proceso'}
                   </p>
 
-                  {/* Barra de probabilidad con degradado exacto de Stitch */}
+                  {/* Barra de probabilidad sobria */}
                   <div className="space-y-1 pt-1">
-                    <div className="w-full h-2 rounded-full bg-surface-container-lowest overflow-hidden">
+                    <div className="w-full h-2 rounded-full bg-[#DCE6E0] dark:bg-[#233630] overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-error via-secondary to-primary transition-all duration-700"
+                        className="h-full rounded-full bg-[#176B55] transition-all duration-700"
                         style={{
                           width: `${diagnosisResult.confidence ? Math.max(20, Math.round(diagnosisResult.confidence * 100)) : 94}%`,
                         }}
                       />
                     </div>
-                    <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                    <p className="text-[11px] text-[#66756F] dark:text-[#95A59F] leading-relaxed">
                       Correlación multimodal calculada por visión computacional y telemetría zootécnica.
                     </p>
                   </div>
                 </div>
 
                 {/* Hallazgos Visuales Detectados */}
-                <div className="bg-surface-container-high border border-surface-container-highest/60 rounded-xl p-4 space-y-3 shadow-sm">
+                <div className="bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] rounded-xl p-4 space-y-3 shadow-xs">
                   <div className="flex items-center space-x-2">
-                    <HeartPulse className="w-4 h-4 text-secondary" />
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    <HeartPulse className="w-4 h-4 text-[#176B55]" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#66756F] dark:text-[#95A59F]">
                       Hallazgos Visuales Detectados
                     </h4>
                   </div>
-                  <p className="text-xs sm:text-sm text-on-surface leading-relaxed font-medium">
+                  <p className="text-xs sm:text-sm text-[#1F2D29] dark:text-[#E8EFEA] leading-relaxed font-medium">
                     {diagnosisResult.visual_findings || 'Análisis de imagen completado con éxito con segmentación anatómica.'}
                   </p>
                   <div className="pt-1 flex items-center gap-2">
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-surface-container-lowest border border-surface-container-highest text-secondary font-semibold">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] text-[#176B55] dark:text-[#45A987] font-semibold">
                       Análisis Óptico Confirmado
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-surface-container-lowest border border-surface-container-highest text-on-surface-variant">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] text-[#66756F] dark:text-[#95A59F]">
                       Gemini 2.5 Flash Multimodal
                     </span>
                   </div>
@@ -1567,29 +1570,28 @@ export function TriageEvaluator({
               </div>
 
               {/* Recomendación de Centro de Atención y Tiempo Estimado */}
-              <div className="relative overflow-hidden p-5 rounded-xl bg-surface-container border border-surface-container-high/60 text-on-surface shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="absolute inset-0 bg-glass-sheen pointer-events-none" />
-                <div className="relative space-y-1">
-                  <div className="flex items-center space-x-2 text-[10px] uppercase font-bold tracking-wider text-secondary">
+              <div className="p-5 rounded-xl bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] text-[#1F2D29] dark:text-[#E8EFEA] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2 text-[10px] uppercase font-bold tracking-wider text-[#176B55] dark:text-[#45A987]">
                     <ShieldCheck className="w-4 h-4" />
                     <span>Recomendación de Nivel Hospitalario</span>
                   </div>
-                  <h4 className="text-base sm:text-lg font-extrabold text-on-surface">
+                  <h4 className="text-base sm:text-lg font-extrabold text-[#123B32] dark:text-[#E8EFEA]">
                     {diagnosisResult.facility_recommendation ||
                       (theme.label?.includes('CRÍTICO')
                         ? 'Hospital Veterinario de Urgencias 24H (UCI & Quirófano)'
                         : 'Clínica Veterinaria Especializada')}
                   </h4>
-                  <p className="text-xs text-on-surface-variant">
+                  <p className="text-xs text-[#66756F] dark:text-[#95A59F]">
                     Derivación inmediata activada en red hospitalaria de Nariño/Pasto.
                   </p>
                 </div>
 
-                <div className="relative flex items-center space-x-2 bg-surface-container-high px-4 py-2.5 rounded-xl border border-surface-container-highest self-start sm:self-auto">
-                  <Clock className="w-4 h-4 text-secondary flex-shrink-0" />
+                <div className="flex items-center space-x-2 bg-white dark:bg-[#162420] px-4 py-2.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] self-start sm:self-auto shadow-xs">
+                  <Clock className="w-4 h-4 text-[#176B55] flex-shrink-0" />
                   <div className="text-xs">
-                    <span className="text-[10px] text-on-surface-variant block uppercase font-bold">Ventana de Atención</span>
-                    <span className="font-extrabold text-on-surface">
+                    <span className="text-[10px] text-[#66756F] dark:text-[#95A59F] block uppercase font-bold">Ventana de Atención</span>
+                    <span className="font-extrabold text-[#123B32] dark:text-[#E8EFEA]">
                       {diagnosisResult.vet_consultation_timeframe || 'Inmediata (< 15 min)'}
                     </span>
                   </div>
@@ -1600,8 +1602,8 @@ export function TriageEvaluator({
               {diagnosisResult.vital_risks && diagnosisResult.vital_risks.length > 0 && (
                 <div className="space-y-2.5">
                   <div className="flex items-center space-x-2">
-                    <AlertTriangle className="w-4 h-4 text-error" />
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-error">
+                    <AlertTriangle className="w-4 h-4 text-[#C83D4D]" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#C83D4D]">
                       Riesgos Vitales y Complicaciones a Monitorear
                     </h4>
                   </div>
@@ -1609,9 +1611,9 @@ export function TriageEvaluator({
                     {diagnosisResult.vital_risks.map((risk, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start space-x-3 p-3.5 rounded-xl bg-error-container/20 border border-error/30 text-on-surface text-xs sm:text-sm font-semibold"
+                        className="flex items-start space-x-3 p-3.5 rounded-xl bg-[#FDF2F4] dark:bg-[#2A1619] border border-[#F7D7DC] dark:border-[#522328] text-[#1F2D29] dark:text-[#E8EFEA] text-xs sm:text-sm font-semibold"
                       >
-                        <span className="w-2 h-2 rounded-full bg-error flex-shrink-0 mt-1.5" />
+                        <span className="w-2 h-2 rounded-full bg-[#C83D4D] flex-shrink-0 mt-1.5" />
                         <span className="leading-snug">{risk}</span>
                       </div>
                     ))}
@@ -1622,10 +1624,10 @@ export function TriageEvaluator({
               {/* Checklist del Protocolo de Manejo Inmediato con Badges de Etapa Temporal */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-secondary flex items-center space-x-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#123B32] dark:text-[#E8EFEA] flex items-center space-x-2">
                     <span>Protocolo de Manejo Inmediato (Pautas Prioritarias)</span>
                   </h4>
-                  <span className="text-[11px] font-bold text-on-surface-variant bg-surface-container-high border border-surface-container-highest px-2.5 py-0.5 rounded-full">
+                  <span className="text-[11px] font-bold text-[#176B55] dark:text-[#45A987] bg-[#EAF3F0] dark:bg-[#1F332C] border border-[#DCE6E0] dark:border-[#233630] px-2.5 py-0.5 rounded-full">
                     {diagnosisResult.first_aid_actions?.length || 0} pasos clínicos
                   </span>
                 </div>
@@ -1637,9 +1639,9 @@ export function TriageEvaluator({
                     return (
                       <div
                         key={idx}
-                        className="flex items-start space-x-3.5 p-3.5 rounded-xl bg-surface-container border border-surface-container-high/60 text-xs sm:text-sm text-on-surface hover:border-primary/40 transition shadow-sm"
+                        className="flex items-start space-x-3.5 p-3.5 rounded-xl bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] text-xs sm:text-sm text-[#1F2D29] dark:text-[#E8EFEA] hover:border-[#176B55]/50 transition shadow-xs"
                       >
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-container-highest text-secondary border border-secondary/30 flex-shrink-0 mt-0.5">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-[#162420] text-[#176B55] dark:text-[#45A987] border border-[#DCE6E0] dark:border-[#233630] flex-shrink-0 mt-0.5 shadow-xs">
                           {stageBadge}
                         </span>
                         <span className="leading-relaxed font-medium">{action}</span>
@@ -1650,13 +1652,13 @@ export function TriageEvaluator({
               </div>
 
               {/* Botón de Acción Destacado: Descargar Ficha Clínica (PDF) */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 bg-surface-container border border-surface-container-high/70 rounded-xl">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 bg-[#F4F7F5] dark:bg-[#1B2C27] border border-[#DCE6E0] dark:border-[#233630] rounded-xl shadow-xs">
                 <div className="space-y-0.5">
-                  <h5 className="font-extrabold text-sm text-on-surface flex items-center gap-1.5">
-                    <FileText className="w-4 h-4 text-primary" />
+                  <h5 className="font-extrabold text-sm text-[#123B32] dark:text-[#E8EFEA] flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-[#176B55]" />
                     <span>Ficha Médica de Pre-Ingreso Generada</span>
                   </h5>
-                  <p className="text-xs text-on-surface-variant leading-relaxed">
+                  <p className="text-xs text-[#66756F] dark:text-[#95A59F] leading-relaxed">
                     Descarga el informe oficial en PDF para entregar al especialista veterinario o archivar en tu expediente.
                   </p>
                 </div>
@@ -1664,7 +1666,7 @@ export function TriageEvaluator({
                 <button
                   type="button"
                   onClick={handleExportPDF}
-                  className="bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 hover:brightness-110 text-white font-semibold py-3 px-5 rounded-xl flex items-center justify-center gap-2 shadow-[0_0_16px_rgba(37,99,235,0.4)] transition-all duration-200 active:scale-95 cursor-pointer flex-shrink-0"
+                  className="bg-[#176B55] hover:bg-[#135846] text-white font-semibold py-3 px-5 rounded-xl flex items-center justify-center gap-2 shadow-xs transition-all duration-200 active:scale-95 cursor-pointer flex-shrink-0"
                   title="Descargar Ficha Clínica (PDF)"
                 >
                   <FileText className="w-5 h-5" />
@@ -1673,24 +1675,24 @@ export function TriageEvaluator({
               </div>
 
               {/* Asistente de Primeros Auxilios con IA */}
-              <div className="bg-surface-container-low border border-primary/30 rounded-xl p-6 shadow-xl space-y-4 text-on-surface">
+              <div className="bg-white dark:bg-[#162420] border border-[#DCE6E0] dark:border-[#233630] rounded-xl p-6 shadow-xs space-y-4 text-[#1F2D29] dark:text-[#E8EFEA]">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start space-x-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-container to-blue-700 text-white flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(37,99,235,0.4)]">
-                      <HeartPulse className="w-6 h-6 animate-pulse" />
+                    <div className="w-12 h-12 rounded-xl bg-[#176B55] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                      <HeartPulse className="w-6 h-6" />
                     </div>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-surface-container-high text-primary border border-primary/30 px-2 py-0.5 rounded-full flex items-center space-x-1.5">
-                          <span className="w-2 h-2 rounded-full bg-primary animate-ping inline-block" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-[#EAF3F0] dark:bg-[#1F332C] text-[#176B55] dark:text-[#45A987] border border-[#DCE6E0] dark:border-[#233630] px-2 py-0.5 rounded-full flex items-center space-x-1.5">
+                          <span className="w-2 h-2 rounded-full bg-[#176B55]" />
                           <span>Copilot IA en Vivo</span>
                         </span>
-                        <span className="text-xs text-on-surface-variant">• Orientación Quirúrgica 24/7</span>
+                        <span className="text-xs text-[#66756F] dark:text-[#95A59F]">• Orientación Quirúrgica 24/7</span>
                       </div>
-                      <h4 className="font-extrabold text-base sm:text-lg text-on-surface mt-1">
+                      <h4 className="font-extrabold text-base sm:text-lg text-[#123B32] dark:text-[#E8EFEA] mt-1">
                         ¿Dudas sobre cómo aplicar los primeros auxilios?
                       </h4>
-                      <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed max-w-xl">
+                      <p className="text-xs sm:text-sm text-[#66756F] dark:text-[#95A59F] leading-relaxed max-w-xl">
                         Conversa en tiempo real con el Asistente Clínico de VetIA manteniendo todo el contexto, antecedentes y fotografías de este triaje.
                       </p>
                     </div>
@@ -1700,7 +1702,7 @@ export function TriageEvaluator({
                 <button
                   type="button"
                   onClick={() => onOpenChat && onOpenChat(diagnosisResult)}
-                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-primary-container via-blue-600 to-blue-700 hover:brightness-110 text-white font-extrabold text-sm sm:text-base shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center justify-center space-x-2.5 transition transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white font-extrabold text-sm sm:text-base shadow-xs flex items-center justify-center space-x-2.5 transition transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                 >
                   <MessageSquare className="w-5 h-5 text-white" />
                   <span>Abrir Chat de Primeros Auxilios con la IA</span>
@@ -1709,17 +1711,17 @@ export function TriageEvaluator({
             </div>
 
             {/* Footer Reset Action */}
-            <div className="bg-surface-container-lowest px-6 sm:px-8 py-4 border-t border-surface-container-high/60 flex items-center justify-between">
+            <div className="bg-[#F4F7F5] dark:bg-[#1B2C27] px-6 sm:px-8 py-4 border-t border-[#DCE6E0] dark:border-[#233630] flex items-center justify-between">
               <button
                 type="button"
                 onClick={handleReset}
-                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl border border-surface-container-high bg-surface-container-low text-on-surface hover:border-primary/40 hover:text-primary text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer"
+                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl border border-[#DCE6E0] dark:border-[#233630] bg-white dark:bg-[#162420] text-[#1F2D29] dark:text-[#E8EFEA] hover:border-[#176B55] hover:text-[#176B55] text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer shadow-xs"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Nueva Evaluación de Triage</span>
               </button>
 
-              <span className="text-[11px] text-on-surface-variant">
+              <span className="text-[11px] text-[#66756F] dark:text-[#95A59F]">
                 Paciente: {especie} • {pesoKg} kg • Resguardado en Supabase
               </span>
             </div>
@@ -1730,8 +1732,8 @@ export function TriageEvaluator({
           {/* ============================================================ */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center space-x-2 px-1">
-              <MapPin className="w-5 h-5 text-cyan-300 animate-bounce" />
-              <h3 className="font-black text-lg sm:text-xl text-slate-50">
+              <MapPin className="w-5 h-5 text-[#176B55] dark:text-[#45A987]" />
+              <h3 className="font-black text-lg sm:text-xl text-[#123B32] dark:text-[#E8EFEA]">
                 Centros Veterinarios de Urgencias & Ruta en Tiempo Real
               </h3>
             </div>

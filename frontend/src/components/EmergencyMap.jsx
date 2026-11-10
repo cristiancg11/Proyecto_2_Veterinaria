@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, ZoomControl, useMap }
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
-import { useVetVoiceRadar } from '../hooks/useVetVoiceRadar';
 import {
   getGoogleMapsLocationUrl,
   getGoogleMapsDirectionsUrl,
@@ -491,15 +490,6 @@ export function EmergencyMap({
     return clinicsWithDistance[0];
   }, [selectedClinicId, clinicsWithDistance]);
 
-  // VetRadar Voice: Real-time audio proximity guidance
-  const {
-    isRadarActive,
-    toggleRadar,
-    nearestClinic: radarNearestClinic,
-    distanceMeters: radarDistanceMeters,
-    announceNow,
-  } = useVetVoiceRadar(clinicsWithDistance, userCoords);
-
   // Fetch real-time OSRM driving route with turn-by-turn steps
   useEffect(() => {
     if (!activeClinic || !userCoords) return;
@@ -704,20 +694,6 @@ export function EmergencyMap({
 
           <button
             type="button"
-            onClick={toggleRadar}
-            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition shadow-lg cursor-pointer ${
-              isRadarActive
-                ? 'bg-[#C83D4D] text-white shadow-rose-600/30 ring-2 ring-rose-400'
-                : 'bg-primary-container text-white shadow-blue-600/30 hover:brightness-110'
-            }`}
-            title={isRadarActive ? 'Desactivar audio-guía de radar' : 'Activar audio-guía de voz a la veterinaria más cercana'}
-          >
-            <span className="material-symbols-outlined text-sm animate-pulse">radar</span>
-            <span>{isRadarActive ? 'Radar por Voz Activo' : 'Voz: Guiar a Veterinaria Cercana'}</span>
-          </button>
-
-          <button
-            type="button"
             onClick={handleGpsSync}
             disabled={geoLoading}
             className="px-4 py-2.5 rounded-xl bg-[#176B55] hover:bg-[#135846] text-white text-xs font-semibold shadow-xs flex items-center space-x-2 transition cursor-pointer"
@@ -728,58 +704,6 @@ export function EmergencyMap({
           </button>
         </div>
       </div>
-
-      {/* VetRadar Voice: Active Audio Guidance Banner */}
-      {isRadarActive && (
-        <div className="bg-[#EAF3F0] dark:bg-[#162420] border-2 border-[#176B55] px-4 py-3 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md animate-in fade-in duration-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-[#176B55] text-white flex items-center justify-center flex-shrink-0 shadow-sm">
-              <span className="material-symbols-outlined text-base animate-pulse">volume_up</span>
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-[11px] font-black uppercase tracking-wider text-[#176B55] dark:text-[#45A987]">
-                  VetRadar Voice • Audio-Guía en Vivo
-                </span>
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#176B55] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#176B55]"></span>
-                </span>
-              </div>
-              <p className="text-xs text-[#1F2D29] dark:text-slate-200 font-semibold mt-0.5">
-                {radarNearestClinic
-                  ? `Destino próximo: ${radarNearestClinic.name} (${radarDistanceMeters ? `${radarDistanceMeters}m` : 'calculando...'})`
-                  : 'Rastreando centro veterinario más próximo a tu ubicación GPS...'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3 self-end sm:self-auto">
-            <div className="flex items-center space-x-1 px-2 h-6" aria-hidden="true">
-              <div className="w-1 bg-[#176B55] rounded-full animate-wave-bar-1"></div>
-              <div className="w-1 bg-[#176B55] rounded-full animate-wave-bar-2"></div>
-              <div className="w-1 bg-[#45A987] rounded-full animate-wave-bar-3"></div>
-              <div className="w-1 bg-[#176B55] rounded-full animate-wave-bar-4"></div>
-              <div className="w-1 bg-[#123B32] rounded-full animate-wave-bar-5"></div>
-            </div>
-            <button
-              type="button"
-              onClick={() => announceNow()}
-              className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#1F2D29] border border-[#DCE6E0] dark:border-[#233630] text-[#176B55] dark:text-white text-[11px] font-bold hover:bg-[#F4F7F5] transition cursor-pointer"
-              title="Repetir mensaje de voz"
-            >
-              Repetir Audio 📢
-            </button>
-            <button
-              type="button"
-              onClick={toggleRadar}
-              className="px-2.5 py-1 rounded-lg bg-[#C83D4D] text-white text-[11px] font-bold hover:bg-[#A92E3C] transition cursor-pointer"
-              title="Silenciar y apagar radar"
-            >
-              Silenciar 🔇
-            </button>
-          </div>
-        </div>
-      )}
 
       {geoError && (
         <div className="bg-[#FFF9F2] dark:bg-[#2A2114] px-4 py-3.5 border border-[#D77926]/40 rounded-2xl text-[#D77926] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">

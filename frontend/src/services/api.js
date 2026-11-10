@@ -3,9 +3,16 @@
  * Handles HTTP REST communication for multimodal veterinary triage and interactive follow-up chat.
  */
 
-export const API_BASE_URL =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
+const rawBaseUrl =
+  (typeof import.meta !== 'undefined' &&
+    (import.meta.env?.VITE_API_BASE_URL || import.meta.env?.VITE_API_URL)) ||
   'http://localhost:8000/api/v1';
+
+// Robust normalization: strips trailing slashes and redundant endpoint suffixes if provided
+export const API_BASE_URL = rawBaseUrl
+  .replace(/\/triage\/analyze\/?$/, '')
+  .replace(/\/diagnose\/?$/, '')
+  .replace(/\/+$/, '');
 
 /**
  * Submit pet condition image and symptoms for multimodal triage evaluation.
@@ -71,6 +78,10 @@ export async function analyzeTriage(formData) {
       if (fallbackResponse.ok) {
         return await fallbackResponse.json();
       }
+      const fallbackError = await fallbackResponse.json().catch(() => ({}));
+      throw new Error(
+        fallbackError.detail || `Triage evaluation failed with status ${fallbackResponse.status}`
+      );
     }
 
     const errorData = await response.json().catch(() => ({}));

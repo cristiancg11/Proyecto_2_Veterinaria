@@ -26,6 +26,13 @@ export const t = {
     photo_title: "3. Fotografía de la Evidencia Visible",
     symptoms_title: "4. Síntomas y Comportamiento Clínico",
     phone_title: "5. Celular / WhatsApp para contacto de urgencia:",
+    nav: {
+      history: "Historial",
+      telemetry: "Triage Quirúrgico & Telemetría Veterinaria",
+      aiEngineStatus: "IA Motor v4.2 Activo • 99.8% Precisión Diagnóstica",
+      login: "Sign In",
+      logout: "Cerrar Sesión",
+    },
   },
   en: {
     nav_triage: "Clinical Triage & Dashboard",
@@ -49,7 +56,16 @@ export const t = {
     photo_title: "3. Visible Clinical Evidence Photo",
     symptoms_title: "4. Symptoms & Clinical Behavior",
     phone_title: "5. Emergency Mobile / WhatsApp Contact:",
+    nav: {
+      history: "History",
+      telemetry: "Surgical Triage & Veterinary Telemetry",
+      aiEngineStatus: "AI Engine v4.2 Active • 99.8% Diagnostic Accuracy",
+      login: "Sign In",
+      logout: "Sign Out",
+    },
   },
 };
 
+export const translations = t;
 export default t;
+
